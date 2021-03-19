@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+	<title>MonoDevelop for Unity</title>
+    <pkg-ref id="com.unity3d.MonoDevelop"/>
+    <options hostArchitectures='i386'/>
+    <options customize="never" require-scripts="true"/>
+    <background file="background.tiff" alignment="topleft"/>
+    <welcome file="Welcome.rtf"/>
+    <choices-outline>
+            <line choice="com.unity3d.MonoDevelop"/>
+    </choices-outline>
+    <choice id="com.unity3d.MonoDevelop" visible="false">
+        <pkg-ref id="com.unity3d.MonoDevelop" auth='Root'/>
+    </choice>
+    <pkg-ref id="com.unity3d.MonoDevelop" version="0" onConclusion="none">UnityMonoDevelop.pkg.tmp</pkg-ref>
+</installer-gui-script>

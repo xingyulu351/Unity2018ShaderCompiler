@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyWithTests1", "..\AssemblyWithTests1\AssemblyWithTests1.csproj", "{9A10130F-0739-4A50-89E3-F81131358CC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyWithTests2", "..\AssemblyWithTests2\AssemblyWithTests2.csproj", "{029E9440-98F2-41F7-B5DE-AEB87A68658C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder1", "SolutionFolder1", "{D937C318-D634-4779-9D13-62355B8FBB75}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder2", "SolutionFolder2", "{71CC87BB-64F8-45C7-AFF9-9503786ECF06}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder11", "SolutionFolder11", "{CF13CEC2-9CE9-46DF-B2E1-2FC8B7528257}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A10130F-0739-4A50-89E3-F81131358CC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A10130F-0739-4A50-89E3-F81131358CC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{029E9440-98F2-41F7-B5DE-AEB87A68658C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{029E9440-98F2-41F7-B5DE-AEB87A68658C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CF13CEC2-9CE9-46DF-B2E1-2FC8B7528257} = {D937C318-D634-4779-9D13-62355B8FBB75}
+		{9A10130F-0739-4A50-89E3-F81131358CC5} = {CF13CEC2-9CE9-46DF-B2E1-2FC8B7528257}
+	EndGlobalSection
+EndGlobal

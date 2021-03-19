@@ -1,0 +1,160 @@
+use Test::More;
+
+use warnings;
+use strict;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+use lib "$Bin/../../";
+use MercurialRepo;
+use FileUtils;
+use TestHelpers::ArrayAssertions qw (arraysAreEqual arrayContains);
+use Dirs;
+use RunTests qw (runTests fetchTrackedRepo isEmptyFolder);
+use File::Spec::Functions qw ();
+use File::Spec::Functions qw (canonpath catdir catfile);
+use File::Temp qw (tempdir);
+use File::pushd;
+use File::Copy;
+use ArtifactsMapBuilder;
+use Test::Deep;
+
+my $playerSavePath;
+
+BEGIN
+{
+    diag(__LINE__);
+    my $root = Dirs::getRoot();
+    my $gfxTemplateFolder = canonpath("Tests/Unity.GraphicsTestsRunner/GfxTestProjectFolder");
+
+    $playerSavePath = tempdir();
+    diag("Building testing player at $playerSavePath");
+    my ($exitCode, $artifactsPath) = runTests('--suite=graphics', '--testfilter=001', "-player-save-path=$playerSavePath", '--build-only');
+    my @playerDirs = glob("$playerSavePath/Standalone*/UnityGraphics*");
+    ok(scalar(@playerDirs) > 0, 'Player dirs are created');
+    if (-d "$root/$gfxTemplateFolder")
+    {
+        revertGfxRepo();
+    }
+    else
+    {
+        fetchTrackedRepo($gfxTemplateFolder);
+    }
+
+    my @editorLogs = glob("$artifactsPath/EditorBuild*.txt");
+    ok(scalar(@editorLogs) > 0, 'Editor logs are created');
+
+    sub revertGfxRepo
+    {
+        my $gfxFolderFullPath = canonpath("$root/$gfxTemplateFolder");
+        my $newdir = pushd($gfxFolderFullPath);
+        my $repo = new MercurialRepo(repo_dir => ".");
+        $repo->revert();
+    }
+
+    sub screwUpTheImage
+    {
+        my $utrRoot = Dirs::UTR_root();
+        my $dirtyImage = "$utrRoot/t/TestData/GraphicsTests/001-AnimProc-Dirty.png";
+        my $correctImageFullPath = "$root/$gfxTemplateFolder/TemplateImages/d3d9/001-AnimProc.png";
+        copy($dirtyImage, $correctImageFullPath);
+    }
+}
+
+RunTests_ProducesExpectedArtifacts:
+{
+    diag(__LINE__);
+    revertGfxRepo();
+    screwUpTheImage();
+    my ($exitCode, $artifactsPath) = runTests('--suite=graphics', '--testfilter=001', '--skip-build-deps');
+    my $suiteRoot = $artifactsPath;
+    _checkGraphicsTestRunnerArtifacts($artifactsPath);
+    _checkUnifiedTestRunnerArtifacts($artifactsPath);
+    _checkPlayer($artifactsPath);
+}
+
+sub _checkGraphicsTestRunnerArtifacts
+{
+    my ($suiteRoot) = @_;
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/TestResults.xml"));
+}
+
+sub _checkUnifiedTestRunnerArtifacts
+{
+    my ($suiteRoot) = @_;
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/FailedImages.zip"));
+}
+
+sub _checkPlayer
+{
+    my ($suiteRoot) = @_;
+    ok(not isEmptyFolder("$suiteRoot/Players"));
+    ok(-e "$suiteRoot/Players/.test-run-info");
+    ok(-e "$suiteRoot/Players/Scenes.txt");
+}
+
+RunTest_PlayerLoadPathIsSpecified_CanResuePlayer:
+{
+    diag(__LINE__);
+    revertGfxRepo();
+    screwUpTheImage();
+    my (undef, $artifactsPath) = runTests('--suite=graphics', '--testfilter=001', '--skip-build-deps');
+    my $suiteRoot = $artifactsPath;
+    my $playerLoadPath = canonpath("$suiteRoot/Players");
+    (undef, $artifactsPath) = runTests('--suite=graphics', "--player-load-path=$playerLoadPath");
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/FailedImages.zip"));
+    ok(not isEmptyFolder("$suiteRoot/Players"));
+}
+
+CanSavePlayer:
+{
+    diag(__LINE__);
+    revertGfxRepo();
+    screwUpTheImage();
+    my (undef, $artifactsPath) = runTests('--suite=graphics', "--player-load-path=$playerSavePath", '--skip-build-deps');
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/FailedImages.zip"));
+    ok(not -d "$suiteRoot/Players");
+}
+
+RunTest_SuiteIsNotSpecifiedCanDetermineSuiteToWichPlayerBelongsTo:
+{
+    diag(__LINE__);
+    revertGfxRepo();
+    screwUpTheImage();
+    my (undef, $artifactsPath) = runTests("--player-load-path=$playerSavePath", '--skip-build-deps');
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/GraphicsTestsRunner/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/FailedImages.zip"));
+    ok(not -d "$suiteRoot/Players");
+}
+
+CanListTestsOnABuiltPlayer:
+{
+    diag(__LINE__);
+    revertGfxRepo();
+    my ($exitCode) = runTests("--player-load-path=$playerSavePath", "--list", "--skip-build-deps");
+    is($exitCode, 0);
+}
+
+realityCheck:
+{
+    diag(__LINE__);
+    revertGfxRepo();
+    screwUpTheImage();
+    my (undef, $artifactsPath) = runTests('--suite=graphics', "--player-load-path=$playerSavePath", '--skip-build-deps');
+    my $suiteRoot = $artifactsPath;
+    diag("go and check $artifactsPath/TestReport.html");
+}
+
+done_testing();

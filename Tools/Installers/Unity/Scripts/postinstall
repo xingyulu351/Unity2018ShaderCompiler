@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# if previous versions of Unity are installed with a non matching bundle-ID, the installer will
+# install Unity into a Unity.localized folder instead of overwriting. While we have a preinstall 
+# script which removes the old Unity install, that is not called before the new install has been
+# staged in a temp folder. So fix it here.
+if [ -d "/Applications/Unity/Unity.localized" ]; then
+	mv "/Applications/Unity/Unity.localized/Unity.app" "/Applications/Unity/Unity.app"
+	rm -rf "/Applications/Unity/Unity.localized"
+fi
+
+chown -R root:admin "/Applications/Unity"
+chmod -R g+w "/Applications/Unity"
+
+if [ ! -d "/Library/Application Support/Unity" ]; then
+	mkdir "/Library/Application Support/Unity"
+	chmod a+rwx "/Library/Application Support/Unity"
+fi
+
+for i in WebKit WebCore JavaScriptCore
+do
+	ls -l /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/ /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/Versions
+	rm /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/Versions/Current
+	rm /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/Versions/$i
+
+	ln -s A /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/Versions/Current
+	for j in Headers PrivateHeaders Resources $i
+	do 
+		rm /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/$j
+		ln -s Versions/Current/$j /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/$j
+	done
+
+done
+
+for i in WebKit WebCore JavaScriptCore
+do
+        ls -l /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/ /Applications/Unity/Unity.app/Contents/Frameworks/$i.framework/Versions
+done
+
+exit 0

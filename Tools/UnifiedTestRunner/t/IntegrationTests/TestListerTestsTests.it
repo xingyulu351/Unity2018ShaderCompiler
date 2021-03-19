@@ -1,0 +1,238 @@
+use Test::More;
+
+use warnings;
+use strict;
+
+use FindBin qw ($Bin);
+use Cwd qw (abs_path);
+use File::Spec::Functions qw (canonpath);
+use File::Temp qw (tempfile);
+use lib $Bin;
+use lib "$Bin/../../";
+
+use Dirs;
+
+use Environments::Win;
+use Environments::Mono;
+use Environments::MonoBleedingEdge;
+use BuildEngines::XBuild;
+use CSProj;
+use NUnitSuiteRunnerBase;
+use SystemCall;
+use TestHelpers::ArrayAssertions qw (arrayContains arraysAreEquivalent);
+
+my $root = Dirs::getRoot();
+my $utrRoot = Dirs::UTR_root();
+
+my $testLister = canonpath("$root/Tests/Unity.TestLister/Unity.TestLister.csproj");
+my $projectWithTests1 = canonpath("$utrRoot/t/TestData/AssemblyWithTests1/AssemblyWithTests1.csproj");
+my $projectWithTests2 = canonpath("$utrRoot/t/TestData/AssemblyWithTests2/AssemblyWithTests2.csproj");
+
+_buildDepenencies();
+
+List_IncludeAttributeIsSpecified_ReturnsTestsMatchingIt:
+{
+    my @tests = list(assemblies => [$projectWithTests1], includes => 'Simple');
+    is(scalar(@tests), 1);
+    arrayContains(\@tests, 'AssemblyWithTests1.SimpleTests.SimpleTest1');
+}
+
+List_ExcludeAttributeIsSpecified_ReturnsTestsMatchingIt:
+{
+    my @tests = list(assemblies => [$projectWithTests1], excludes => 'Simple,NestedTestCase');
+    is(scalar(@tests), 1);
+    arrayContains(\@tests, 'AssemblyWithTests1.IgnoredTests.IgnoredTest1');
+}
+
+List_ExcludeSpecifiedForOneOfTwoCategories_ReturnsTestsMatchingIt:
+{
+    my @tests = list(assemblies => [$projectWithTests1], excludes => 'NestedTestCase');
+    is(scalar(@tests), 2);
+    arrayContains(\@tests, ['AssemblyWithTests1.IgnoredTests.IgnoredTest1', 'AssemblyWithTests1.SimpleTests.SimpleTest1']);
+}
+
+List_IncludeAttributeForTestsWithTestCases_ReturnsAllTheTestCases:
+{
+    my @tests = list(assemblies => [$projectWithTests1], includes => 'NestedTestCase');
+    is(scalar(@tests), 5);
+    arrayContains(
+        \@tests,
+        [
+            'AssemblyWithTests1.TestCases.TestCase1("3")', 'AssemblyWithTests1.TestCases.TestCase1("2")',
+            'AssemblyWithTests1.TestCases.TestCase1("1")', 'AssemblyWithTests1.TestCases.TestCase2("2")',
+            'AssemblyWithTests1.TestCases.TestCase2("1")'
+        ]
+    );
+}
+
+List_IncludeAttributeAndFilterForTestsWithTestCases_ReturnsAllTheTestCases:
+{
+    my @tests = list(assemblies => [$projectWithTests1], includes => 'NestedTestCase', testfilter => 'TestCase1');
+    is(scalar(@tests), 3);
+    arrayContains(\@tests,
+        ['AssemblyWithTests1.TestCases.TestCase1("3")', 'AssemblyWithTests1.TestCases.TestCase1("2")', 'AssemblyWithTests1.TestCases.TestCase1("1")',]);
+}
+
+List_NothingIsSpecified_ReturnsAllTestCases:
+{
+    my @tests = list(assemblies => [$projectWithTests1]);
+    is(scalar(@tests), 7);
+    arrayContains(
+        \@tests,
+        [
+            'AssemblyWithTests1.TestCases.TestCase1("3")', 'AssemblyWithTests1.TestCases.TestCase1("2")',
+            'AssemblyWithTests1.TestCases.TestCase1("1")', 'AssemblyWithTests1.TestCases.TestCase2("2")',
+            'AssemblyWithTests1.TestCases.TestCase2("1")', 'AssemblyWithTests1.IgnoredTests.IgnoredTest1',
+            'AssemblyWithTests1.SimpleTests.SimpleTest1'
+        ]
+    );
+}
+
+List_NotIncludeIgnoredIsSpecified_ReturnsAllTestCasesExceptIfnored:
+{
+    my @tests = list(assemblies => [$projectWithTests1], excludeignored => 1);
+    arraysAreEquivalent(
+        \@tests,
+        [
+            'AssemblyWithTests1.TestCases.TestCase1("3")', 'AssemblyWithTests1.TestCases.TestCase1("2")',
+            'AssemblyWithTests1.TestCases.TestCase1("1")', 'AssemblyWithTests1.TestCases.TestCase2("2")',
+            'AssemblyWithTests1.TestCases.TestCase2("1")', 'AssemblyWithTests1.SimpleTests.SimpleTest1'
+        ]
+    );
+}
+
+List_TestsFrom2Assemblies:
+{
+    my @tests = list(assemblies => [$projectWithTests1, $projectWithTests2], includes => 'Simple');
+    arraysAreEquivalent(\@tests, ['AssemblyWithTests1.SimpleTests.SimpleTest1', 'AssemblyWithTests2.SimpleTests.SimpleTest1']);
+}
+
+TODO:
+{
+    todo_skip "not yet supported", 2 if 1;
+List_TestsFromIL2CPPSolution:
+    {
+        _cleanCSProject($testLister);
+        _buildCSProject($testLister, '4.5');
+        _buildCSProject("$root/External/il2cpp/il2cpp/il2cpp.sln", '4.5');
+        my $env = new Environments::MonoBleedingEdge();
+        my $sln = canonpath("$root/External/il2cpp/il2cpp/il2cpp.sln");
+        my @tests = list(assemblies => [$sln], env => $env, monoArgs => ['--runtime=v4.0']);
+        ok(scalar(@tests) > 0);
+    }
+
+List_TestsFromIL2CPPSolution:
+    {
+        _cleanCSProject($testLister);
+        _buildCSProject($testLister, '4.5');
+        _buildCSProject("$root/External/il2cpp/il2cpp/il2cpp.sln", '4.5');
+        my $env = new Environments::MonoBleedingEdge();
+        my $sln = canonpath("$root/External/il2cpp/il2cpp/il2cpp.sln");
+        my @tests = list(assemblies => [$sln], env => $env, monoArgs => ['--runtime=v4.0']);
+        ok(scalar(@tests) > 0);
+    }
+}
+
+done_testing();
+
+sub list
+{
+    my (%params) = @_;
+
+    my $includes = $params{includes};
+    my $excludes = $params{excludes};
+    my $testfilter = $params{testfilter};
+    my $excludeignored = $params{excludeignored};
+    my @assemblies = @{ $params{assemblies} };
+    my $assemblyWithTests = $params{assemblyWithTests};
+    my (@args);
+    foreach my $a (@assemblies)
+    {
+        my $dllPath = _getAssemblyFullPath($a);
+        push(@args, "--assemblywithtests=$dllPath");
+    }
+
+    if ($includes)
+    {
+        push(@args, "--includes=$includes");
+    }
+
+    if ($excludes)
+    {
+        push(@args, "--excludes=$excludes");
+    }
+
+    if ($testfilter)
+    {
+        push(@args, "--testfilter=$testfilter");
+    }
+
+    if ($excludeignored)
+    {
+        push(@args, "--excludeignored");
+    }
+
+    my (undef, $tempFile) = tempfile();
+    push(@args, ">$tempFile");
+    my $env = new Environments::Mono();
+    if ($params{env})
+    {
+        $env = $params{env};
+    }
+
+    my @monoArgs;
+    if ($params{monoArgs})
+    {
+        @monoArgs = @{ $params{monoArgs} };
+    }
+
+    $env->setSystemCall(new SystemCall());
+    $env->runDotNetProgram(
+        program => "$root/Tests/Unity.TestLister/bin/Debug/Unity.TestLister.exe",
+        programArgs => \@args,
+        monoArgs => \@monoArgs
+    );
+
+    my $testPlan = NUnitSuiteRunnerBase::readTestPlanFromFile($tempFile);
+    return $testPlan->getTestNames();
+}
+
+sub _buildDepenencies
+{
+    _cleanCSProject($testLister);
+    _buildCSProject($testLister);
+    _buildCSProject($projectWithTests1);
+    _buildCSProject($projectWithTests2);
+}
+
+sub _getAssemblyFullPath
+{
+    my ($project) = @_;
+    my $proj = new CSProj($project);
+    return $proj->getAssemblyFullPath();
+}
+
+sub _buildCSProject
+{
+    my ($project, $framework) = @_;
+    my (undef, $logname) = tempfile();
+
+    my $buildEngine = new BuildEngines::XBuild();
+    $buildEngine->setSystemCall(new SystemCall());
+
+    $buildEngine->build(
+        config => "Debug",
+        project => $project,
+        rebuild => 1,
+        logfile => $logname,
+        framework => $framework
+    );
+}
+
+sub _cleanCSProject
+{
+    my ($project) = @_;
+    my $buildEngine = new BuildEngines::XBuild();
+    $buildEngine->setSystemCall(new SystemCall());
+    $buildEngine->clean($project);
+}

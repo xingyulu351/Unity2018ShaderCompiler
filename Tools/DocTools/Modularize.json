@@ -1,0 +1,24 @@
+{"Platforms": {	
+	"XboxOne":	{
+		"Prefixes": ["XboxOne", "UnityEngine.XboxOne"],
+		"PlatformDependent": "XboxOne",
+		"BuildOutput": "XboxOnePlayer"
+	},	
+	"PSVita" : {
+		"Prefixes": ["PSVita"],
+		"PlatformDependent": "PSP2Player",
+		"BuildOutput": "PSP2Player"
+	},
+	"PS4": {
+		"Namespaces": ["UnityEngine.PS4"],
+		"Prefixes": ["PS4"],
+		"PlatformDependent": "PS4",
+		"BuildOutput": "PS4Player"
+	},
+	"Switch":	{
+		"Namespaces": ["UnityEngine.Switch"],
+		"Prefixes": ["Switch"],
+		"PlatformDependent": "Switch",
+		"BuildOutput": "SwitchPlayer"
+	}
+}}

@@ -1,0 +1,210 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Misc/SaveAndLoadHelper.h"
+#include "Runtime/GameCode/CloneObject.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/Misc/GameObjectUtility.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+
+namespace UnityEngine
+{
+
+
+
+
+BEGIN DOC
+Base class for all objects Unity can reference.
+Any public variable you make that derives from Object gets shown in the inspector as a drop target, 
+allowing you to set the value from the GUI.
+END DOC
+
+CSRAW
+[StructLayout (LayoutKind.Sequential)]
+NONSEALED_CLASS Object
+	CSRAW
+#if !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+	private ReferenceData m_UnityRuntimeReferenceData;
+
+	#if UNITY_EDITOR
+	private string        m_UnityRuntimeErrorString;
+	#endif
+#else //UNITY_FLASH
+	//*undocumented*
+	[NotRenamed]
+	public int		m_InstanceID;
+	//*undocumented*
+	[NotRenamed]
+	public int		m_CachedPtr;
+#endif
+	
+	public override bool Equals(object o) { return CompareBaseObjects (this, o as Object); } 
+	public override int GetHashCode() 	{ return GetInstanceID();	}
+
+	// Does the object exist?
+	public static implicit operator bool (Object exists)
+	{
+		return !CompareBaseObjects (exists, null);
+	}
+
+	CSRAW private static bool CompareBaseObjects (Object lhs, Object rhs) 
+	{
+	#if PLATFORM_WINRT
+		return UnityEngineInternal.ScriptingUtils.CompareBaseObjects(lhs, rhs);
+	#else
+		return CompareBaseObjectsInternal (lhs, rhs); 
+	#endif
+	}
+
+	CUSTOM private static bool CompareBaseObjectsInternal ([Writable]Object lhs, [Writable]Object rhs) 
+	{
+		return CompareBaseObjects (lhs.GetScriptingObject(), rhs.GetScriptingObject()); 
+	}
+	
+	// Returns the instance id of the object.
+	CSRAW [NotRenamed]
+	CSRAW public int GetInstanceID ()
+	{
+#if !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+		return m_UnityRuntimeReferenceData.instanceID; 
+#else
+		return m_InstanceID;
+#endif
+	}
+
+	CUSTOM private static Object Internal_CloneSingle (Object data)
+	{
+		return Scripting::ScriptingWrapperFor (&CloneObject (*data));
+	}
+	CUSTOM private static Object Internal_InstantiateSingle (Object data, Vector3 pos, Quaternion rot)
+	{
+		Object* obj = &InstantiateObject (*data, pos, rot);
+#if UNITY_FLASH //working around annoying alchemybug
+		return Scripting::ScriptingWrapperForImpl (obj);
+#else
+		return Scripting::ScriptingWrapperFor(obj);
+#endif
+	}
+
+
+	// Clones the object /original/ and returns the clone.
+
+	
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeOfFirstArgument)]
+	CSRAW public static Object Instantiate (Object original, Vector3 position, Quaternion rotation)
+	{
+		CheckNullArgument(original,"The prefab you want to instantiate is null.");
+		return Internal_InstantiateSingle (original, position, rotation);
+	}
+
+	
+	// Clones the object /original/ and returns the clone.
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeOfFirstArgument)]
+	public static Object Instantiate (Object original)
+	{
+        CheckNullArgument(original,"The thing you want to instantiate is null.");
+		return Internal_CloneSingle (original);
+	}
+	#if ENABLE_GENERICS_BUT_CURRENTLY_DISABLED
+	// Generic version. See the [[wiki:Generic Functions|Generic Functions]] page for more details.
+	public static T Instantiate<T>(T original) where T : UnityEngine.Object
+	{
+		CheckNullArgument(original,"The thing you want to instantiate is null.");
+		return (T)Internal_CloneSingle (original);
+	}
+	#endif
+	
+	static private void CheckNullArgument(object arg, string message)
+	{
+		if (arg==null)
+			throw new ArgumentException(message);
+	}
+
+	// Removes a gameobject, component or asset.
+	CSRAW
+	CUSTOM static void Destroy (Object obj, float t = 0.0F) { DestroyObjectFromScripting (obj, t); }
+
+
+	// Destroys the object /obj/ immediately. It is strongly recommended to use Destroy instead.
+	CSRAW
+	CUSTOM static void DestroyImmediate (Object obj, bool allowDestroyingAssets = false) { DestroyObjectFromScriptingImmediate (obj, allowDestroyingAssets); }
+
+	// Returns a list of all active loaded objects of Type /type/.
+	CSRAW [TypeInferenceRule(TypeInferenceRules.ArrayOfTypeReferencedByFirstArgument)]
+	CUSTOM static Object[] FindObjectsOfType (Type type) { return ScriptingFindObjectsOfType (type, kFindActiveSceneObjects); }
+
+	// Returns the first active loaded object of Type /type/.
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeReferencedByFirstArgument)]
+	CSRAW public static Object FindObjectOfType (Type type)
+	{
+		Object[] objects = FindObjectsOfType (type);
+		if (objects.Length > 0)
+			return objects[0];
+		else
+			return null;
+	}
+
+
+	// Compares if two objects refer to the same
+	CSRAW public static bool operator == (Object x, Object y) { return CompareBaseObjects (x, y); }
+	
+	// Compares if two objects refer to a different object
+	CSRAW public static bool operator != (Object x, Object y) { return !CompareBaseObjects (x, y); } 
+	
+	// The name of the object.
+	CUSTOM_PROP string name { return CreateScriptingString (self->GetName ()); } { self->SetName ( value.ToUTF8().c_str()); }
+	
+	// Makes the object /target/ not be destroyed automatically when loading a new scene.
+	CUSTOM static void DontDestroyOnLoad (Object target)
+	{
+		Object* o = target;
+		if (o)
+			DontDestroyOnLoad (*o);
+	}
+
+	// Should the object be hidden, saved with the scene or modifiable by the user?
+	AUTO_PROP HideFlags hideFlags GetHideFlags SetHideFlags
+
+	//*undocumented* deprecated
+	// We cannot properly deprecate this in C# right now, since the optional parameter creates 
+	// another method calling this, which creates compiler warnings when deprecated.
+	// OBSOLETE warning use Object.Destroy instead.
+	CUSTOM static void DestroyObject (Object obj, float t = 0.0F) { DestroyObjectFromScripting (obj, t); }
+	
+	//*undocumented* DEPRECATED
+	OBSOLETE warning use Object.FindObjectsOfType instead.
+	CUSTOM static Object[] FindSceneObjectsOfType (Type type) { return ScriptingFindObjectsOfType (type, kFindActiveSceneObjects); }
+	
+	//*undocumented*  DEPRECATED
+	OBSOLETE warning use Resources.FindObjectsOfTypeAll instead.
+	CUSTOM static Object[] FindObjectsOfTypeIncludingAssets (Type type) { return ScriptingFindObjectsOfType (type, kFindAssets); }
+
+	CONDITIONAL ENABLE_MONO
+	OBSOLETE warning Please use Resources.FindObjectsOfTypeAll instead
+	CSRAW public static Object[] FindObjectsOfTypeAll (Type type) { return Resources.FindObjectsOfTypeAll (type); }
+
+	// Returns the name of the game object.
+	CUSTOM public override string ToString() {
+		return CreateScriptingString(GetSafeString(BaseObject, UnityObjectToString (self)));
+	}
+
+END
+CSRAW }

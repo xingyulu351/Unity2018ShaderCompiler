@@ -1,0 +1,41 @@
+use warnings;
+use strict;
+
+use Test::More;
+use FindBin qw ($Bin);
+use lib $Bin;
+use File::Path qw(make_path remove_tree);
+use File::Spec::Functions qw (catfile catdir);
+use File::Temp qw (tempdir);
+use RunTests qw (runTests);
+use SuiteResultLoadHelper;
+
+my $testDataFolder = tempdir();
+
+SavesPartitionIdIntoTheSuiteResult:
+{
+    my ($p1ExitCode, $p1Path) = runPartition("VectorMap");
+    my @partitionSuiteResults = SuiteResultLoadHelper::loadSuiteResults(catfile($p1Path, 'TestReportData.json'));
+    is(scalar(@partitionSuiteResults), 1);
+    is($partitionSuiteResults[0]->getPartitionId(), "VectorMap");
+}
+
+done_testing();
+
+sub runPartition
+{
+    my ($partionId, $testFilter) = @_;
+    my $partitionArtifactsPath = catdir($testDataFolder, $partionId);
+    diag("$partitionArtifactsPath");
+    make_path($partitionArtifactsPath);
+    my $exitCode = system(
+        'perl', 'test.pl', '--suite=native', "--partition-id=$partionId",
+        "--testFilter=$partionId", "--artifacts_path=$partitionArtifactsPath", '--loglevel=none', '--hoarder-uri=null'
+    );
+    return ($exitCode, $partitionArtifactsPath);
+}
+
+END
+{
+    remove_tree($testDataFolder);
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="AndroidJavaRunnable" type="Delegate">
+    <section>
+      <summary>AndroidJavaRunnable is the Unity representation of a java.lang.Runnable object.</summary>
+      <example convertexample="true">
+        <code lang="cs"><![CDATA[using UnityEngine;
+using System.Collections;
+
+public class ExampleClass : MonoBehaviour {
+    // Pass execution context over to the Java UI thread.
+    void Start() {
+        AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaObject activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        activity.Call("runOnUiThread", new AndroidJavaRunnable(runOnUiThread));
+    }
+    void runOnUiThread() {
+        Debug.Log("I'm running on the Java UI thread!");
+    }
+}]]></code>
+      </example>
+    </section>
+  </member>
+</doc>

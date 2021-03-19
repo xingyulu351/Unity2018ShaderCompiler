@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="UI.AspectRatioFitter.AspectMode" type="Enum" namespace="UnityEngine.UI">
+    <section>
+      <summary>Specifies a mode to use to enforce an aspect ratio.</summary>
+    </section>
+  </member>
+</doc>

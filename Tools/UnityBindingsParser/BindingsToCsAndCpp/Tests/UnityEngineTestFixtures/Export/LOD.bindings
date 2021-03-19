@@ -1,0 +1,117 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Camera/LODGroup.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Utilities/LODUtility.h"
+#include "Runtime/Camera/LODGroupManager.h"
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+// Structure for building a LOD for passing to the SetLODs function
+CONDITIONAL !UNITY_FLASH
+STRUCT LOD
+	// Construct a LOD
+	CSRAW public LOD (float screenRelativeTransitionHeight, Renderer[] renderers)
+	{
+		this.screenRelativeTransitionHeight = screenRelativeTransitionHeight;
+		this.renderers = renderers;
+	}
+
+	// The screen relative height to use for the transition [0-1]
+	CSRAW public float screenRelativeTransitionHeight;
+	// List of renderers for this LOD level
+	CSRAW public Renderer[] renderers;
+END
+
+// LODGroup lets you group multiple Renderers into LOD levels.
+CLASS LODGroup : Component
+	
+	// The local reference point against which the LOD distance is calculated.
+	AUTO_PROP Vector3 localReferencePoint GetLocalReferencePoint SetLocalReferencePoint
+
+	// The size of LOD object in local space
+	AUTO_PROP float   size GetSize SetSize
+	
+	// The number of LOD levels
+	CUSTOM_PROP int lodCount { return self->GetLODCount(); }
+
+	// Enable / Disable the LODGroup - Disabling will turn off all renderers.
+	CUSTOM_PROP bool enabled { return self->GetEnabled (); } { self->SetEnabled (value); }
+
+	// Recalculate the bounding region for the LODGroup (Relatively slow, do not call often)
+	CUSTOM void RecalculateBounds ()
+	{
+		CalculateLODGroupBoundingBox (*self);
+	}
+
+	// Set the LODs for the LOD group. This will remove any existing LODs configured on the LODGroup
+	CONDITIONAL !UNITY_FLASH
+	CUSTOM void SetLODS (LOD[] scriptingLODs)
+	{
+		//Number of LOD's
+		int size = GetScriptingArraySize (scriptingLODs);
+
+		if (size > kMaximumLODLevels)
+		{
+			WarningString(Format("SetLODs: Attempting to set more than the maximum number of LODS (%i) clamping", kMaximumLODLevels));
+			size = kMaximumLODLevels;
+		}
+
+		LODGroup::LODArray lods;
+		lods.resize(size);
+		
+		for (int i = 0; i < size; i++)
+		{
+		#if PLATFORM_WINRT
+			// LOD is a structure with managed type inside that's why we need to perform slow Marshalling here.
+			MonoLOD monoLOD;
+			MarshallManagedStructIntoNative(GetScriptingArrayElementNoRef<ScriptingObjectPtr>(scriptingLODs, i), &monoLOD);
+		#else
+			MonoLOD& monoLOD = GetScriptingArrayElement<MonoLOD> (scriptingLODs, i);
+		#endif
+			
+			lods[i].screenRelativeHeight = monoLOD.screenRelativeTransitionHeight;
+			
+			// clamp to 0 - 1
+			lods[i].screenRelativeHeight = clamp01 (lods[i].screenRelativeHeight);
+
+			// if our values are broken...
+			if (i > 0 && (lods[i].screenRelativeHeight >= lods[i-1].screenRelativeHeight))
+			{
+				ErrorString("SetLODs: Attempting to set LOD where the screen relative size is greater then or equal to a higher detail LOD level.");
+				return;
+			}
+
+			int renderersSize = GetScriptingArraySize (monoLOD.renderers);
+			lods[i].renderers.resize_initialized(renderersSize);
+			for (int r = 0; r < renderersSize; r++)
+			{
+				ScriptingObjectPtr o = GetScriptingArrayElementNoRef<ScriptingObjectPtr>(monoLOD.renderers,r);
+				lods[i].renderers[r].renderer = ScriptingObjectToObject<Renderer> (o);;
+			}
+		}
+
+		self->SetLODArray (lods);
+		CalculateLODGroupBoundingBox (*self);
+	}
+
+	// Force a LOD level on this LOD group
+	//
+	// @param index The LOD level to use. Passing index < 0 will return to standard LOD processing
+	CUSTOM void ForceLOD (int index)
+	{
+		ForceLODLevel (*self, index);
+	}
+END
+
+CSRAW
+}

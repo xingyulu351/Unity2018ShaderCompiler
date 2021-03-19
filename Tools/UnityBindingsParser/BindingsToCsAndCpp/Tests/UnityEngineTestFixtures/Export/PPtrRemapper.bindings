@@ -1,0 +1,53 @@
+C++RAW
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#if ENABLE_SERIALIZATION_BY_CODEGENERATION
+#include "Runtime/Mono/MonoBehaviourSerialization_ByCodeGeneration.h"
+#endif
+
+CSRAW
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using Object=UnityEngine.Object;
+
+namespace UnityEngine.Serialization
+{
+
+CONDITIONAL ENABLE_SERIALIZATION_BY_CODEGENERATION
+CLASS public PPtrRemapper : IPPtrRemapper
+
+	CSRAW public static IPPtrRemapper Instance = null;
+
+	CSRAW public static void Init()
+	{
+		if(Instance == null)
+			Instance = new PPtrRemapper();
+	}
+	CSRAW public static void SetInstance(IPPtrRemapper remapper)
+	{
+		Instance = remapper;
+	}
+	CSRAW public object GetNewInstanceToReplaceOldInstance(object value)
+	{
+		return INTERNAL_GetNewInstanceToReplaceOldInstance(((UnityEngine.Object)value).GetInstanceID());
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static object INTERNAL_GetNewInstanceToReplaceOldInstance(int instance_id)
+	{
+		return NativeExt_MonoBehaviourSerialization_GetNewInstanceToReplaceOldInstance(instance_id);
+	}
+	
+END
+
+CONDITIONAL !ENABLE_SERIALIZATION_BY_CODEGENERATION && PLATFORM_WINRT
+CLASS public PPtrRemapper
+	CSRAW public static void SetInstance(IPPtrRemapper reader)
+	{
+	}
+END
+
+CSRAW
+}

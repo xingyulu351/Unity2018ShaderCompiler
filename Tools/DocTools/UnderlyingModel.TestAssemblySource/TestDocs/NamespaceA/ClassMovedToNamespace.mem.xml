@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="NamespaceA.ClassMovedToNamespace" type="Class" namespace="NamespaceA">
+    <section>
+      <summary>This class has been moved</summary>
+      <description>Yes it has</description>
+      <example>
+         <code lang="cs"><![CDATA[public class NewBehaviourScript {
+	private ClassMovedToNamespace a = null;
+}]]></code>
+        </example>
+    </section>
+  </member>
+</doc>

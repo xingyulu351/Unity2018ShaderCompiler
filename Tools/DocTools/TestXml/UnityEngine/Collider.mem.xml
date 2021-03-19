@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Collider" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>A base class of all colliders.</summary>
+      <description>SA: [[BoxCollider]], [[SphereCollider]], [[CapsuleCollider]], [[MeshCollider]], [[PhysicMaterial]], [[Rigidbody]].
+
+If the object with the Collider needs to be moved during gameplay then you should also attach a Rigidbody component to the object. The Rigidbody can be set to be kinematic if you don't want the object to have physical interaction with other objects.</description>
+    </section>    
+    <member name="Collider.Raycast" type="Method">
+      <section>
+        <signature><![CDATA[Raycast(Ray,RaycastHit,float)]]></signature>
+        <summary>Casts a [[Ray]] that ignores all Colliders except this one.</summary>
+        <param name="ray">The starting point and direction of the ray.</param>
+        <param name="hitInfo">If true is returned, /hitInfo/ will contain more information about where the collider was hit (SA: [[RaycastHit]]).</param>
+        <param name="distance">The length of the ray.</param>
+        <returns>True when the ray intersects any collider, otherwise false.</returns>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[var coll: Collider;
+
+function Start() {
+	coll = GetComponent.<Collider>();
+}
+
+function Update(){
+	// Move this object to the position clicked by the mouse.
+	if (Input.GetMouseButtonDown(0)) {
+	    var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+	    var hit : RaycastHit;
+	    
+	    if (coll.Raycast(ray, hit, 100.0)) {
+			transform.position = ray.GetPoint(100.0);
+	    }
+    }
+}]]></code>
+        </example>
+      </section>
+    </member>    
+  </member>
+</doc>

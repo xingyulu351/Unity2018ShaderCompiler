@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+	<info organisation="Unity" module="PackageManager" e:packageType="PackageManager">
+		<description>Module Manager for distributing platform modules.</description>
+	</info>
+	<publications>
+		<artifact name="Unity.PackageManager" type="dll" ext="dll" />
+	</publications>
+</ivy-module>

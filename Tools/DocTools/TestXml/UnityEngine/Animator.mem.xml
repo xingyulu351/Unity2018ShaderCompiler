@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Animator" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>Interface to control the Mecanim animation system.</summary>
+    </section>
+    <member name="Animator._animatePhysics" type="Property">
+      <section>
+        <signature><![CDATA[animatePhysics]]></signature>
+        <summary>When turned on, animations will be executed in the physics loop. This is only useful in conjunction with kinematic rigidbodies.</summary>
+      </section>
+    </member>
+  </member>
+</doc>

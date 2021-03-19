@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AndroidJavaClass</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="AndroidJavaClass" type="constructor" modifiers="public" />
+      <ParamElement name="className" type="string" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Construct an AndroidJavaClass from the class name.]]></Summary>
+    <ParamWithDoc>
+      <name>className</name>
+      <doc><![CDATA[Specifies the Java class name (e.g. ]]><tt>java.lang.String</tt><![CDATA[).]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[This essentially means locate the class type and allocate a ]]><tt>java.lang.Class</tt><![CDATA[ object of that particular type.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	// Try to collect some Java garbage..
+	function Start() {
+		var jc = new ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[("java.lang.System");
+		jc.CallStatic("gc");
+	}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Start() {
+        ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[ jc = new ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[("java.lang.System");
+        jc.CallStatic("gc");
+    }
+}
+]]></CSharp>
+    </Example>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	// Retrieve the manufacturer of the product/hardware.
+	function Start() {
+		var jc = new ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[("android.os.Build");
+		var manufacturer = jc.Get.<String>("MANUFACTURER");
+	}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Start() {
+        ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[ jc = new ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[("android.os.Build");
+        string manufacturer = jc.Get<string>("MANUFACTURER");
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

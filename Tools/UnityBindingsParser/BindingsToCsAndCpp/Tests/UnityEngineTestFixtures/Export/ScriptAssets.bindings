@@ -1,0 +1,33 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "Runtime/Scripting/TextAsset.h"
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+
+namespace UnityEngine
+{
+
+// Text file assets.
+NONSEALED_CLASS TextAsset : Object
+	// The text contents of the .txt file as a string. (RO)
+	CUSTOM_PROP string text { return CreateScriptingString(self->GetScript().c_str()); }
+	
+	// The raw bytes of the text asset. (RO)
+	
+	CUSTOM_PROP byte[] bytes { return CreateScriptingArray( self->GetScript().c_str(), self->GetScript().size(), GetScriptingManager().GetCommonClasses().byte ); }
+
+	CSRAW public override string ToString() { return text; }
+END
+
+
+CSRAW
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model isComponent="true">
+  <ParentClass>Collider</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Raycast" type="function" modifiers="public" />
+      <ParamElement name="ray" type="Ray" hasLink="true" />
+      <ParamElement name="hitInfo" type="RaycastHit" hasLink="true" modifier="out" />
+      <ParamElement name="distance" type="float" />
+      <ReturnType>bool</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Casts a ]]><link ref="Ray">Ray</link><![CDATA[ that ignores all Colliders except this one.]]></Summary>
+    <ParamWithDoc>
+      <name>ray</name>
+      <doc><![CDATA[The starting point and direction of the ray.]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>hitInfo</name>
+      <doc><![CDATA[If true is returned, ]]><varname>hitInfo</varname><![CDATA[ will contain more information about where the collider was hit (See Also: ]]><link ref="RaycastHit">RaycastHit</link><![CDATA[).]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>distance</name>
+      <doc><![CDATA[The length of the ray.]]></doc>
+    </ParamWithDoc>
+    <ReturnWithDoc type="bool">
+      <doc><![CDATA[True when the ray intersects any collider, otherwise false.]]></doc>
+    </ReturnWithDoc>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[var coll: ]]><link ref="Collider">Collider</link><![CDATA[;]]><br /><br /><![CDATA[function Start() {
+	coll = GetComponent.<Collider>();
+}]]><br /><br /><![CDATA[function Update(){
+	// Move this object to the position clicked by the mouse.
+	if (]]><link ref="Input.GetMouseButtonDown">Input.GetMouseButtonDown</link><![CDATA[(0)) {
+	    var ray : ]]><link ref="Ray">Ray</link><![CDATA[ = Camera.main.ScreenPointToRay(]]><link ref="Input-mousePosition">Input.mousePosition</link><![CDATA[);
+	    var hit : ]]><link ref="RaycastHit">RaycastHit</link><![CDATA[;
+	    
+	    if (coll.Raycast(ray, hit, 100.0)) {
+			transform.position = ray.GetPoint(100.0);
+	    }
+    }
+}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    public ]]><link ref="Collider">Collider</link><![CDATA[ coll;
+    void Start() {
+        coll = GetComponent<Collider>();
+    }
+    void Update() {
+        if (]]><link ref="Input.GetMouseButtonDown">Input.GetMouseButtonDown</link><![CDATA[(0)) {
+            ]]><link ref="Ray">Ray</link><![CDATA[ ray = Camera.main.ScreenPointToRay(]]><link ref="Input-mousePosition">Input.mousePosition</link><![CDATA[);
+            ]]><link ref="RaycastHit">RaycastHit</link><![CDATA[ hit;
+            if (coll.Raycast(ray, out hit, 100.0F))
+                transform.position = ray.GetPoint(100.0F);
+            
+        }
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

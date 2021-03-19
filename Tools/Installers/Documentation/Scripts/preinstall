@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ -d "/Applications/Unity/Documentation" ] ; then
+    rm -rf "/Applications/Unity/Documentation"
+fi
+
+if [ -d "/Applications/Unity/Documentation" ] ; then
+    rm -rf "/Applications/Unity/Documentation"
+fi
+
+exit 0

@@ -1,0 +1,83 @@
+// IMPORTANT:
+//
+// it's highly NOT recommended to create the files based on this
+// template manually.
+// Please use the tool: http://legaltool.infra.hq.unity3d.com
+// Create or modify the license(s) using the tool, and use "Download JSON"
+// button to get the file to include in your PR.
+//
+// You can test whether your new JSON file works by running the following
+// commands:
+// $ cd Tools/Build
+// $ perl -MLicenses=BuildLicensesFile -e 'BuildLicensesFile("legal.txt")'
+// This would produce the legal.txt file in the current directory (Tools/Build),
+// and would let you to inspect the output content, or any possible
+// errors.
+
+
+// IF you still want to create the file manually.
+//
+// How to use this file:
+// 1. copy this file to your module's root folder in External,
+//   and rename to unity_license.json.
+//   Example: "External/MyModule/unity_license.json"
+//
+// 2. unity_license.json uses JSON5 syntax
+//   Edit the file, and fill out all of the fields that are necessary.
+//
+// 3. Delete any optional fields that you don't want/need to fill out.
+//
+// 4. Delete any comment lines that came from the template
+//
+
+{
+    licenses: [
+        {
+            // MANDATORY: module name / path
+            // Directory path relative to $root/External
+            // Example: "FMOD"
+            name: string,
+
+            // MANDATORY: The information about this module -- upstream url, how to get licensing info, and any other information relevant to licensing.
+            // There's no enforced format for provenance, so please use your own
+            // judgement. If unsure, look for examples in other licenses.
+            // A basic example (taken from Emscripten module):
+            //    License is MIT
+            //    http://kripken.github.io/emscripten-site/docs/introducing_emscripten/emscripten_license.html
+            provenance: string
+
+            // MANDATORY: license text obtained from Legal Team
+            // Please DON'T put the whole license text here (e.g. GPL).
+            // Detailed instructions: https://confluence.hq.unity3d.com/x/yA1eAg (2017.1 Legal.txt / 3rd party notice workflow for developers)
+            license: string,
+
+            // OPTIONAL: Reference one of the existing licenses from External/Licenses,
+            // e.g. "Licenses/LGPL 3",
+            // To get the list: `ls External/Licenses`
+            license_ref: string,
+
+            // RECOMMENDED: A purpose of this module, e.g. "Lighting"
+            purpose: string,
+
+            // RECOMMENDED: Usage of this module
+            used_in_editor: boolean,
+            used_in_desktop_players: boolean,
+            used_in_mobile_players: boolean,
+
+            // RECOMMENDED: Freeform version number/string of the module
+            version: string,
+
+            // OPTIONAL: Team owner of the module, e.g. "Lighting"
+            unity_team: string,
+
+            // RECOMMENDED: whether sources have been made publicly available by Unity Technologies (e.g. through a public github repo)
+            source_made_available: boolean,
+
+            // RECOMMENDED: whether the module includes binaries
+            has_binaries: boolean,
+
+            // RECOMMENDED: whether the module includes source code
+            has_sources: boolean,
+        }         
+    ]
+}

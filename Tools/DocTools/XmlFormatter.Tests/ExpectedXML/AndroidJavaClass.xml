@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <StaticVars />
+  <Vars />
+  <Constructors>
+    <member id="AndroidJavaClass-ctor">
+      <name>AndroidJavaClass</name>
+      <summary><![CDATA[Construct an AndroidJavaClass from the class name.]]></summary>
+    </member>
+  </Constructors>
+  <MemberFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+  <Section>
+    <Signature>
+      <Declaration name="AndroidJavaClass" type="class" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[AndroidJavaClass is the Unity representation of a generic instance of java.lang.Class.]]></Summary>
+  </Section>
+  <BaseType>
+    <StaticVars />
+    <Vars />
+    <Constructors>
+      <member id="AndroidJavaObject-ctor">
+        <name>AndroidJavaObject</name>
+        <summary><![CDATA[Construct an AndroidJavaObject based on the name of the class.]]></summary>
+      </member>
+    </Constructors>
+    <MemberFunctions>
+      <member id="AndroidJavaObject.Call">
+        <name>Call</name>
+        <summary><![CDATA[Calls a Java method on an object (non-static).]]></summary>
+      </member>
+      <member id="AndroidJavaObject.CallStatic">
+        <name>CallStatic</name>
+        <summary><![CDATA[Call a static Java method on a class.]]></summary>
+      </member>
+      <member id="AndroidJavaObject.Dispose">
+        <name>Dispose</name>
+        <summary><![CDATA[IDisposable callback.]]></summary>
+      </member>
+      <member id="AndroidJavaObject.Get">
+        <name>Get</name>
+        <summary><![CDATA[Get the value of a field in an object (non-static).]]></summary>
+      </member>
+      <member id="AndroidJavaObject.GetRawClass">
+        <name>GetRawClass</name>
+        <summary><![CDATA[Retrieve the ]]><i>raw</i><![CDATA[ jclass pointer to the Java class.]]></summary>
+      </member>
+      <member id="AndroidJavaObject.GetRawObject">
+        <name>GetRawObject</name>
+        <summary><![CDATA[Retrieve the ]]><i>raw</i><![CDATA[ jobject pointer to the Java object.]]></summary>
+      </member>
+      <member id="AndroidJavaObject.GetStatic">
+        <name>GetStatic</name>
+        <summary><![CDATA[Get the value of a static field in an object type.]]></summary>
+      </member>
+      <member id="AndroidJavaObject.Set">
+        <name>Set</name>
+        <summary><![CDATA[Set the value of a field in an object (non-static).]]></summary>
+      </member>
+      <member id="AndroidJavaObject.SetStatic">
+        <name>SetStatic</name>
+        <summary><![CDATA[Set the value of a static field in an object type.]]></summary>
+      </member>
+    </MemberFunctions>
+    <StaticFunctions />
+    <Operators />
+    <Messages />
+  </BaseType>
+</Model>

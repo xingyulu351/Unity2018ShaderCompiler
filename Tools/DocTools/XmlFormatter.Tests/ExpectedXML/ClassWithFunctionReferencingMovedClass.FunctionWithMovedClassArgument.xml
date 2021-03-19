@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>ClassWithFunctionReferencingMovedClass</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="FunctionWithMovedClassArgument" type="function" modifiers="public" />
+      <ParamElement name="movedClassInstance" type="NamespaceA.ClassMovedToNamespace" hasLink="true" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[This class references moved class via function argument]]></Summary>
+    <ParamWithDoc>
+      <name>movedClassInstance</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+  </Section>
+</Model>

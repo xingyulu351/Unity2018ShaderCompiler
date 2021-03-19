@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>Unity Download</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700" rel="stylesheet">
+<style>
+    body {
+        font: 13px/1.231 arial,helvetica,clean,sans-serif;
+    }
+</style>
+</head>
+<body>
+    <h2>Unity __VERSION__ download (revision __REVISION__ - __DATE__)</h2>
+    <h3>Unity Download Assistant</h3>
+    <p>
+        <a href="UnitySetup">Download the Assistant</a></br>
+    </p>
+    <h3>Individual installers</h3>
+    <p>
+        <a href="LinuxEditorInstaller/Unity.tar.xz">Linux Editor</a></br>
+    </p>
+    <h3>Graphical Installation Instructions</h3>
+    <ul>
+        <li>Make the installer writeable by setting the Execute permission of <tt>UnitySetup-__VERSION__</tt> in your File Manager or via <tt>chmod +x</tt></li>
+        <li>Run it, either from your File Manager or via command line</li>
+        <li>Follow the prompts</li>
+    </ul>
+    <h3>Unattended/Command Line Installation Instructions</h3>
+    <ul>
+        <li>Make the installer writeable: <tt>$ chmod +x UnitySetup-__VERSION__</tt></li>
+        <li>Run it: <tt>./UnitySetup-__VERSION__ --unattended --install-location=(path)</tt></li>
+    </ul>
+    <p>By default Unity Setup will include a default set of packages. Use the <tt>--list-components</tt> switch to see which are installed by default and a list of additional components.</p>
+    <p>You can install a custom list of components using the <tt>--components</tt> switch, which accepts a comma-separated list of components names. Note that <tt>--components</tt>> is case-sensitive.</p>
+    <h3>Dependencies</h3>
+    <p>The Unity Download Assistant requires the following dependencies to be installed:</p>
+    <ul>
+        <li>gtk2 (<tt>libgtk2.0-0</tt>)</li>
+        <li>libsoup (<tt>libsoup2.4-1</tt>)</li>
+        <li>libarchive (<tt>libarchive13</tt>)</li>
+    </ul>
+    <h3>FAQ</h3>
+    <p>
+        <b>Q: Can I install more packages later without doing a complete reinstall?</b><br/>
+        A: Yes. Just rerun the download assistant, and deselect everything that's already installed or that you still don't want. (You may need to reselect Unity to install packages that depend on it.)
+    </p>
+
+    <p>
+        <b>Q: Do I need a GUI to install Unity now?</b>
+        A: No! Run the download assistant with --help to see the available options.<br/>
+        At minimum, for a command-line installation, you'll want to pass <tt>--unattended</tt>, <tt>--components</tt>, and <tt>--install-location</tt>. (The installation host will, however, still need all of the download assistant's dependencies installed.)
+    </p>
+
+    <p>
+        <b>Q: If I chose to cache the downloaded components locally, can I do another installation without redownloading them?</b><br/>
+        A: Yes. Just set your component download directory to the location where you downloaded the components previously, and the download assistant will reuse them, provided that their checksums are correct.
+    </p>
+</body>
+</html>

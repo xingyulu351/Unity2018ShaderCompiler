@@ -1,0 +1,7 @@
+OK runtime AtomicOpsTests AtomicExchange 0
+OK runtime AtomicOpsTests AtomicCompareExchange 0
+OK runtime AtomicOpsTests AtomicDecrement 0
+OK runtime AtomicOpsTests AtomicIncrement 0
+OK runtime AtomicOpsTests AtomicSub 0
+OK runtime AtomicOpsTests AtomicAdd 0
+OK runtime MemoryManager NewDelete 0

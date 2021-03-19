@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Physics</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="maxAngularVelocity" type="var" modifiers="public static" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[The default maximum angular velocity permitted for any rigid bodies (default 7). Must be positive.]]></Summary>
+    <Description><![CDATA[The angular velocity of rigidbodies is clamped to maxAngularVelocity to avoid numerical instability with fast rotating bodies.
+Because this may prevent intentional fast rotations on objects such as wheels, you can override this value per rigidbody using ]]><link ref="Rigidbody-maxAngularVelocity">Rigidbody.maxAngularVelocity</link><![CDATA[.]]><br /><br /><![CDATA[This value is usually changed in ]]><monotype>Edit-&gt;Project Settings-&gt;Physics</monotype><![CDATA[ inspector instead of from scripts.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript>
+        <link ref="Physics-maxAngularVelocity">Physics.maxAngularVelocity</link><![CDATA[ = 10;]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Example() {
+        ]]><link ref="Physics-maxAngularVelocity">Physics.maxAngularVelocity</link><![CDATA[ = 10;
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

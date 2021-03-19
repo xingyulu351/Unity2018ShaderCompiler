@@ -1,0 +1,215 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Shaders/ComputeShader.h"
+#include "Runtime/Graphics/Texture.h"
+#include "Runtime/Math/Vector4.h"
+#include "Runtime/Threads/AtomicOps.h"
+
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+
+
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// Compute Shader asset.
+CLASS ComputeShader : Object
+
+	// Find [[ComputeShader]] kernel index.
+	CUSTOM int FindKernel (string name) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		return self->FindKernel (fpName);
+	}
+
+	// Set a float parameter.
+	CUSTOM void SetFloat (string name, float val) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		self->SetValueParam (fpName, 4, &val);
+	}
+
+	// Set an integer parameter.
+	CUSTOM void SetInt (string name, int val) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		self->SetValueParam (fpName, 4, &val);
+	}
+
+	// Set a vector parameter.
+	CUSTOM void SetVector (string name, Vector4 val) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		self->SetValueParam (fpName, 16, &val.x);
+	}
+	
+	// Set multiple consecutive float parameters at once.
+	CSRAW public void SetFloats (string name, params float[] values) {
+		Internal_SetFloats (name, values);
+	}
+	CUSTOM private void Internal_SetFloats (string name, float[] values) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		int size = GetScriptingArraySize (values);
+		const float* arr = GetScriptingArrayStart<float> (values);
+		self->SetValueParam (fpName, size*4, arr);
+	}
+
+	// Set multiple consecutive integer parameters at once.
+	CSRAW public void SetInts (string name, params int[] values) {
+		Internal_SetInts (name, values);
+	}
+	CUSTOM private void Internal_SetInts (string name, int[] values) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		int size = GetScriptingArraySize (values);
+		const int* arr = GetScriptingArrayStart<int> (values);
+		self->SetValueParam (fpName, size*4, arr);
+	}
+	
+	// Set a texture parameter.
+	CUSTOM void SetTexture (int kernelIndex, string name, Texture texture) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		Texture& tex = *texture;
+		self->SetTextureParam (kernelIndex, fpName, tex.GetTextureID());
+	}
+	
+	// Set a [[ComputeBuffer]] parameter.
+	//
+	CUSTOM void SetBuffer (int kernelIndex, string name, ComputeBuffer buffer) {
+		FastPropertyName fpName = ScriptingStringToProperty(name);
+		self->SetBufferParam (kernelIndex, fpName, buffer->GetBufferHandle());
+	}
+	
+	// Execute a compute shader.
+	CUSTOM void Dispatch (int kernelIndex, int threadsX, int threadsY, int threadsZ)
+	{
+		self->DispatchComputeShader (kernelIndex, threadsX, threadsY, threadsZ);
+	}
+	
+END
+
+// [[ComputeBuffer]] type.
+CSRAW [Flags]
+ENUM ComputeBufferType
+	// Default [[ComputeBuffer]] type.
+	Default = 0,
+	// Raw [[ComputeBuffer]] type.
+	Raw = 1,
+	// Append-consume [[ComputeBuffer]] type.
+	Append = 2,
+	// [[ComputeBuffer]] with a counter.
+	Counter = 4,
+	// [[ComputeBuffer]] used for Graphics.DrawProceduralIndirect.
+	DrawIndirect = 256,
+END
+
+
+// Data buffer to hold data for compute shaders.
+CLASS ComputeBuffer : IDisposable
+
+	CSRAW #pragma warning disable 414
+	CSRAW internal IntPtr m_Ptr;
+	CSRAW #pragma warning restore 414
+
+	// IDisposable implementation, with Release() for explicit cleanup.
+
+	~ComputeBuffer()
+	{
+		Dispose(false);
+	}
+
+	//*undocumented*
+	CSRAW public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
+
+	private void Dispose (bool disposing)
+	{
+		// we don't have any managed references, so
+		// 'disposing' part of standard IDisposable pattern
+		// does not apply
+
+		// Release native resources
+		DestroyBuffer (this);
+		m_Ptr = IntPtr.Zero;
+	}
+
+	CUSTOM private static void InitBuffer (ComputeBuffer buf, int count, int stride, ComputeBufferType type) {
+		buf.SetPtr(new ComputeBuffer(count, stride, type));
+	}
+	CUSTOM private static void DestroyBuffer(ComputeBuffer buf) {
+		delete buf.GetPtr();
+	}
+	
+	///*listonly*
+	CSRAW public ComputeBuffer (int count, int stride) : this (count, stride, ComputeBufferType.Default)
+	{
+	}
+
+	// Create a Compute Buffer.
+	CSRAW public ComputeBuffer (int count, int stride, ComputeBufferType type)
+	{
+		m_Ptr = IntPtr.Zero;
+		InitBuffer (this, count, stride, type);
+	}
+
+	// Release a Compute Buffer.
+	CSRAW public void Release ()
+	{
+		Dispose();
+	}
+
+	// Number of elements in the buffer (RO).
+	CUSTOM_PROP public int count {
+		return self->GetCount();
+	}
+
+	// Size of one element in the buffer (RO).
+	CUSTOM_PROP public int stride {
+		return self->GetStride();
+	}
+	
+	// Set buffer data.
+	CSRAW
+	[System.Security.SecuritySafeCritical] // due to Marshal.SizeOf
+	public void SetData (System.Array data) {
+		#if !UNITY_FLASH
+		InternalSetData (data, Marshal.SizeOf(data.GetType().GetElementType()));
+		#endif
+	}
+	
+	CSRAW [System.Security.SecurityCritical] // to prevent accidentally making this public in the future
+	CUSTOM private void InternalSetData (System.Array data, int elemSize) {
+		self->SetData (GetScriptingArrayStart<char>(data), GetScriptingArraySize(data) * elemSize);
+	}
+
+
+	// Read buffer data.
+	CSRAW
+	[System.Security.SecuritySafeCritical] // due to Marshal.SizeOf
+	public void GetData (System.Array data) {
+		#if !UNITY_FLASH
+		InternalGetData (data, Marshal.SizeOf(data.GetType().GetElementType()));
+		#endif
+	}
+	
+	CSRAW [System.Security.SecurityCritical] // to prevent accidentally making this public in the future
+	CUSTOM private void InternalGetData (System.Array data, int elemSize) {
+		self->GetData (GetScriptingArrayStart<char>(data), GetScriptingArraySize(data) * elemSize);
+	}
+
+	// Copy counter value of append/consume buffer into another buffer.
+	CUSTOM static void CopyCount (ComputeBuffer src, ComputeBuffer dst, int dstOffset) {
+		ComputeBuffer::CopyCount (src.GetPtr(), dst.GetPtr(), dstOffset);
+	}
+	
+END
+
+CSRAW
+}

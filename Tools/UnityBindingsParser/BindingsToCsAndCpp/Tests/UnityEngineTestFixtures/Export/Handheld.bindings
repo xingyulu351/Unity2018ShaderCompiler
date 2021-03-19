@@ -1,0 +1,392 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Graphics/MoviePlayback.h"
+#include "Runtime/Graphics/RenderTexture.h"
+#include "Runtime/Input/GetInput.h"
+#include "Runtime/Input/OnScreenKeyboard.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Misc/PlayerSettings.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Math/Vector2.h"
+#include "Runtime/Shaders/Material.h"
+#include "PlatformDependent/iPhonePlayer/iPhoneSettings.h"
+#include "PlatformDependent/iPhonePlayer/iPhoneMisc.h"
+#include "PlatformDependent/AndroidPlayer/AndroidSystemInfo.h"
+
+
+#if PLATFORM_ANDROID
+#include "PlatformDependent/AndroidPlayer/EntryPoint.h"
+#elif PLATFORM_IPHONE
+	void StartActivityIndicator();
+	void StopActivityIndicator();
+#endif
+
+using namespace Unity;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// Describes options for displaying movie playback controls.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+ENUM FullScreenMovieControlMode
+	// Display the standard controls for controlling movie playback. This
+	Full = 0,
+	// Display minimal set of controls controlling movie playback. Set of
+	Minimal = 1,
+	// Do not display any controls, but cancel movie playback if input occurs.
+	CancelOnInput = 2,
+	// Do not display any controls. This mode prevents the user from
+	Hidden = 3,
+END
+
+// Describes scaling modes for displaying movies.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+ENUM FullScreenMovieScalingMode
+	// Do not scale the movie.
+	None = 0,
+	// Scale the movie until one dimension fits on the screen exactly. In
+	AspectFit = 1,
+	// Scale the movie until the movie fills the entire screen. Content at
+	AspectFill = 2,
+	// Scale the movie until both dimensions fit the screen exactly. The
+	Fill = 3
+END
+
+CONDITIONAL UNITY_IPHONE_API
+/// iOS-specific ActivityIndicator styles.
+ENUM iOSActivityIndicatorStyle
+	/// Do not show ActivityIndicator
+	DontShow = -1,
+	/// The large white style of indicator (UIActivityIndicatorViewStyleWhiteLarge).
+	WhiteLarge = 0,
+	/// The standard white style of indicator (UIActivityIndicatorViewStyleWhite).
+	White = 1,
+	/// The standard gray style of indicator (UIActivityIndicatorViewStyleGray).
+	Gray = 2,
+END
+
+CONDITIONAL UNITY_ANDROID_API
+ENUM AndroidActivityIndicatorStyle
+	/// Do not show ActivityIndicator
+	DontShow = -1,
+	/// Large (android.R.attr.progressBarStyleLarge).
+	Large = 0,
+	/// Large Inversed (android.R.attr.progressBarStyleLargeInverse).
+	InversedLarge = 1,
+	/// Small (android.R.attr.progressBarStyleSmall).
+	Small = 2,
+	/// Small Inversed (android.R.attr.progressBarStyleSmallInverse).
+	InversedSmall = 3,
+END
+
+
+// Interface into functionality unique to handheld devices.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+CLASS Handheld
+	// Plays a full-screen movie.
+	CUSTOM static bool PlayFullScreenMovie (string path, Color bgColor = Color.black, FullScreenMovieControlMode controlMode = FullScreenMovieControlMode.Full, FullScreenMovieScalingMode scalingMode = FullScreenMovieScalingMode.AspectFit)
+	{
+		return PlayFullScreenMovie (path, bgColor, controlMode, scalingMode);
+	}
+
+	// Triggers device vibration.
+	CUSTOM static void Vibrate ()
+	{
+		Vibrate ();
+	}
+
+	CUSTOM_PROP static bool use32BitDisplayBuffer
+	{
+		return GetPlayerSettings().GetUse32BitDisplayBuffer();
+	}
+	{
+		GetPlayerSettings().SetUse32BitDisplayBuffer(value);
+	}
+
+	CUSTOM internal static void SetActivityIndicatorStyleImpl(int style)
+	{
+	#if PLATFORM_IPHONE
+		GetPlayerSettings().SetIOSShowActivityIndicatorOnLoading(style);
+	#elif PLATFORM_ANDROID
+		GetPlayerSettings().SetAndroidShowActivityIndicatorOnLoading(style);
+	#endif
+	}
+
+	CONDITIONAL UNITY_IPHONE_API
+	/// Sets ActivityIndicator style. See iOSActivityIndicatorStyle enumeration for possible values.
+	/// Be warned that it will take effect on next call to StartActivityIndicator.
+	CSRAW public static void SetActivityIndicatorStyle(iOSActivityIndicatorStyle style)
+	{
+		SetActivityIndicatorStyleImpl((int)style);
+	}
+
+	CONDITIONAL UNITY_ANDROID_API
+	/// Sets ActivityIndicator style. See AndroidActivityIndicatorStyle enumeration for possible values.
+	/// Be warned that it will take effect on next call to StartActivityIndicator.
+	CSRAW public static void SetActivityIndicatorStyle(AndroidActivityIndicatorStyle style)
+	{
+		SetActivityIndicatorStyleImpl((int)style);
+	}
+
+	/// Gets current ActivityIndicator style.
+	CUSTOM static int GetActivityIndicatorStyle()
+	{
+	#if PLATFORM_IPHONE
+		return GetPlayerSettings().GetIOSShowActivityIndicatorOnLoading();
+	#elif PLATFORM_ANDROID
+		return GetPlayerSettings().GetAndroidShowActivityIndicatorOnLoading();
+	#else
+		return -1;
+	#endif
+	}
+
+	// Starts os activity indicator
+	CUSTOM static void StartActivityIndicator()
+	{
+	#if PLATFORM_IPHONE || PLATFORM_ANDROID
+		StartActivityIndicator();
+	#endif
+	}
+
+	// Stops os activity indicator
+	CUSTOM static void StopActivityIndicator()
+	{
+	#if PLATFORM_IPHONE || PLATFORM_ANDROID
+		StopActivityIndicator();
+	#endif
+	}
+
+	//*undocumented*
+	CUSTOM static void ClearShaderCache()
+	{
+	#if PLATFORM_ANDROID
+		extern void Internal_ClearShaderCache();
+		Internal_ClearShaderCache();
+	#endif
+	}
+END
+
+// Describes the type of keyboard.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+ENUM TouchScreenKeyboardType
+	// Default keyboard for the current input method.
+	Default = 0,
+	// Keyboard displays standard ASCII characters.
+	ASCIICapable = 1,
+	// Keyboard with numbers and punctuation.
+	NumbersAndPunctuation = 2,
+	// Keyboard optimized for URL entry, features ".", "/", and ".com"
+	URL = 3,
+	// Numeric keypad designed for PIN entry, features the numbers 0 through 9
+	NumberPad = 4,
+	// Keypad designed for entering telephone numbers, features the numbers 0
+	PhonePad = 5,
+	// Keypad designed for entering a person's name or phone number.
+	NamePhonePad = 6,
+	// Keyboard optimized for specifying email addresses, features the "@",
+	EmailAddress = 7
+END
+
+// Simple struct that contains all the arguments needed by
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+STRUCT internal TouchScreenKeyboard_InternalConstructorHelperArguments
+	CSRAW public string text;
+	CSRAW public string textPlaceholder;
+	CSRAW public uint keyboardType;
+	CSRAW public uint autocorrection;
+	CSRAW public uint multiline;
+	CSRAW public uint secure;
+	CSRAW public uint alert;
+END
+
+C++RAW
+
+struct MonoTouchScreenKeyboard_InternalConstructorHelperArguments {
+	MonoString* text;
+	MonoString* textPlaceholder;
+	unsigned int keyboardType;
+	unsigned int autocorrection;
+	unsigned int multiline;
+	unsigned int secure;
+	unsigned int alert;
+};
+
+// Interface into the native iPhone and Android on-screen keyboards - it is not available on other platforms.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+CLASS TouchScreenKeyboard
+	// We are matching the KeyboardOnScreen class here so we can directly
+	// access it.
+	CSRAW private IntPtr keyboardWrapper;
+
+	C++RAW
+ #define GET ExtractMonoObjectData<KeyboardOnScreen*> (self)
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void Destroy()
+	{
+		if (GET)
+		{
+			delete GET;
+			GET=0;
+		}
+	}
+
+	//*undocumented*
+	CSRAW ~TouchScreenKeyboard()
+	{
+		Destroy();
+	}
+
+	//*undocumented*
+	CSRAW public TouchScreenKeyboard(string text, TouchScreenKeyboardType keyboardType, bool autocorrection, bool multiline, bool secure, bool alert, string textPlaceholder)
+	{
+		TouchScreenKeyboard_InternalConstructorHelperArguments arguments = new TouchScreenKeyboard_InternalConstructorHelperArguments ();
+		arguments.text = text;
+		arguments.keyboardType = Convert.ToUInt32(keyboardType);
+		arguments.autocorrection = Convert.ToUInt32(autocorrection);
+		arguments.multiline = Convert.ToUInt32(multiline);
+		arguments.secure = Convert.ToUInt32(secure);
+		arguments.alert = Convert.ToUInt32(alert);
+		arguments.textPlaceholder = textPlaceholder;
+		TouchScreenKeyboard_InternalConstructorHelper (arguments);
+	}
+
+	CUSTOM private void TouchScreenKeyboard_InternalConstructorHelper (TouchScreenKeyboard_InternalConstructorHelperArguments arguments)
+	{
+		GET = new KeyboardOnScreen(scripting_cpp_string_for(arguments.text),
+			arguments.keyboardType, arguments.autocorrection, arguments.multiline, arguments.secure, arguments.alert,
+			scripting_cpp_string_for(arguments.textPlaceholder));
+	}
+
+	// Opens the native keyboard provided by OS on the screen.
+	CSRAW public static TouchScreenKeyboard Open(string text, TouchScreenKeyboardType keyboardType = TouchScreenKeyboardType.Default, bool autocorrection = true, bool multiline = false, bool secure = false, bool alert = false, string textPlaceholder = "")
+	{
+		return new TouchScreenKeyboard(text, keyboardType, autocorrection, multiline, secure, alert, textPlaceholder);
+	}
+
+	// Returns the text displayed by the input field of the keyboard. This
+	CUSTOM_PROP public string text {
+		if (GET) return CreateScriptingString(GET->getText());
+		else return CreateScriptingString("");
+	}
+	{
+		if (GET) GET->setText(value);
+	}
+
+	// Specifies if text input field above the keyboard will be hidden when
+	CUSTOM_PROP public static bool hideInput {
+		return KeyboardOnScreen::isInputHidden();
+	} {
+		KeyboardOnScreen::setInputHidden(value);
+	}
+
+	// Specifies if the keyboard is visible or is sliding into the position on
+	CUSTOM_PROP public bool active {
+		if (GET) return (short)GET->isActive();
+		else return false;
+	} {
+		if (GET) GET->setActive(value);
+	}
+
+	// Specifies if input process was finished (RO)
+	CUSTOM_PROP public bool done {
+		if (GET) return (short)GET->isDone();
+		else return false;
+	}
+
+	// Specifies if input process was canceled (RO)
+	CUSTOM_PROP public bool wasCanceled {
+		if (GET) return (short)GET->wasCanceled();
+		else return false;
+	}
+
+	C++RAW
+ #undef GET
+
+	// Returns portion of the screen which is covered by the keyboard. Returns
+	CUSTOM_PROP static Rect area { return KeyboardOnScreen::GetRect(); }
+
+	// Returns true whenever any keyboard is completely visible on the screen.
+	CUSTOM_PROP static bool visible { return KeyboardOnScreen::IsVisible(); }
+END
+
+// iPhone device generation
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+ENUM iPhoneGeneration
+	//*undocumented*
+	Unknown = 0,
+	// First generation device
+	iPhone = 1,
+	// Second generation
+	iPhone3G = 2,
+	// Third generation
+	iPhone3GS = 3,
+	// iPod Touch, first generation
+	iPodTouch1Gen = 4,
+	// iPod Touch, second generation
+	iPodTouch2Gen = 5,
+	// iPod Touch, third generation
+	iPodTouch3Gen = 6,
+	// iPad, first generation
+	iPad1Gen = 7,
+	// Fourth generation
+	iPhone4 = 8,
+	// iPod Touch, fourth generation
+	iPodTouch4Gen = 9,
+	// iPad, second generation
+	iPad2Gen = 10,
+	// Fifth generation
+	iPhone4S = 11,
+	// iPad, third generation
+	iPad3Gen = 12,
+	// iPhone5
+	iPhone5 = 13,
+	// iPod Touch, fifth generation
+	iPodTouch5Gen = 14,
+	// iPadMini, first generation
+	iPadMini1Gen = 15,
+	// iPad, fourth generation
+	iPad4Gen = 16,
+
+	// Yet unknown iPhone
+	iPhoneUnknown = 10001,
+	// Yet unknown iPad
+	iPadUnknown = 10002,
+	// Yet unknown iPodTouch
+	iPodTouchUnknown = 10003,
+END
+
+// Interface into iPhone specific functionality.
+CONDITIONAL UNITY_IPHONE_API
+CLASS iPhone
+	// The generation of the device (RO)
+	CUSTOM_PROP static iPhoneGeneration generation {
+		return iphone::GetDeviceGeneration ();
+	}
+
+	// Set file flag to be excluded from iCloud/iTunes backup.
+	CUSTOM static void SetNoBackupFlag(string path)
+	{
+	#if PLATFORM_IPHONE
+		iphone::SetNoBackupFlag(path.ToUTF8().c_str());
+	#endif
+	}
+
+	// Reset "no backup" file flag: file will be synced with iCloud/iTunes backup and can be deleted by OS in low storage situations.
+	CUSTOM static void ResetNoBackupFlag(string path)
+	{
+	#if PLATFORM_IPHONE
+		iphone::ResetNoBackupFlag(path.ToUTF8().c_str());
+	#endif
+	}
+END
+
+CSRAW
+}

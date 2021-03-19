@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Min" type="function" modifiers="static" />
+      <ParamElement name="lhs" type="Vector3" />
+      <ParamElement name="rhs" type="Vector3" />
+      <ReturnType>Vector3</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Returns a vector that is made from the smallest components of two vectors.]]></Summary>
+    <ParamWithDoc>
+      <name>lhs</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>rhs</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[See Also: ]]><link ref="Vector3.Max">Max</link><![CDATA[ function.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	var a : Vector3 = Vector3 (1, 2, 3);
+	var b : Vector3 = Vector3 (4, 3, 2);
+	print (Vector3.Min(a,b)); // prints (1.0,2.0,2.0)
+]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;
+
+public class Example : MonoBehaviour {
+    public Vector3 a = new Vector3(1, 2, 3);
+    public Vector3 b = new Vector3(4, 3, 2);
+    void Example() {
+        print(Vector3.Min(a, b));
+    }
+}
+]]></CSharp>
+      <Boo><![CDATA[import UnityEngine
+import System.Collections
+
+public class Example(MonoBehaviour):
+
+	public a as Vector3 = Vector3(1, 2, 3)
+
+	public b as Vector3 = Vector3(4, 3, 2)
+
+	def Example() as void:
+		print(Vector3.Min(a, b))
+
+]]></Boo>
+    </Example>
+  </Section>
+</Model>

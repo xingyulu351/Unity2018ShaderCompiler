@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc>
+    <member name="Matrix4x4" type="Struct" namespace="UnityEngine">
+        <section>
+            <summary><![CDATA[Matrix summary]]></summary>
+            <description><![CDATA[Matrix description]]></description>
+        </section>
+        <member name="Matrix4x4.this" type="Property">
+            <section>
+                <signature>this(int,int)</signature>
+                <summary><![CDATA[two args summary]]></summary>
+                <description><![CDATA[two args description]]></description>
+            </section>
+            <section>
+                <signature>this(int)</signature>
+                <summary><![CDATA[one arg summary]]></summary>
+                <description><![CDATA[one arg description]]></description>
+            </section>
+        </member>
+    </member>
+</doc>

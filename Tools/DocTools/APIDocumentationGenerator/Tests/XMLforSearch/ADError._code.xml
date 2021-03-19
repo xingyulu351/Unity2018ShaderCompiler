@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>ADError</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="code" type="var" />
+      <ReturnType>ADErrorCode</ReturnType>
+    </Signature>
+    <Summary><![CDATA[An error code.]]></Summary>
+  </Section>
+</Model>

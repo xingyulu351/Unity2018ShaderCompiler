@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="x" type="var" namespace="UnityEngine" modifiers="public" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[X component of the vector.]]></Summary>
+  </Section>
+</Model>

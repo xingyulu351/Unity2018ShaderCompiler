@@ -1,0 +1,60 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+
+CSRAW
+using System;
+using System.Diagnostics;
+
+namespace UnityEngineInternal
+{
+using UnityEngine;
+
+public delegate void FastCallExceptionHandler(Exception ex);
+//*undocumented*
+CONDITIONAL PLATFORM_WINRT
+CLASS ScriptingUtils
+
+	CSRAW public delegate object GCHandleToObjectDelegate(int handle);
+	CSRAW private static GCHandleToObjectDelegate _gcHandleToObject = null;
+
+	CSRAW public static void SetupGCHandleToObjectCallback(GCHandleToObjectDelegate callback)
+	{
+		_gcHandleToObject = callback;
+	}
+	CSRAW public static T GCHandleToObject<T>(int handle)
+	{
+		return (T)_gcHandleToObject(handle);
+	}
+
+	CSRAW public static bool CompareBaseObjects(UnityEngine.Object lhs, UnityEngine.Object  rhs)
+	{
+		int lhsInstanceID = 0;
+		int rhsInstanceID = 0;
+		bool isLhsNull = true;
+		bool isRhsNull = true;
+		if ((object)lhs != null)
+		{
+			lhsInstanceID = lhs.GetInstanceID();
+			isLhsNull = lhs.m_CachedPtr== 0;
+		}
+		if ((object)rhs != null)
+		{
+			rhsInstanceID = rhs.GetInstanceID();
+			isRhsNull = rhs.m_CachedPtr == 0;
+		}
+		if (isLhsNull || isRhsNull)
+			return isLhsNull == isRhsNull;
+		else
+			return lhsInstanceID == rhsInstanceID;
+	}
+END
+
+CSRAW
+}

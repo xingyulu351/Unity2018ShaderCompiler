@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="DocOnlyClass" type="Class" namespace="">
+    <section doconly="true">
+      <summary>This class only has docs, but nothing in the assembly</summary>      
+    </section>    
+  </member>
+</doc>

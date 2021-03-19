@@ -1,0 +1,12 @@
+#!/bin/sh
+
+base_dir="/Applications/Unity/PlaybackEngines/REPLACE_PACKAGE_FOLDER"
+
+if [ -e "$base_dir/Documentation/DocCombiner" ] ; then
+    "$base_dir/Documentation/DocCombiner" -autopaths /Applications/Unity
+fi
+
+# Fix owner and group
+find "$base_dir" -print0 | xargs -0 chown root:wheel
+
+exit 0

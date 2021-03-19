@@ -1,0 +1,44 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/BaseClasses/Cursor.h"
+
+using namespace std;
+
+CSRAW
+using System;
+using UnityEngine;
+using Object=UnityEngine.Object;
+
+namespace UnityEngine
+{
+// How should the custom cursor be rendered
+ENUM CursorMode
+	// Use hardware cursors on supported platforms.
+	Auto = 0,
+
+	// Force the use of software cursors.
+	ForceSoftware = 1,
+END
+
+// Cursor API for setting the cursor that is used for rendering. 
+CLASS Cursor
+
+	// Change the mouse cursor to the set texture OnMouseEnter.
+
+	CSRAW static void SetCursor (Texture2D texture, CursorMode cursorMode)
+	{
+		SetCursor (texture, Vector2.zero, cursorMode);
+	}
+	
+	//
+	CUSTOM static void SetCursor (Texture2D texture, Vector2 hotspot, CursorMode cursorMode)
+	{
+		Cursors::SetCursor (texture, hotspot, cursorMode);
+	}
+END
+
+CSRAW
+}

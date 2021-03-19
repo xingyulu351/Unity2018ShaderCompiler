@@ -1,0 +1,40 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+
+use RunTests runTests;
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=native', '--testfilter=VRDevice');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/Unity/log.txt"));
+    ok(-e canonpath("$suiteRoot/NativeTestsRunner/TestResults.xml"));
+}
+
+RunTest_TestResultsXmlIsSpecified_SavesItIntoTheSpecifiedLocation:
+{
+    my $testresultsXml = catfile(tempdir(), "tr.xml");
+    my ($exitCode, $artifactsPath) = runTests('--suite=native', '--testfilter=VRDevice', "--testresultsxml=$testresultsXml");
+    is($exitCode, 0);
+    ok(-e $testresultsXml);
+}
+
+RunTest_BuildIsolationNoneBuildModeFull_SavesItIntoTheSpecifiedLocation:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=native', '--testfilter=VRDevice', '--build-isolation=none', '--build-mode=full');
+    is($exitCode, 0);
+}
+
+RunTest_BuildIsolationEnabledAndBuildModeIsFull_SavesItIntoTheSpecifiedLocation:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=native', '--testfilter=VRDevice', '--build-isolation=enabled', '--build-mode=full');
+    is($exitCode, 0);
+}
+
+done_testing();

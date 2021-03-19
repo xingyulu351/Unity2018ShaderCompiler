@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{685880A9-1C8D-46E1-86D0-BFE90BE988C8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>JamSharp.Runtime</RootNamespace>
+    <AssemblyName>JamSharp.Runtime</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\artifacts\JamSharp.Runtime\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\artifacts\JamSharp.Runtime\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\External\TinyProfiler\TraceMaker.cs">
+      <Link>TinyProfiler/TraceMaker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\External\TinyProfiler\TinyProfiler.cs">
+      <Link>TinyProfiler/TinyProfiler.cs</Link>
+    </Compile>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BuiltInRuleAttribute.cs" />
+    <Compile Include="BuiltinRules.cs" />
+    <Compile Include="ConvertedJamFile.cs" />
+    <Compile Include="ConverterLogic.cs" />
+    <Compile Include="CSharpVariableStorage.cs" />
+    <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="FileGlob.cs" />
+    <Compile Include="IDependencyGraphMirror.cs" />
+    <Compile Include="GlobalVariables.cs" />
+    <Compile Include="HandwrittenRuleReplacements.cs" />
+    <Compile Include="JamCoreVariableStorage.cs" />
+    <Compile Include="JamListExtensions.cs" />
+    <Compile Include="JamList.cs" />
+    <Compile Include="Jam.cs" />
+    <Compile Include="LuaGsub.cs" />
+    <Compile Include="Rules.cs" />
+    <Compile Include="Parser\AST.cs" />
+    <Compile Include="Parser\ConditionParser.cs" />
+    <Compile Include="Parser\ParseMode.cs" />
+    <Compile Include="Parser\Parser.cs" />
+    <Compile Include="Parser\Scanner.cs" />
+    <Compile Include="Parser\ScanResult.cs" />
+    <Compile Include="RuntimeExpressionEvaluation.cs" />
+    <Compile Include="RuntimeManager.cs" />
+    <Compile Include="TemporaryTargetContext.cs" />
+    <Compile Include="VariableRestorer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Unity.BuildTools\Unity.BuildTools.csproj">
+      <Project>{58422C78-4737-4A13-AB96-9782FB25B0B2}</Project>
+      <Name>Unity.BuildTools</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

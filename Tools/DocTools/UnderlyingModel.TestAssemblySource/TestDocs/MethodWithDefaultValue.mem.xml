@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="MethodWithDefaultValue" type="Class">
+    <section>
+      <summary>This class doesn't have much</summary>      
+    </section>
+    <member name="MethodWithDefaultValue.Foo" type="Method">
+      <section>
+        <signature><![CDATA[Foo(string)]]></signature>
+        <signature><![CDATA[Foo(string,bool)]]></signature>
+        <summary>Foo does foo</summary>
+      </section>
+    </member>
+    <member name="MethodWithDefaultValue.DocOnlyFoo" type="Unknown">
+      <section doconly="true">
+        <signature><![CDATA[DocOnlyFoo(string)]]></signature>
+        <summary>Doconly docs.</summary>
+      </section>
+    </member>
+  </member>
+</doc>

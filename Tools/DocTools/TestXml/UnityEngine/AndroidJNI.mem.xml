@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="AndroidJNI" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>'Raw' JNI interface to Android Dalvik (Java) VM from Mono (CS/JS).</summary>
+    </section>
+    <member name="AndroidJNI.FromLongArray" type="Method">
+      <section>
+        <signature><![CDATA[FromLongArray(IntPtr)]]></signature>
+        <summary>Convert a Java array of &lt;tt&gt;long&lt;/tt&gt; to a managed array of System.Int64.</summary>
+        <description>SA: [[AndroidJNI.GetFloatArrayElement]], [[AndroidJNI.GetArrayLength]].</description>
+      </section>
+    </member>
+    <member name="AndroidJNI.SetShortField" type="Method">
+      <section>
+        <signature><![CDATA[SetShortField(IntPtr,IntPtr,short)]]></signature>
+        <summary>This function sets the value of an instance (nonstatic) field of an object.</summary>
+        <description>SA: &lt;a href="http://download.oracle.com/javase/1.5.0/docs/guide/jni/spec/jniTOC.html"&gt;Java Native Interface Specification (Oracle)&lt;/a&gt;</description>
+      </section>
+    </member>
+  </member>
+</doc>

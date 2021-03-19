@@ -1,0 +1,24 @@
+{
+  "name": "TestReport.files",
+  "version": "0.0.0",
+  "authors": [
+    "Yan Drugalya <yan@unity3d.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-mocks": "~1.4.8",
+    "angular": "~1.4.8",
+    "jasmine-core": "jasmine#~2.3.4"
+  },
+  "keywords": [
+    "test",
+    "report"
+  ]
+}

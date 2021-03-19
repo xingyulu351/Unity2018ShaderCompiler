@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="FileUtil" type="Class" namespace="UnityEditor">
+    <section>
+      <summary>Lets you do ''move'', ''copy'', ''delete'' operations over files or directories.</summary>
+    </section>
+    <member name="FileUtil.GetUniqueTempPathInProject" type="Method">
+      <section>
+        <signature><![CDATA[GetUniqueTempPathInProject()]]></signature>
+        <summary>Returns a unique path in the Temp folder within your current project.</summary>
+        <description>The returned path is relative to the project folder.
+
+The returned path is of a form @@Temp/UnityTempFile-@@''uniqueID'', where /uniqueID/ is guaranteed to be
+unique over space and time.
+
+You can use it to create temporary files/folders and be sure that
+you are not overriding somebody else's files, plus you don't have to
+keep track of the unique IDs yourself.</description>
+        <example>
+          <code lang="js"><![CDATA[	@MenuItem ("Example/Get Unique Path")
+	static function GetUniqueProjectPath () {
+		// Prints the unique path
+		Debug.Log (FileUtil.GetUniqueTempPathInProject ());
+	}]]></code>
+        </example>
+      </section>
+    </member>
+  </member>
+</doc>

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# LD_LIBRARY_PATH can be purged due to the Runtime Protections introduces in OS X El Capitan (10.11) 
+# https://developer.apple.com/library/mac/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html#//apple_ref/doc/uid/TP40016462-CH3-SW1
+# this script accepts sets mono variables and does exec call, instead of system. In this way all the environment variables will be preserved
+
+MONO_PREFIX=$(dirname $0)/../../External/Mono/builds/monodistribution
+MONO=$MONO_PREFIX/bin/mono
+export LD_LIBRARY_PATH=$MONO_PREFIX/lib
+$MONO "$@"

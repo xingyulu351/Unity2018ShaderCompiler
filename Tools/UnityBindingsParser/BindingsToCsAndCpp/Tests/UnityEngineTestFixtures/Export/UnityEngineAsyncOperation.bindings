@@ -1,0 +1,78 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Misc/AsyncOperation.h"
+	
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+
+// Asynchronous operation coroutine.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+NONSEALED_CLASS AsyncOperation : YieldInstruction
+	
+	CSRAW [NotRenamed]internal IntPtr m_Ptr;
+	
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void InternalDestroy ()
+	{
+		self->Release();
+	}
+	
+	CSRAW ~AsyncOperation ()
+	{
+		InternalDestroy();
+	}
+
+	// Has the operation finished? (RO)
+	CUSTOM_PROP bool isDone 
+	{ 
+		return self->IsDone(); 
+	}
+		
+	
+	// What's the operation's progress (RO)
+	CUSTOM_PROP float progress 
+	{ 
+		return self->GetProgress(); 
+	}
+	
+	// Priority lets you tweak in which order async operation calls will be performed.
+	CUSTOM_PROP int priority 
+	{ 
+		return self->GetPriority(); 
+	}  
+	{
+ 		if (value < 0) 
+		{
+			value = 0;
+			ErrorString ("Priority can't be set to negative value");
+		}
+		return self->SetPriority(value); 
+	}
+
+	// Allow scenes to be activated as soon as it is ready.
+	CUSTOM_PROP bool allowSceneActivation
+	{ 
+		return self->GetAllowSceneActivation(); 
+	}  
+	{ 
+		return self->SetAllowSceneActivation(value); 
+	}
+
+END
+
+CSRAW }

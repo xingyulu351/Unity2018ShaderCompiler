@@ -1,0 +1,9 @@
+#!/bin/sh
+# Preflight script for Unity
+
+# Remove previous Unity installation
+if [ -d "/Applications/Unity" ]; then
+	rm -rf "/Applications/Unity"
+fi
+
+exit 0

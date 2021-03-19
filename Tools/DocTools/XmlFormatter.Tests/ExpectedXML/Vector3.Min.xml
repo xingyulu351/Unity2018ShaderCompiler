@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Min" type="function" modifiers="public static" />
+      <ParamElement name="lhs" type="Vector3" hasLink="true" />
+      <ParamElement name="rhs" type="Vector3" hasLink="true" />
+      <ReturnType hasLink="true">Vector3</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Returns a vector that is made from the smallest components of two vectors.]]></Summary>
+    <ParamWithDoc>
+      <name>lhs</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>rhs</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[See Also: ]]><link ref="Vector3.Max">Max</link><![CDATA[ function.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	var a : ]]><link ref="Vector3">Vector3</link><![CDATA[ = ]]><link ref="Vector3">Vector3</link><![CDATA[ (1, 2, 3);
+	var b : ]]><link ref="Vector3">Vector3</link><![CDATA[ = ]]><link ref="Vector3">Vector3</link><![CDATA[ (4, 3, 2);
+	print (]]><link ref="Vector3.Min">Vector3.Min</link><![CDATA[(a,b)); // prints (1.0,2.0,2.0)]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    public ]]><link ref="Vector3">Vector3</link><![CDATA[ a = new ]]><link ref="Vector3">Vector3</link><![CDATA[(1, 2, 3);
+    public ]]><link ref="Vector3">Vector3</link><![CDATA[ b = new ]]><link ref="Vector3">Vector3</link><![CDATA[(4, 3, 2);
+    void Example() {
+        print(]]><link ref="Vector3.Min">Vector3.Min</link><![CDATA[(a, b));
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

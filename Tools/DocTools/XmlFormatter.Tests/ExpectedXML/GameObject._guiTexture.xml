@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>GameObject</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="guiTexture" type="var" modifiers="public" />
+      <ReturnType hasLink="true">GUITexture</ReturnType>
+    </Signature>
+    <Summary><![CDATA[The ]]><link ref="GUITexture">GUITexture</link><![CDATA[ attached to this GameObject (Read Only). (null if there is none attached).]]></Summary>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	guiTexture.color = ]]><link ref="Color-blue">Color.blue</link><![CDATA[;]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;
+
+public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Example() {
+        guiTexture.color = ]]><link ref="Color-blue">Color.blue</link><![CDATA[;
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

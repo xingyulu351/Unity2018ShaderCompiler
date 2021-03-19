@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AccelerationEvent</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="deltaTime" type="var" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[最後に加速度を計算したときからの時間。]]></Summary>
+  </Section>
+</Model>

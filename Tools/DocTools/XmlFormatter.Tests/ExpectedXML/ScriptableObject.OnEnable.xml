@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>ScriptableObject</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="OnEnable()" type="csnone" />
+    </Signature>
+    <Summary><![CDATA[This function is called when the object is loaded.]]></Summary>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	function OnEnable () {
+		print("script was enabled");
+	}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void OnEnable() {
+        print("script was enabled");
+    }
+}
+]]></CSharp>
+    </Example>
+    <Description><![CDATA[OnEnable cannot be a co-routine.]]></Description>
+  </Section>
+</Model>

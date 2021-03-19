@@ -1,0 +1,3 @@
+--suite=editor
+--suite=playmode
+--testprojects=TextCore

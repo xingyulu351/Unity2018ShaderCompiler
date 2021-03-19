@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="PlayerSettings.PSVita.PSVitaAppCategory" type="Enum" namespace="">
+    <section>
+      <summary>Application package category enum.</summary>
+    </section>
+    <member name="PlayerSettings.PSVita.PSVitaAppCategory.Application" type="EnumValue">
+      <section>
+        <summary>An application package.</summary>
+      </section>
+    </member>
+    <member name="PlayerSettings.PSVita.PSVitaAppCategory.ApplicationPatch" type="EnumValue">
+      <section>
+        <summary>Application patch package.</summary>
+      </section>
+    </member>
+  </member>
+</doc>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <StaticVars />
+  <Vars />
+  <Constructors />
+  <MemberFunctions />
+  <ProtectedFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+  <Events />
+  <Delegates />
+  <ImplementedInterfaces>
+    <member id="InterfaceAA">
+      <name>InterfaceAA</name>
+      <summary><![CDATA[summary for interface AA]]></summary>
+    </member>
+  </ImplementedInterfaces>
+  <Section>
+    <Signature>
+      <Declaration name="InterfaceA" type="interface" modifiers="public" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[summary for interface A]]></Summary>
+  </Section>
+  <InheritsFrom>InterfaceA</InheritsFrom>
+</Model>

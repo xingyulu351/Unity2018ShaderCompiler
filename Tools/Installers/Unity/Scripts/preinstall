@@ -1,0 +1,35 @@
+#!/bin/sh
+# Preflight script for Unity
+
+if [ -z "$COMMAND_LINE_INSTALL" ]; then
+    while :
+    do
+
+        number=$(ps ax | grep Unity.app | wc -l)
+
+        if [ $number -le 1 ]; then
+            break;
+        fi
+
+        response="$(osascript -e 'display alert "Unity is already running on this computer." message "Installation might cause Unity to crash, and you might lose any unsaved changes. Please save your work and close all open Unity windows, then click \"Continue\"." as critical buttons {"Quit", "Install anyway", "Continue"}')"
+        case "$response" in
+            "button returned:Install anyway")
+                break
+                ;;
+            "button returned:Quit")
+                exit 1
+                ;;
+        esac
+
+    done
+fi
+
+# Remove previous Unity installation,
+# but keep stuff which doesn't belong to Unity.pkg
+if [ -d "$DSTVOLUME/Applications/Unity" ]; then
+    for f in Documentation PlaybackEngines MonoDevelop.app Unity.app 'Unity Bug Reporter.app' ; do
+        rm -rf "$DSTVOLUME/Applications/Unity/$f"
+	done
+fi
+
+exit 0

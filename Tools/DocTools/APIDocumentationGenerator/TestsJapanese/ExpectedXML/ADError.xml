@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <Section>
+    <Signature>
+      <Declaration name="ADError" type="class" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[広告のエラーが出た場合に使用されます。]]></Summary>
+  </Section>
+  <StaticVars />
+  <Vars>
+    <member id="ADError-code">
+      <name>code</name>
+      <summary><![CDATA[エラーコードを表示する]]></summary>
+    </member>
+    <member id="ADError-description">
+      <name>description</name>
+      <summary><![CDATA[エラー詳細を表示する。]]></summary>
+    </member>
+    <member id="ADError-reason">
+      <name>reason</name>
+      <summary><![CDATA[エラー理由を表示する。]]></summary>
+    </member>
+  </Vars>
+  <Constructors />
+  <MemberFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+</Model>

@@ -1,0 +1,30 @@
+{
+	"suites":
+	[
+		{
+			"name": "editor",
+			"args": ["--testprojects=2D"],
+			"details": ""
+		},
+		{
+			"name": "playmode",
+			"args": ["--testprojects=GameView"],
+			"details": ""
+		},
+		{
+			"name": "apiupdater",
+			"args": ["--testfilter=Members", "--env=win"],
+			"details": ""
+		},
+		{
+			"name": "DocCombiner",
+			"args": [],
+			"details": ""
+		},
+		{
+			"name": "runtime",
+			"args": ["--testfilter=CanAdd"],
+			"details": ""
+		}
+	]
+}

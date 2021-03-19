@@ -1,0 +1,40 @@
+use Test::More;
+
+use warnings;
+use strict;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath);
+use FolderDeleter;
+use RunTests qw (runTests);
+use Dirs;
+
+my $root = Dirs::getRoot();
+my $nativeTestsRunnerBin = "$root/Tests/Unity.NativeTestsRunner/bin";
+
+RunTest_BuildIsolationSet_BuildIntoTheAppopriateFolders:
+{
+    my $deleter = new FolderDeleter();
+    $deleter->delete($nativeTestsRunnerBin);
+    my @dirs = glob("$nativeTestsRunnerBin/UTRDebug*");
+    is(scalar(@dirs), 0);
+    my ($exitCode) = runTests('--suite=native', '--testfilter=VR', '--build-isolation=enabled');
+    @dirs = glob("$nativeTestsRunnerBin/UTRDebug*");
+    ok(scalar(@dirs) > 0);
+}
+
+RunTest_BuildIsolationSet_BuildIntoTheAppopriateFolders:
+{
+    my $root = Dirs::getRoot();
+    my $deleter = new FolderDeleter();
+    $deleter->delete($nativeTestsRunnerBin);
+    my @dirs = glob("$nativeTestsRunnerBin/Debug*");
+    is(scalar(@dirs), 0);
+    my ($exitCode) = runTests('--suite=native', '--testfilter=VR', '--build-isolation=none');
+    @dirs = glob("$nativeTestsRunnerBin/Debug*");
+    ok(scalar(@dirs) > 0);
+}
+
+done_testing();

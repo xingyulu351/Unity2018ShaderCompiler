@@ -1,0 +1,80 @@
+CSRAW
+using System;
+using System.Diagnostics;
+
+namespace UnityEngine.Flash
+{
+// Inline ActionScript support.	
+CSRAW [NotConverted]
+CLASS ActionScript
+
+	// Causes an import directive to be emitted in the ActionScript code generated for the current type.
+	CSRAW [Conditional("UNITY_FLASH")]
+	CSRAW public static void Import(string package)
+	{
+	}
+
+	// Emits a block of ActionScript code in the current method translating variable and field references to their ActionScript names.
+	CSRAW [Conditional("UNITY_FLASH")]
+	CSRAW public static void Statement(string formatString, params object[] arguments)
+	{
+	}
+
+	// Emits an ActionScript expression translating variable and field references to their ActionScript names.
+	CSRAW public static T Expression<T>(string formatString, params object[] arguments)
+	{
+		throw new InvalidOperationException();
+	}
+END
+
+CSRAW
+}
+
+namespace UnityEngine.Flash
+{
+// Runtime FlashPlayer support.	
+CLASS FlashPlayer
+
+	// Get a string representing the version of the Flash Player which the current project has been compiled against.
+	CSRAW public static String TargetVersion {
+		get { return GetUnityAppConstants("TargetFlashPlayerVersion"); }
+	}
+
+	// Get a string representing the version of the SWF which the current project has been compiled against.
+	CSRAW public static String TargetSwfVersion {
+		get { return GetUnityAppConstants("TargetSwfVersion"); }
+	}
+
+	CSRAW internal static String GetUnityAppConstants(String name)
+	{
+		ActionScript.Import("com.unity.UnityNative");
+		var value = ActionScript.Expression<String>("UnityNative.getUnityAppConstants()[{0}]", name);
+		return value;
+	}
+END
+
+CSRAW
+}
+
+namespace UnityEngine
+{
+
+// Instructs the build pipeline not to convert a type or member to the target platform.
+CSRAW [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
+CLASS NotConvertedAttribute : Attribute
+END
+
+// Instructs the build pipeline not to try and validate a type or member for the flash platform.
+CSRAW [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
+CSRAW [NotConverted]
+CLASS NotFlashValidatedAttribute : Attribute
+END
+
+// Prevent name mangling of constructors, methods, fields and properties.
+CSRAW [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
+CSRAW [NotConverted]
+CLASS NotRenamedAttribute : Attribute
+END
+
+CSRAW
+}

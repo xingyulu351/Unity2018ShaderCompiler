@@ -1,0 +1,2 @@
+File/File1.cs(21,36): error CS1525: error message
+File/File1.cs(21,36): error CS1525: error message

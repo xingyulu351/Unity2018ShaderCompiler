@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="DocumentedClass" type="Class" namespace="">
+    <section>
+      <summary>This class has docs</summary>
+    </section>
+  </member>
+</doc>

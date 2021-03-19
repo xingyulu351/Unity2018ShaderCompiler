@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+	<title>REPLACE_PACKAGE_NAME</title>
+    <pkg-ref id="com.unity3d.REPLACE_PACKAGE_ID"/>
+    <background file="background.tiff" alignment="topleft"/>
+    <options hostArchitectures='i386'/>
+    <welcome file="Welcome.rtf"/>
+    <choices-outline>
+            <line choice="com.unity3d.REPLACE_PACKAGE_ID"/>
+    </choices-outline>
+    <choice id="com.unity3d.REPLACE_PACKAGE_ID" visible="false">
+        <pkg-ref id="com.unity3d.REPLACE_PACKAGE_ID" auth='Root'/>
+    </choice>
+    <pkg-ref id="com.unity3d.REPLACE_PACKAGE_ID" version="0" onConclusion="none">TargetSupport.pkg.tmp</pkg-ref>
+</installer-gui-script>

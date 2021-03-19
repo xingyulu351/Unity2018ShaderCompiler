@@ -1,0 +1,16 @@
+[
+{"names":["assemblywithtests"],"description":"File containing tests to run","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["executioncount"],"description":"How many times to run each test","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["list"],"description":"If specified, runner will only print list of tests without running them","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["testfilter"],"description":"Test filter. Filters tests based on PerformanceTest class name or test method names with Contains function.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testlist"],"description":"Text file with tests to run. Each test must be placed on a newline.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["category"],"description":"Category of tests to be executed.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["excludecategory"],"description":"Category of tests to be excluded.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testresultsxml"],"description":"Specifies an output XML file for test results. XML contains states of executed tests and possible failure messages.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["artifactspath"],"description":"Path to store build and run artifacts","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["assetpipelinev2"],"description":"Enable Asset Import Pipeline V2 backend for the test run.","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["saveoptions"],"description":"Will save all the option definitions to specified file. Used by external tools","valueType":2,"defaultValue":null,"allowedValues":[],"hidden":"true"},
+{"names":["scriptingbackend"],"description":"Player scriptingbackend.","valueType":2,"defaultValue":null,"allowedValues":["DotNet","Il2Cpp","Mono","NotSet"]},
+{"names":["scriptingruntimeversion"],"description":"Specifies the scripting runtime version to run the tests with.","valueType":2,"defaultValue":"Latest","allowedValues":["Latest","Legacy","NotSet"]},
+{"names":["apiprofile"],"description":"Set API Compatibility Profile","valueType":2,"defaultValue":"NotSet","allowedValues":["All","Full","NotSet","Profile2_0","Profile4_6","ProfileNetStandard2_0","Subset"]}
+]

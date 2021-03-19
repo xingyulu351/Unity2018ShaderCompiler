@@ -1,0 +1,4 @@
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\PackageManager\DataContract\bin\Debug\Unity.DataContract.dll.mdb
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\PackageManager\DataContract\bin\Debug\Unity.DataContract.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\PackageManager\DataContract\obj\Debug\Unity.DataContract.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\PackageManager\DataContract\obj\Debug\Unity.DataContract.dll.mdb

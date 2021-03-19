@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Material</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="passCount" type="var" modifiers="public" />
+      <ReturnType>int</ReturnType>
+    </Signature>
+    <Summary><![CDATA[How many passes are in this material (Read Only).]]></Summary>
+    <Description><![CDATA[This is mostly used in direct drawing code using ]]><link ref="GL">GL</link><![CDATA[ class.
+For example, ]]><link ref="../Manual/comp-ImageEffects">Image Effects</link><![CDATA[ use materials for
+implementing screen post-processing. For each pass in the material they activate
+the pass (see ]]><link ref="Material.SetPass">SetPass</link><![CDATA[) and draw a fullscreen quad.]]><br /><br /><![CDATA[Here is an example of a full image effect that inverts the colors.
+Add this script to the camera and see it in play mode.]]></Description>
+    <Example nocheck="false" convertexample="false">
+      <Unconverted><![CDATA[	private var mat : ]]><link ref="Material">Material</link><![CDATA[;]]><br /><br /><![CDATA[	function Start () {
+		mat = new ]]><link ref="Material">Material</link><![CDATA[ (
+			"Shader \"Hidden/Invert\" {" +
+			"SubShader {" +
+			"	Pass {" +
+			"		ZTest Always Cull Off ZWrite Off" +
+			"		SetTexture [_RenderTex] { combine one-texture }" +
+			"	}" +
+			"}" +
+			"}"
+		);
+	}]]><br /><br /><![CDATA[	function OnRenderImage (source : ]]><link ref="RenderTexture">RenderTexture</link><![CDATA[, dest : ]]><link ref="RenderTexture">RenderTexture</link><![CDATA[) {
+		]]><link ref="RenderTexture-active">RenderTexture.active</link><![CDATA[ = dest;
+		source.SetGlobalShaderProperty ("_RenderTex");]]><br /><br /><![CDATA[		]]><link ref="GL.PushMatrix">GL.PushMatrix</link><![CDATA[ ();
+		]]><link ref="GL.LoadOrtho">GL.LoadOrtho</link><![CDATA[ ();]]><br /><br /><![CDATA[		// for each pass in the material (one in this case)
+		for (var i = 0; i < mat.passCount; ++i) {
+			// activate pass
+			mat.SetPass (i);
+			// draw a quad
+			]]><link ref="GL.Begin">GL.Begin</link><![CDATA[( ]]><link ref="GL.QUADS">GL.QUADS</link><![CDATA[ );
+			]]><link ref="GL.TexCoord2">GL.TexCoord2</link><![CDATA[( 0, 0 ); ]]><link ref="GL.Vertex3">GL.Vertex3</link><![CDATA[( 0, 0, 0.1 );
+			]]><link ref="GL.TexCoord2">GL.TexCoord2</link><![CDATA[( 1, 0 ); ]]><link ref="GL.Vertex3">GL.Vertex3</link><![CDATA[( 1, 0, 0.1 );
+			]]><link ref="GL.TexCoord2">GL.TexCoord2</link><![CDATA[( 1, 1 ); ]]><link ref="GL.Vertex3">GL.Vertex3</link><![CDATA[( 1, 1, 0.1 );
+			]]><link ref="GL.TexCoord2">GL.TexCoord2</link><![CDATA[( 0, 1 ); ]]><link ref="GL.Vertex3">GL.Vertex3</link><![CDATA[( 0, 1, 0.1 );
+			]]><link ref="GL.End">GL.End</link><![CDATA[();
+		}
+		]]><link ref="GL.PopMatrix">GL.PopMatrix</link><![CDATA[ ();
+	}]]></Unconverted>
+    </Example>
+    <Description><![CDATA[See Also: ]]><link ref="Material.SetPass">SetPass</link><![CDATA[ function, ]]><link ref="GL">GL</link><![CDATA[ class, ]]><link ref="../Manual/Shaders">ShaderLab documentation</link><![CDATA[.]]></Description>
+  </Section>
+</Model>

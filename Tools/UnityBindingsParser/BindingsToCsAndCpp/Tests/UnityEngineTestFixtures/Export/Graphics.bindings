@@ -1,0 +1,4662 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Camera/Camera.h"
+#include "Runtime/Camera/ImageFilters.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Camera/Skybox.h"
+#include "Runtime/Graphics/LightmapSettings.h"
+#include "Runtime/Filters/Renderer.h"
+#include "Runtime/Camera/IntermediateRenderer.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Shaders/Material.h"
+#include "Runtime/Filters/Misc/TextMesh.h"
+#include "Runtime/Filters/Particles/EllipsoidParticleEmitter.h"
+#include "Runtime/Filters/Particles/MeshParticleEmitter.h"
+#include "Runtime/Shaders/Shader.h"
+#include "External/shaderlab/Library/intshader.h"
+#include "Runtime/Camera/Renderqueue.h"
+#include "Runtime/Filters/Deformation/SkinnedMeshFilter.h"
+#include "Runtime/Camera/Flare.h"
+#include "Runtime/GfxDevice/GfxDevice.h"
+#include "External/shaderlab/Library/texenv.h"
+#include "External/shaderlab/Library/properties.h"
+#include "Runtime/Geometry/Ray.h"
+#include "Runtime/Graphics/Texture2D.h"
+#include "Runtime/Graphics/CubemapTexture.h"
+#include "Runtime/Graphics/Texture3D.h"
+#include "Runtime/Graphics/VideoTexture.h"
+#include "Runtime/Camera/Projector.h"
+#include "Runtime/Camera/RenderLayers/GUITexture.h"
+#include "Runtime/Camera/RenderLayers/GUIText.h"
+#include "Runtime/Camera/RenderLayers/GUILayer.h"
+#include "Runtime/Filters/Misc/LineRenderer.h"
+#include "Runtime/Graphics/DrawUtil.h"
+#include "Runtime/Math/Quaternion.h"
+#include "Runtime/Filters/Mesh/LodMesh.h"
+#include "Runtime/Filters/Mesh/LodMeshFilter.h"
+#include "Runtime/Graphics/RenderTexture.h"
+#include "Runtime/Graphics/MatrixStack.h"
+#include "Runtime/Graphics/MovieTexture.h"
+#include "Runtime/Filters/Misc/TrailRenderer.h"
+#include "Runtime/Camera/LODGroupManager.h"
+#include "Runtime/Graphics/RenderBufferManager.h"
+#include "Runtime/Camera/RenderManager.h"
+#include "Runtime/Shaders/GraphicsCaps.h"
+#include "Runtime/Graphics/ScreenManager.h"
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Geometry/Plane.h"
+#include "Runtime/Filters/Particles/ParticleAnimator.h"
+#include "Runtime/Filters/Particles/ParticleRenderer.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Filters/AABBUtility.h"
+#include <list>
+#include <vector>
+#include "Runtime/Misc/QualitySettings.h"
+#include "Runtime/Filters/Misc/Font.h"
+#include "Runtime/Camera/RenderSettings.h"
+#include "Runtime/Geometry/Intersection.h"
+#include "Runtime/Shaders/ShaderNameRegistry.h"
+#include "Runtime/Shaders/ShaderKeywords.h"
+#include "Runtime/Shaders/ComputeShader.h"
+#include "Runtime/Geometry/TextureAtlas.h"
+#include "Runtime/Misc/GameObjectUtility.h"
+#include "Runtime/Camera/CameraUtil.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/Graphics/ImageConversion.h"
+#include "Runtime/Filters/Mesh/MeshCombiner.h"
+#include "Runtime/Filters/Mesh/MeshOptimizer.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Camera/Culler.h"
+#include "Runtime/Threads/Mutex.h"
+#include "Runtime/Threads/AtomicRefCounter.h"
+#include "Runtime/Camera/PVSVolume.h"
+#include "Runtime/Camera/OcclusionPortal.h"
+#include "Runtime/Graphics/DrawSplashScreenAndWatermarks.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingManager.h"
+#include "Runtime/ScriptingBackend/ScriptingTypeRegistry.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "Runtime/Scripting/MonoManagerFlash.h"
+#include "Runtime/Utilities/BitUtility.h"
+#include "Runtime/Profiler/Profiler.h"
+#include "Runtime/IMGUI/GUIStyle.h"
+#include "Runtime/ScriptingBackend/ScriptingApi.h"
+#include "Runtime/Graphics/TriStripper.h"
+
+#if ENABLE_TEXTUREID_MAP
+	#include "Runtime/GfxDevice/TextureIdMap.h"
+#endif
+
+
+#if UNITY_EDITOR
+#include "Editor/Src/Gizmos/GizmoManager.h"
+#include "Editor/Src/Gizmos/GizmoUtil.h"
+#endif
+
+
+// matrix stacks to be able to support GL style Push/Pop
+static MatrixStack g_WorldMatrixStack;
+static MatrixStack g_ViewMatrixStack;
+static MatrixStack g_ProjectionMatrixStack;
+//
+
+C++RAW
+
+
+class MonoMaterialPropertyBlock : public MaterialPropertyBlock {
+public:
+	MonoMaterialPropertyBlock() : m_Counter() { }
+
+	void Retain()
+	{
+		m_Counter.Retain();
+	}
+	void Release()
+	{
+		if( m_Counter.Release() ) {
+			delete this;
+		}
+	}
+
+	static void CleanupMonoMaterialPropertyBlock(void* mmpb)
+	{
+		((MonoMaterialPropertyBlock*)mmpb)->Release();
+	}
+
+private:
+	AtomicRefCounter m_Counter;
+};
+
+
+static PPtr<Shader> s_CurrentShader;
+static const ChannelAssigns* s_CurrentChannels;
+
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// The type of a [[Light]].
+ENUM LightType
+	// The light is a spot light.
+	Spot = 0,
+
+	// The light is a directional light.
+	Directional = 1,
+
+	// The light is a point light.
+	Point = 2,
+
+	// The light is an area light. It affects only lightmaps and lightprobes.
+	Area = 3
+END
+
+// How the [[Light]] is rendered.
+ENUM LightRenderMode
+	// Automatically choose the render mode.
+	Auto = 0,
+	// Force the [[Light]] to be a pixel light.
+	ForcePixel = 1,
+	// Force the [[Light]] to be a vertex light.
+	ForceVertex = 2
+END
+
+// Shadow casting options for a [[Light]].
+ENUM LightShadows
+	// Do not cast shadows (default).
+	None = 0,
+	// Cast "hard" shadows (with no shadow filtering).
+	Hard = 1,
+	// Cast "soft" shadows (with 4x PCF filtering).
+	Soft = 2,
+END
+
+
+// OcclusionArea is an area in which occlusion culling is performed
+CLASS OcclusionArea : Component
+
+	// Center of the occlusion area relative to the transform
+	AUTO_PROP Vector3 center GetCenter SetCenter
+
+	// Size that the occlusion area will have
+	AUTO_PROP Vector3 size GetSize SetSize
+
+END
+
+//The portal for dynamically changing occlusion at runtime.
+CLASS OcclusionPortal : Component
+	//gets / sets the portal's open state
+	CUSTOM_PROP bool open { return self->GetIsOpen(); } { self->SetIsOpen(value); }
+END
+
+
+// Fog mode to use.
+ENUM FogMode
+	// Linear fog.
+	Linear = 1,
+
+	// Exponential fog.
+	Exponential = 2,
+
+	// Exponential squared fog (default).
+	ExponentialSquared = 3
+END
+
+
+// The Render Settings contain values for a range of visual elements in your scene, like fog and ambient light.
+CLASS RenderSettings : Object
+	// Is fog enabled?
+	CUSTOM_PROP static bool  fog           { return GetRenderSettings().GetUseFog();  }    { return GetRenderSettings().SetUseFog(value);  }
+
+	// Fog mode to use.
+	CUSTOM_PROP static FogMode fogMode     { return GetRenderSettings().GetFogMode();  }    { return GetRenderSettings().SetFogMode(value); }
+
+	// The color of the fog.
+	CUSTOM_PROP static Color fogColor      { return GetRenderSettings().GetFogColor(); }   { GetRenderSettings().SetFogColor(value); }
+
+	// The density of the exponential fog.
+	CUSTOM_PROP static float fogDensity    { return GetRenderSettings().GetFogDensity(); } { GetRenderSettings().SetFogDensity(value); }
+
+
+	// The starting distance of linear fog.
+	CUSTOM_PROP static float fogStartDistance { return GetRenderSettings().GetLinearFogStart(); } { GetRenderSettings().SetLinearFogStart(value); }
+
+	// The ending distance of linear fog.
+	CUSTOM_PROP static float fogEndDistance { return GetRenderSettings().GetLinearFogEnd(); } { GetRenderSettings().SetLinearFogEnd(value); }
+
+
+	// Color of the scene's ambient light.
+	CUSTOM_PROP static Color ambientLight  { return GetRenderSettings().GetAmbientLight(); }    { GetRenderSettings().SetAmbientLight(value); }
+
+	// Size of the [[Light]] halos.
+	CUSTOM_PROP static float haloStrength  { return GetRenderSettings().GetHaloStrength(); }  { GetRenderSettings().SetHaloStrength(value); }
+
+	// The intensity of all flares in the scene.
+	CUSTOM_PROP static float flareStrength { return GetRenderSettings().GetFlareStrength(); } { GetRenderSettings().SetFlareStrength(value); }
+
+	// The global skybox to use.
+	CUSTOM_PROP static Material skybox { return Scripting::ScriptingWrapperFor(GetRenderSettings().GetSkyboxMaterial()); } { GetRenderSettings().SetSkyboxMaterial(value); }
+END
+
+OBSOLETE warning See QualitySettings.names, QualitySettings.SetQualityLevel, and QualitySettings.GetQualityLevel
+ENUM QualityLevel
+	// The "fastest" quality level.
+	Fastest = 0,
+	// The "fast" quality level.
+	Fast = 1,
+	// The "simple" quality level.
+	Simple = 2,
+	// The "good" quality level.
+	Good = 3,
+	// The "beautiful" quality level.
+	Beautiful = 4,
+	// The "fantastic" quality level.
+	Fantastic = 5,
+END
+
+// Shadow projection type for [[wiki:class-QualitySettings|Quality Settings]].
+ENUM ShadowProjection
+	// Close fit shadow maps with linear fadeout.
+	CloseFit = 0,
+
+	// Stable shadow maps with spherical fadeout.
+	StableFit = 1,
+END
+
+
+// Script interface for [[wiki:class-QualitySettings|Quality Settings]].
+CLASS QualitySettings : Object
+	// The indexed list of available Quality Settings
+	CONDITIONAL ENABLE_MONO || PLATFORM_WINRT
+	CUSTOM_PROP static string[] names
+	{
+		return StringVectorToScripting(GetQualitySettings().GetQualitySettingsNames ());
+	}
+
+	// Returns the current graphics quality level.
+	CUSTOM static int GetQualityLevel ()
+	{
+		return GetQualitySettings().GetCurrentIndex();
+	}
+
+	// Sets a new graphics quality level.
+	CUSTOM static void SetQualityLevel (int index, bool applyExpensiveChanges = true)
+	{
+		GetQualitySettings().SetCurrentIndex (index, applyExpensiveChanges);
+	}
+
+	OBSOLETE warning Use GetQualityLevel and SetQualityLevel
+	CUSTOM_PROP static QualityLevel currentLevel { return GetQualitySettings().GetCurrentIndex(); } { GetQualitySettings().SetCurrentIndex( value, true ); }
+
+	// Increase the current quality level.
+	CUSTOM static void IncreaseLevel(bool applyExpensiveChanges = false)
+	{
+		QualitySettings& q = GetQualitySettings();
+		q.SetCurrentIndex( q.GetCurrentIndex() + 1, applyExpensiveChanges ); // will clamp internally
+	}
+
+	// Decrease the current quality level.
+	CUSTOM static void DecreaseLevel(bool applyExpensiveChanges = false)
+	{
+		QualitySettings& q = GetQualitySettings();
+		q.SetCurrentIndex( q.GetCurrentIndex() - 1, applyExpensiveChanges ); // will clamp internally
+	}
+
+	// The maximum number of pixel lights that should affect any object.
+	CUSTOM_PROP static int pixelLightCount { return GetQualitySettings().GetCurrent().pixelLightCount; } { GetQualitySettings().SetPixelLightCount(value); }
+
+	// Directional light shadow projection.
+	CUSTOM_PROP static ShadowProjection shadowProjection { return (ShadowProjection)GetQualitySettings().GetCurrent().shadowProjection; } { GetQualitySettings().SetShadowProjection((ShadowProjection)value); }
+
+	// Number of cascades to use for directional light shadows.
+	CUSTOM_PROP static int shadowCascades { return GetQualitySettings().GetCurrent().shadowCascades; } { GetQualitySettings().SetShadowCascades(value); }
+
+	// Shadow drawing distance.
+	CUSTOM_PROP static float shadowDistance { return GetQualitySettings().GetCurrent().shadowDistance; } { GetQualitySettings().SetShadowDistance(value); }
+
+
+	// A texture size limit applied to all textures.
+	CUSTOM_PROP static int masterTextureLimit { return GetQualitySettings().GetCurrent().textureQuality; } { GetQualitySettings().SetMasterTextureLimit(value); }
+
+	// Global anisotropic filtering mode.
+	CUSTOM_PROP static AnisotropicFiltering anisotropicFiltering { return Texture::GetAnisoLimit (); } { Texture::SetAnisoLimit (value); }
+
+	// Global multiplier for the LOD's switching distance.
+	CUSTOM_PROP static float lodBias { return GetQualitySettings().GetCurrent().lodBias; } { GetQualitySettings().SetLODBias (value); }
+
+	// A maximum LOD level. All LOD groups
+	CUSTOM_PROP static int maximumLODLevel { return GetQualitySettings().GetCurrent().maximumLODLevel; } { GetQualitySettings().SetMaximumLODLevel (value); }
+
+	// Budget for how many ray casts can be performed per frame for approximate collision testing.
+	CUSTOM_PROP static int particleRaycastBudget { return GetQualitySettings().GetCurrent().particleRaycastBudget; } { GetQualitySettings().SetParticleRaycastBudget (value); }
+
+	// Use a two-pass shader for the vegetation in the terrain engine.
+	CUSTOM_PROP static bool softVegetation { return GetQualitySettings().GetCurrent().softVegetation; } { GetQualitySettings().SetSoftVegetation (value); }
+
+
+	// Maximum number of frames queued up by graphics driver.
+	CUSTOM_PROP static int maxQueuedFrames { return GetGfxDevice().GetMaxBufferedFrames(); } { GetGfxDevice().SetMaxBufferedFrames (clamp(value, -1, 10)); }
+
+	// The VSync Count.
+	CUSTOM_PROP static int vSyncCount { return GetQualitySettings().GetCurrent().vSyncCount; } { GetQualitySettings().SetVSyncCount(value); }
+
+	// Set The AA Filtering option.
+	CUSTOM_PROP static int antiAliasing { return GetQualitySettings().GetCurrent().antiAliasing; } { GetQualitySettings().SetAntiAliasing(value); }
+
+	// Desired color space
+	CUSTOM_PROP static ColorSpace desiredColorSpace { return GetPlayerSettings().GetDesiredColorSpace (); }
+
+	// Active color space
+	CUSTOM_PROP static ColorSpace activeColorSpace { return GetPlayerSettings().GetValidatedColorSpace (); }
+
+	// Blend weights.
+	CUSTOM_PROP static BlendWeights blendWeights { return GetQualitySettings().GetCurrent().blendWeights; } { GetQualitySettings().SetBlendWeights(value); }
+END
+
+
+
+// Values for Camera.clearFlags, determining what to clear when rendering a [[Camera]].
+ENUM CameraClearFlags
+	// Clear with the skybox.
+	Skybox = 1,
+
+	OBSOLETE planned Use CameraClearFlags.SolidColor
+	Color = 2,
+
+	// Clear with a background color.
+	SolidColor = 2,
+
+	// Clear only the depth buffer.
+	Depth = 3,
+
+	// Don't clear anything.
+	Nothing = 4
+END
+
+
+// Depth texture generation mode for [[Camera]].
+CSRAW [Flags]
+ENUM DepthTextureMode
+	// Do not generate depth texture (Default).
+	None = 0,
+
+	// Generate a depth texture.
+	Depth = 1,
+
+	// Generate a depth + normals texture.
+	DepthNormals = 2,
+
+	// Generate a motion vector texture.
+	MotionVectors = 4 
+END
+
+//*undocumented*
+ENUM TexGenMode
+	// the texture gets its coordinates from UV
+	None  = 0,
+	// The texture uses spherical reflection mappping
+	SphereMap = 1,
+	// The texture is applied in object space
+	Object = 2,
+	// Projected Eye space
+	EyeLinear = 3,
+	// Cubemap reflection calculation
+	CubeReflect = 4,
+	// Cubemap normal calculation
+	CubeNormal = 5
+END
+
+
+// Shader scripts used for all rendering.
+CLASS Shader : Object
+
+	// Finds a shader with the given /name/.
+	CUSTOM static Shader Find (string name)
+	{
+		return Scripting::ScriptingWrapperFor(GetScriptMapper().FindShader(name));
+	}
+
+	CUSTOM internal static Shader FindBuiltin (string name)
+	{
+		return Scripting::ScriptingWrapperFor(GetBuiltinResource<Shader> (name));
+	}
+
+	// Can this shader run on the end-users graphics card? (RO)
+	AUTO_PROP bool isSupported IsSupported
+
+	//*undocumented*
+	CONDITIONAL UNITY_EDITOR
+	CUSTOM_PROP internal string customEditor { return CreateScriptingString (self->GetCustomEditorName()); }
+
+	//*undocumented*
+	CUSTOM static void EnableKeyword (string keyword) {
+		g_ShaderKeywords.Enable( keywords::Create( keyword ) );
+	}
+	//*undocumented*
+	CUSTOM static void DisableKeyword (string keyword) {
+		g_ShaderKeywords.Disable( keywords::Create( keyword ) );
+	}
+
+	// Shader LOD level for this shader.
+	AUTO_PROP int maximumLOD GetMaximumShaderLOD SetMaximumShaderLOD
+	// Shader LOD level for all shaders.
+	CUSTOM_PROP static int globalMaximumLOD { return Shader::GetGlobalMaximumShaderLOD(); } { Shader::SetGLobalMaximumShaderLOD (value); }
+
+	// Render queue of this shader (RO)
+	CUSTOM_PROP int renderQueue { return self->GetShaderLabShader()->GetRenderQueue(); }
+
+	// Sets a global color property for all shaders.
+	CUSTOM static void SetGlobalColor (string propertyName, Color color) {
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->SetVector (ScriptingStringToProperty (propertyName), color.GetPtr ());
+	}
+
+	// Sets a global vector property for all shaders.
+	CSRAW public static void SetGlobalVector (string propertyName, Vector4 vec) {
+		SetGlobalColor (propertyName, vec);
+	}
+
+	// Sets a global float property for all shaders.
+	CUSTOM static void SetGlobalFloat (string propertyName, float value) {
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->SetFloat (ScriptingStringToProperty (propertyName), value);
+	}
+
+	// Sets a global texture property for all shaders.
+	CUSTOM static void SetGlobalTexture (string propertyName, Texture tex) {
+		Texture& texture = *tex;
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->SetTexture (ScriptingStringToProperty (propertyName), &texture);
+	}
+
+	// Sets a global matrix property for all shaders.
+	CUSTOM static void SetGlobalMatrix (string propertyName, Matrix4x4 mat) {
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->SetValueProp (ScriptingStringToProperty (propertyName), 16, mat.GetPtr());
+	}
+
+	//*undocumented* Intifada uses these for cube lighting. Don't think they're really useful anywhere else
+	CUSTOM static void SetGlobalTexGenMode (string propertyName, TexGenMode mode) {
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->GetTexEnv(ScriptingStringToProperty (propertyName))->SetTexGen ((TexGenMode)mode);
+	}
+
+	//*undocumented* Intifada uses these for cube lighting. Don't think they're really useful anywhere else
+	CUSTOM static void SetGlobalTextureMatrixName (string propertyName, string matrixName) {
+		if(propertyName.Length() == 0)
+		{
+			ErrorString ("SetGlobalTextureMatrixName: Invalid empty propertyName");
+			return;
+		}
+		if(matrixName.Length() == 0)
+		{
+			ErrorString ("SetGlobalTextureMatrixName: Invalid empty matrixName");
+			return;
+		}
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->GetTexEnv(ScriptingStringToProperty (propertyName))->SetMatrixName (ScriptingStringToProperty (matrixName));
+	}
+
+	CONDITIONAL !UNITY_FLASH
+	CUSTOM static void SetGlobalBuffer (string propertyName, ComputeBuffer buffer) {
+		ShaderLab::PropertySheet *props = ShaderLab::g_GlobalProperties;
+		props->SetComputeBuffer (ScriptingStringToProperty (propertyName), buffer ? buffer->GetBufferHandle() : ComputeBufferID());
+	}
+
+	// Gets unique identifier for a shader property name.
+	CUSTOM static int PropertyToID (string name) {
+		return ScriptingStringToProperty (name).index;
+	}
+
+	// Fully load all shaders to prevent future performance hiccups.
+	CUSTOM static void WarmupAllShaders () {
+		WarmupAllShaders ();
+	}
+
+END
+
+
+// Anisotropic filtering mode.
+ENUM AnisotropicFiltering
+	// Disable anisotropic filtering for all textures.
+	Disable = 0,
+	// Enable anisotropic filtering, as set for each texture.
+	Enable = 1,
+	// Enable anisotropic filtering for all textures.
+	ForceEnable = 2
+END
+
+// Blend weights.
+ENUM BlendWeights
+	// One bone affects each vertex.
+	OneBone = 1,
+	// Two bones affect each vertex.
+	TwoBones = 2,
+	// Four bones affect each vertex.
+	FourBones = 4
+END
+
+
+// Filtering mode for textures. Corresponds to the settings in a [[wiki:class-Texture2D|texture inspector]].
+ENUM FilterMode
+	// Point filtering - texture pixels become blocky up close.
+	Point = 0,
+	// Bilinear filtering - texture samples are averaged.
+	Bilinear = 1,
+	// Trilinear filtering - texture samples are averaged and also blended between mipmap levels.
+	Trilinear = 2,
+END
+
+// Wrap mode for textures. Corresponds to the settings in a [[wiki:class-Texture2D|texture inspector]].
+ENUM TextureWrapMode
+	// Tiles the texture, creating a repeating pattern.
+	Repeat = 0,
+
+	// Clamps the texture to the last pixel at the border.
+	Clamp = 1,
+END
+
+CONDITIONAL UNITY_EDITOR
+// Compression Quality. Corresponds to the settings in a [[wiki:class-Texture2D|texture inspector]].
+ENUM TextureCompressionQuality
+	// Fast compression
+	Fast = 0,
+	// Normal compression (default)
+	Normal = 50,
+	// Best compression
+	Best = 100
+END
+
+
+// Base class for texture handling. Contains functionality that is common to both [[Texture2D]] and [[RenderTexture]] classes.
+NONSEALED_CLASS Texture : Object
+	//*undocumented* have QualitySettings now
+	CUSTOM_PROP static int masterTextureLimit { return Texture::GetMasterTextureLimit (); } { Texture::SetMasterTextureLimit (value); }
+
+	//*undocumented* have QualitySettings now
+	CUSTOM_PROP static AnisotropicFiltering anisotropicFiltering { return Texture::GetAnisoLimit (); } { Texture::SetAnisoLimit (value); }
+
+	// Sets Anisotropic limits.
+	CUSTOM static void SetGlobalAnisotropicFilteringLimits( int forcedMin, int globalMax )
+	{
+		Texture::SetGlobalAnisoLimits(forcedMin, globalMax);
+	}
+
+	CUSTOM private static int Internal_GetWidth (Texture mono) { return mono->GetDataWidth(); }
+	CUSTOM private static int Internal_GetHeight (Texture mono) { return mono->GetDataHeight(); }
+
+	CSRAW
+	// Width of the texture in pixels (RO)
+	virtual public int width { get { return Internal_GetWidth(this); } set { throw new Exception("not implemented"); } }
+	// Height of the texture in pixels (RO)
+	virtual public int height { get { return Internal_GetHeight(this); } set { throw new Exception("not implemented"); } }
+
+	// Filtering mode of the texture.
+	AUTO_PROP FilterMode filterMode GetFilterMode SetFilterMode
+
+	// Anisotropic filtering level of the texture.
+	AUTO_PROP int anisoLevel GetAnisoLevel SetAnisoLevel
+
+	// Wrap mode (Repeat or Clamp) of the texture.
+	AUTO_PROP TextureWrapMode wrapMode GetWrapMode SetWrapMode
+
+	// Mip map bias of the texture.
+	AUTO_PROP float mipMapBias GetMipMapBias SetMipMapBias
+
+	// Workaround for gcc/msvc where passing small mono structures by value does not work
+	CUSTOM private static void Internal_GetTexelSize (Texture tex, out Vector2 output)
+	{
+		Texture& texture = *tex;
+		output->x = texture.GetTexelSizeX();
+		output->y = texture.GetTexelSizeY();
+	}
+
+	//*undocumented* Generally used only in image effects...
+	CSRAW public Vector2 texelSize { get { Vector2 r; Internal_GetTexelSize(this, out r); return r; } }
+
+
+	// Retrieve native ('hardware') pointer to a texture.
+	CUSTOM IntPtr GetNativeTexturePtr () {
+		return self->GetNativeTexturePtr();
+	}
+
+	// Retrieve native ('hardware') handle to a texture.
+	CUSTOM int GetNativeTextureID () {
+	#if ENABLE_TEXTUREID_MAP
+		return TextureIdMap::QueryNativeTexture(self->GetTextureID());
+	#else
+		return self->GetTextureID().m_ID;
+	#endif
+	}
+
+END
+
+/// NPOT [[Texture2D|textures]] support.
+ENUM NPOTSupport
+	/// NPOT textures are not supported. Will be upscaled/padded at loading time.
+	None = 0,
+
+	/// Limited NPOT support: no mip-maps and clamp [[TextureWrapMode|wrap mode]] will be forced.
+	/// If NPOT Texture do have mip-maps it will be upscaled/padded at loading time.
+	Restricted = 1,
+
+	/// Full NPOT support.
+	Full = 2
+
+END
+
+// Format of a [[Texture2D|texture]]. Used when creating textures from scripts.
+ENUM TextureFormat
+	// Alpha-only texture format.
+	Alpha8 = 1,
+
+	// A 16 bits/pixel texture format. Texture stores color with an alpha channel.
+	ARGB4444 = 2,
+
+	// A color texture format.
+	RGB24 = 3,
+
+	//*undocumented*
+	RGBA32 = 4,
+
+	// Color with an alpha channel texture format.
+	ARGB32 = 5,
+
+	// A 16 bit color texture format.
+	RGB565 = 7,
+
+	// Compressed color texture format.
+	DXT1 = 10,
+
+	// Compressed color with alpha channel texture format.
+	DXT5 = 12,
+
+	// A 16 bits/pixel texture format. Texture stores color with an alpha channel.
+	RGBA4444 = 13,
+
+	// Format returned by iPhone camera
+	BGRA32 = 14,
+
+	// PowerVR (iOS) 2 bits/pixel compressed color texture format.
+	PVRTC_RGB2 = 30,
+
+	// PowerVR (iOS) 2 bits/pixel compressed with alpha channel texture format
+	PVRTC_RGBA2 = 31,
+
+	// PowerVR (iOS) 4 bits/pixel compressed color texture format.
+	PVRTC_RGB4 = 32,
+
+	// PowerVR (iOS) 4 bits/pixel compressed with alpha channel texture format
+	PVRTC_RGBA4 = 33,
+
+	// ETC (GLES2.0) 4 bits/pixel compressed RGB texture format.
+	ETC_RGB4 = 34,
+
+	// ATC (ATITC) 4 bits/pixel compressed RGB texture format.
+	ATC_RGB4 = 35,
+
+	// ATC (ATITC) 8 bits/pixel compressed RGB texture format.
+	ATC_RGBA8 = 36,
+
+	// Flash-specific RGB DXT1 compressed color texture format.
+	ATF_RGB_DXT1 = 38,
+
+	// Flash-specific RGBA JPG-compressed color texture format.
+	ATF_RGBA_JPG = 39,
+
+	// Flash-specific RGB JPG-compressed color texture format.
+	ATF_RGB_JPG = 40,
+
+	OBSOLETE warning Use PVRTC_RGB2
+	PVRTC_2BPP_RGB = -127,
+	OBSOLETE warning Use PVRTC_RGBA2
+	PVRTC_2BPP_RGBA = -127,
+	OBSOLETE warning Use PVRTC_RGB4
+	PVRTC_4BPP_RGB = -127,
+	OBSOLETE warning Use PVRTC_RGBA4
+	PVRTC_4BPP_RGBA = -127
+END
+
+// Class for texture handling. Use this to create textures on the fly or to modify existing [[wiki:class-Texture2D|texture assets]].
+CLASS Texture2D : Texture
+	C++RAW
+ #define CHECK_READABLE { if (!self->GetIsReadable()) RaiseMonoException("Texture '%s' is not readable, the texture memory can not be accessed from scripts. You can make the texture readable in the Texture Import Settings.", self->GetName()); }
+
+	// Check if reading of texture is allowed by crossdomain security and throw if not
+	C++RAW
+ static void CheckReadAllowedAndThrow(Texture2D *tex)
+	{
+#if ENABLE_MONO && ENABLE_SECURITY
+		if ( !tex->GetReadAllowed() )
+			RaiseSecurityException("No read access to the texture data: %s", tex->GetName());
+#endif
+	}
+
+	// Check if reading from the screen or a rendertexture is allowed. If you use any downloaded file as
+	// a texture without proper crossdomain.xml autorization, all screenpixel reads are turned off from that point on.
+	C++RAW
+ static void CheckScreenReadAllowedAndThrow()
+	{
+		if ( !Texture2D::GetScreenReadAllowed() )
+			RaiseSecurityException("Reading from the screen is not allowed when you have used a downloaded texture without proper crossdomain.xml authorization");
+	}
+
+	// How many mipmap levels are in this texture (RO).
+	AUTO_PROP int mipmapCount CountDataMipmaps
+
+
+	// Create a new empty texture.
+	CSRAW public Texture2D (int width, int height)
+	{
+		Internal_Create(this, width, height, TextureFormat.ARGB32, true, false, IntPtr.Zero);
+	}
+
+
+	// Create a new empty texture.
+	CSRAW public Texture2D (int width, int height, TextureFormat format, bool mipmap)
+	{
+		Internal_Create(this, width, height, format, mipmap, false, IntPtr.Zero);
+	}
+
+	// SA: ::ref::SetPixel, ::ref::SetPixels, ::ref::Apply functions.
+	CSRAW public Texture2D (int width, int height, TextureFormat format, bool mipmap, bool linear)
+	{
+		Internal_Create(this, width, height, format, mipmap, linear, IntPtr.Zero);
+	}
+
+	CUSTOM private static void Internal_Create ([Writable]Texture2D mono, int width, int height, TextureFormat format, bool mipmap, bool linear, IntPtr nativeTex)
+	{
+		if(!GetBuildSettings().hasAdvancedVersion && nativeTex != 0)
+		{
+			RaiseMonoException("Creating texture from native texture is PRO only.");
+			return;
+		}
+
+		Texture2D* texture = NEW_OBJECT_MAIN_THREAD (Texture2D);
+		texture->Reset();
+
+		if (texture->InitTexture(width, height, format, mipmap ? Texture2D::kFlagCreateMipChain : Texture2D::kFlagNone, 1, (intptr_t)nativeTex))
+		{
+			texture->SetStoredColorSpace (linear ? kTexColorSpaceLinear : kTexColorSpaceSRGB);
+			ConnectScriptingWrapperToObject (mono.GetScriptingObject(), texture);
+			texture->AwakeFromLoad(kInstantiateOrCreateFromCodeAwakeFromLoad);
+		}
+		else
+		{
+			DestroySingleObject (texture);
+			RaiseMonoException("Failed to create texture because of invalid parameters.");
+		}
+	}
+
+	CONDITIONAL ENABLE_TEXTUREID_MAP
+	CSRAW internal Texture2D (int width, int height, TextureFormat format, bool mipmap, bool linear, IntPtr nativeTex)
+	{
+		Internal_Create(this, width, height, format, mipmap, linear, nativeTex);
+	}
+
+	CONDITIONAL ENABLE_TEXTUREID_MAP
+	CSRAW static public Texture2D CreateExternalTexture(int width, int height, TextureFormat format, bool mipmap, bool linear, IntPtr nativeTex)
+	{
+		return new Texture2D(width, height, format, mipmap, linear, nativeTex);
+	}
+
+	CONDITIONAL ENABLE_TEXTUREID_MAP
+	CUSTOM public void UpdateExternalTexture(IntPtr nativeTex)
+	{
+		if(!GetBuildSettings().hasAdvancedVersion)
+		{
+			RaiseMonoException("Updating native texture is PRO only.");
+			return;
+		}
+		GetGfxDevice().UpdateExternalTextureFromNative(self->GetTextureID(), (intptr_t)nativeTex);
+	}
+
+
+	// The format of the pixel data in the texture (RO).
+	AUTO_PROP TextureFormat format GetTextureFormat
+
+	// Sets pixel color at coordinates (x,y).
+	CUSTOM void SetPixel (int x, int y, Color color)
+	{
+		CHECK_READABLE
+		self->SetPixel (0, x, y, color);
+	}
+
+	// Returns pixel color at coordinates (x, y).
+	CUSTOM Color GetPixel (int x, int y) {
+		CHECK_READABLE
+		CheckReadAllowedAndThrow(self);
+		return self->GetPixel (0, x, y);
+	}
+
+	// Returns filtered pixel color at normalized coordinates (u, v).
+	CUSTOM Color GetPixelBilinear (float u, float v) {
+		CHECK_READABLE
+		CheckReadAllowedAndThrow(self);
+		return self->GetPixelBilinear (0, u, v);
+	}
+
+	// Set a block of pixel colors.
+	CSRAW public void SetPixels(Color[] colors, int miplevel = 0)
+	{
+		int w = width >> miplevel; if( w < 1 ) w = 1;
+		int h = height >> miplevel; if( h < 1 ) h = 1;
+		SetPixels( 0, 0, w, h, colors, miplevel );
+	}
+	// Set a block of pixel colors.
+	CUSTOM void SetPixels(int x, int y, int blockWidth, int blockHeight, Color[] colors, int miplevel = 0)
+	{
+		CHECK_READABLE
+		self->SetPixels( x, y, blockWidth, blockHeight, GetScriptingArraySize(colors), GetScriptingArrayStart<ColorRGBAf>(colors), miplevel );
+	}
+
+	// Set a block of pixel colors.
+	CUSTOM void SetPixels32(Color32[] colors, int miplevel = 0)
+	{
+		CHECK_READABLE
+		self->SetPixels32( miplevel, GetScriptingArrayStart<ColorRGBA32>(colors), GetScriptingArraySize(colors) );
+	}
+
+	// Loads an image from a byte array.
+	CUSTOM bool LoadImage (byte[] data)
+	{
+		return LoadMemoryBufferIntoTexture(*self, GetScriptingArrayStart<UInt8>(data), GetScriptingArraySize(data), IsCompressedDXTTextureFormat(self->GetTextureFormat())?kLoadImageDXTCompressDithered:kLoadImageUncompressed);
+	}
+
+	// Get a block of pixel colors.
+	CSRAW public Color[] GetPixels(int miplevel = 0)
+	{
+		int w = width >> miplevel; if( w < 1 ) w = 1;
+		int h = height >> miplevel; if( h < 1 ) h = 1;
+		return GetPixels( 0, 0, w, h, miplevel );
+	}
+	// Get a block of pixel colors.
+	CUSTOM Color[] GetPixels(int x, int y, int blockWidth, int blockHeight, int miplevel = 0)
+	{
+		CHECK_READABLE
+		CheckReadAllowedAndThrow(self);
+
+		int res = blockWidth * blockHeight;
+		if (blockWidth != 0 && blockHeight != res / blockWidth) {
+			return SCRIPTING_NULL;
+		}
+
+
+		ScriptingArrayPtr colors = CreateScriptingArray<ColorRGBAf>(GetMonoManager().GetCommonClasses().color, blockWidth * blockHeight);
+		ColorRGBAf* firstElement = GetScriptingArrayStart<ColorRGBAf>(colors);
+		self->GetPixels( x, y, blockWidth, blockHeight, miplevel,  firstElement);
+		return colors;
+	}
+
+	// Get a block of pixel colors in Color32 format
+	CUSTOM public Color32[] GetPixels32(int miplevel = 0)
+	{
+		CHECK_READABLE
+		CheckReadAllowedAndThrow(self);
+		int w = self->GetDataWidth() >> miplevel; if( w < 1 ) w = 1;
+		int h = self->GetDataHeight() >> miplevel; if( h < 1 ) h = 1;
+
+
+		ScriptingArrayPtr colors = CreateScriptingArray<ColorRGBA32>(GetMonoManager().GetCommonClasses().color32, w * h);
+		ColorRGBA32* firstElement = GetScriptingArrayStart<ColorRGBA32>(colors);
+		self->GetPixels32( miplevel, firstElement);
+		return colors;
+	}
+
+	// Actually apply all previous ::ref::SetPixel and ::ref::SetPixels changes.
+	CUSTOM void Apply (bool updateMipmaps=true, bool makeNoLongerReadable=false)
+	{
+		CHECK_READABLE
+		self->Apply(updateMipmaps, makeNoLongerReadable);
+	}
+
+	// Resizes the texture.
+	CUSTOM public bool Resize (int width, int height, TextureFormat format, bool hasMipMap)
+	{
+		return self->ResizeWithFormat (width, height, format, hasMipMap ? Texture2D::kFlagCreateMipChain : Texture2D::kFlagNone);
+	}
+
+	// Resizes the texture.
+	CSRAW public bool Resize (int width, int height) { return Internal_ResizeWH(width, height); }
+	CUSTOM private bool Internal_ResizeWH (int width, int height) {
+		CHECK_READABLE
+		return self->Resize(width, height);
+	}
+
+
+	// Compress texture into DXT format.
+	AUTO void Compress (bool highQuality);
+
+
+	// Packs multiple Textures into a texture atlas.
+
+	CUSTOM Rect[] PackTextures( Texture2D[] textures, int padding, int maximumAtlasSize = 2048, bool makeNoLongerReadable = false )
+	{
+		int textureCount = GetScriptingArraySize(textures);
+		Texture2D** texturePtrs = new Texture2D*[textureCount];
+		for( int i = 0; i < textureCount; ++i )
+		{
+			Texture2D* tex = ScriptingObjectToObject<Texture2D>( GetScriptingArrayElementNoRef<ScriptingObjectPtr>(textures,i));
+			if (tex && !tex->GetIsReadable())
+			{
+				ErrorString("Texture atlas needs textures to have Readable flag set!");
+				tex = NULL;
+			}
+			texturePtrs[i] = tex;
+		}
+
+		ScriptingArrayPtr rects = CreateScriptingArray<Rectf>(GetMonoManager().GetCommonClasses().rect, textureCount);
+		Rectf* firstElement = GetScriptingArrayStart<Rectf>(rects);
+
+		if( !PackTextureAtlasSimple( &*self, maximumAtlasSize, textureCount, texturePtrs, firstElement, padding, true, makeNoLongerReadable ) )
+		{
+			delete[] texturePtrs; // TODO: error
+			return SCRIPTING_NULL;
+		}
+
+		delete[] texturePtrs;
+		return rects;
+	}
+
+	// Read screen pixels into the saved texture data.
+	CUSTOM void ReadPixels (Rect source, int destX, int destY, bool recalculateMipMaps = true) {
+		#if !UNITY_FLASH
+		CHECK_READABLE
+		CheckScreenReadAllowedAndThrow();
+		bool flipVertical = GetGfxDevice().GetInvertProjectionMatrix();
+		self->ReadPixels (0, (int)source.x, (int)source.y, (int)source.Width(), (int)source.Height(), destX, destY, flipVertical, recalculateMipMaps);
+		#elif UNITY_FLASH
+		printf_console("ReadPixels is unsupported on Flash");
+		#endif
+	}
+
+	// Encodes this texture into PNG format.
+	CUSTOM byte[] EncodeToPNG ()
+	{
+		#if ENABLE_PNG_JPG
+		CHECK_READABLE
+		CheckReadAllowedAndThrow(self);
+
+		Texture2D* tex = self;
+		if( !tex )
+		{
+			ErrorString( "EncodeToPNG failed: texture is null" );
+			return SCRIPTING_NULL;
+		}
+		dynamic_array<UInt8> buffer;
+		if( !tex->EncodeToPNG( buffer ) )
+		{
+			return SCRIPTING_NULL;
+		}
+		return CreateScriptingArray<UInt8>( &buffer[0], buffer.size(), GetMonoManager().GetCommonClasses().byte );
+		#else
+		return SCRIPTING_NULL;
+		#endif
+	}
+
+	CONDITIONAL UNITY_EDITOR
+	AUTO_PROP bool alphaIsTransparency GetAlphaIsTransparency SetAlphaIsTransparency
+
+END
+
+
+// [[Cubemap]] face.
+ENUM CubemapFace
+	// Right facing side (+x)
+	PositiveX = 0,
+	// Left facing side (-x)
+	NegativeX = 1,
+	// Upwards facing side (+y)
+	PositiveY = 2,
+	// downward facing side (-y)
+	NegativeY = 3,
+	// Forward facing side (+z)
+	PositiveZ = 4,
+	// Backward facing side (-z)
+	NegativeZ = 5
+END
+
+
+// Class for handling cube maps, Use this to create or modify existing [[wiki:class-Cubemap|cube map assets]].
+CLASS Cubemap : Texture
+	// Sets pixel color at coordinates (face, x, y).
+	CUSTOM void SetPixel (CubemapFace face, int x, int y, Color color) {
+		CHECK_READABLE
+		self->SetPixel (face, x, y, color);
+	}
+
+	// Returns pixel color at coordinates (face, x, y).
+	CUSTOM Color GetPixel (CubemapFace face, int x, int y) {
+		CHECK_READABLE
+		return self->GetPixel (face, x, y);
+	}
+
+
+	// Returns pixel colors of a cubemap face.
+	CUSTOM Color[] GetPixels(CubemapFace face, int miplevel = 0)
+	{
+		CHECK_READABLE
+		int size = std::max(self->GetDataWidth() >> miplevel, 1);
+
+		ScriptingArrayPtr colors = CreateScriptingArray<ColorRGBAf>(GetMonoManager().GetCommonClasses().color, size*size);
+		ColorRGBAf* firstElement = GetScriptingArrayStart<ColorRGBAf>(colors);
+		self->GetPixels( 0, 0, size, size, miplevel,  firstElement, (int)face );
+		return colors;
+	}
+
+	// Sets pixel colors of a cubemap face.
+	CUSTOM void SetPixels(Color[] colors, CubemapFace face, int miplevel = 0)
+	{
+		CHECK_READABLE
+		int size = std::max(self->GetDataWidth() >> miplevel, 1);
+		self->SetPixels( 0, 0, size, size, GetScriptingArraySize(colors), GetScriptingArrayStart<ColorRGBAf>(colors), miplevel, (int)face );
+	}
+
+
+	// Actually apply all previous ::ref::SetPixel and ::ref::SetPixels changes.
+	// Set the pixel at (0,0) of the +X face red.
+	//
+	CUSTOM void Apply (bool updateMipmaps = true, bool makeNoLongerReadable=false)
+	{
+	#if !UNITY_EDITOR
+		CHECK_READABLE
+	#endif
+
+		if(makeNoLongerReadable)
+	{
+			self->SetIsReadable(false);
+			self->SetIsUnreloadable(true);
+		}
+
+		if (updateMipmaps)
+			self->UpdateImageData();
+		else
+			self->UpdateImageDataDontTouchMipmap();
+	}
+
+	// The format of the pixel data in the texture (RO).
+	AUTO_PROP TextureFormat format GetTextureFormat
+
+	// Create a new empty cubemap texture.
+	CSRAW public Cubemap (int size, TextureFormat format, bool mipmap)
+	{
+		Internal_Create(this, size, format, mipmap);
+	}
+
+	CUSTOM private static void Internal_Create ([Writable]Cubemap mono, int size, TextureFormat format, bool mipmap)
+	{
+		Cubemap* texture = NEW_OBJECT_MAIN_THREAD (Cubemap);
+		texture->Reset();
+
+		if (texture->InitTexture(size, size, format, mipmap ? Texture2D::kFlagCreateMipChain : Texture2D::kFlagNone, 6))
+		{
+			ConnectScriptingWrapperToObject (mono.GetScriptingObject(), texture);
+			texture->AwakeFromLoad(kInstantiateOrCreateFromCodeAwakeFromLoad);
+		}
+		else
+		{
+			RaiseMonoException("Failed to create texture because of invalid parameters.");
+		}
+	}
+
+	// Performs smoothing of near edge regions.
+	CUSTOM void SmoothEdges (int smoothRegionWidthInPixels = 1)
+	{
+		self->FixupEdges (smoothRegionWidthInPixels);
+	}
+
+END
+
+// Class for handling 3D Textures, Use this to create [[wiki:class-Texture3D|3D texture assets]].
+CLASS Texture3D : Texture
+
+	// The depth of the texture
+	AUTO_PROP int depth GetDepth
+
+	// This function returns an array of pixel colors representing one mip level of the 3D texture.
+	CUSTOM Color[] GetPixels(int miplevel = 0)
+	{
+		int w = std::max(self->GetDataWidth() >> miplevel, 1);
+		int h = std::max(self->GetDataHeight() >> miplevel, 1);
+		int d = std::max(self->GetDepth() >> miplevel, 1);
+
+		ScriptingArrayPtr colors = CreateScriptingArray<ColorRGBAf>(GetMonoManager().GetCommonClasses().color, w*h*d);
+		ColorRGBAf* firstElement = GetScriptingArrayStart<ColorRGBAf>(colors);
+		self->GetPixels (firstElement, miplevel);
+		return colors;
+	}
+
+	// Sets pixel colors of a 3D texture.
+	CUSTOM void SetPixels(Color[] colors, int miplevel = 0)
+	{
+		int arrSize = GetScriptingArraySize(colors);
+		const ColorRGBAf* ptr = GetScriptingArrayStart<ColorRGBAf>(colors);
+		self->SetPixels (arrSize, ptr, miplevel);
+	}
+
+	// Actually apply all previous ::ref::SetPixels changes.
+	CUSTOM void Apply (bool updateMipmaps = true)
+	{
+		self->UpdateImageData (updateMipmaps);
+	}
+
+	// The format of the pixel data in the texture (RO).
+	AUTO_PROP TextureFormat format GetTextureFormat
+
+	// Create a new empty 3D Texture.
+	CSRAW public Texture3D (int width, int height, int depth, TextureFormat format, bool mipmap)
+	{
+		Internal_Create(this, width, height, depth, format, mipmap);
+	}
+
+	CUSTOM private static void Internal_Create ([Writable]Texture3D mono, int width, int height, int depth, TextureFormat format, bool mipmap)
+	{
+		Texture3D* texture = NEW_OBJECT_MAIN_THREAD (Texture3D);
+		texture->Reset();
+
+		if (texture->InitTexture(width, height, depth, format, mipmap))
+		{
+			ConnectScriptingWrapperToObject (mono.GetScriptingObject(), texture);
+			texture->AwakeFromLoad(kInstantiateOrCreateFromCodeAwakeFromLoad);
+		}
+		else
+		{
+			RaiseMonoException("Failed to create texture because of invalid parameters.");
+		}
+	}
+END
+
+
+// A class to access the [[Mesh]] of the [[wiki:class-MeshFilter|mesh filter]].
+CLASS MeshFilter : Component
+
+	// Returns the instantiated [[Mesh]] assigned to the mesh filter.
+	AUTO_PTR_PROP Mesh mesh GetInstantiatedMesh SetInstantiatedMesh
+
+	// Returns the shared mesh of the mesh filter.
+	AUTO_PTR_PROP Mesh sharedMesh GetSharedMesh SetSharedMesh
+END
+
+
+// Struct used to describe meshes to be combined using Mesh.CombineMeshes.
+STRUCT CombineInstance
+
+	// [[Mesh]] to combine
+	CSRAW public Mesh mesh { get { return InternalGetMesh(m_MeshInstanceID); } set { m_MeshInstanceID = value != null ? value.GetInstanceID() : 0; } }
+
+	// Submesh index of the mesh
+	CSRAW public int subMeshIndex { get { return m_SubMeshIndex; } set { m_SubMeshIndex = value; } }
+
+	// Matrix to transform the mesh with before combining
+	CSRAW public Matrix4x4 transform { get { return m_Transform; } set { m_Transform = value; } }
+
+	CSRAW private int m_MeshInstanceID;
+	CUSTOM private Mesh InternalGetMesh(int instanceID)
+	{
+		return instanceID != 0 ? Scripting::ScriptingWrapperFor<Mesh>(PPtr<Mesh>(instanceID)) : SCRIPTING_NULL;
+	}
+
+	CSRAW private int m_SubMeshIndex;
+	CSRAW private Matrix4x4 m_Transform;
+END
+
+C++RAW
+
+struct MonoCombineInstance
+{
+	int meshInstanceID;
+	int subMeshIndex;
+	Matrix4x4f transform;
+};
+
+// BlendShape vertex class.
+CONDITIONAL USE_BLENDSHAPES
+STRUCT MeshBlendShapeVertex
+	// Vertex delta.
+	CSRAW public Vector3 vertex;
+
+	// Normal delta.
+	CSRAW public Vector3 normal;
+
+	// Tangent delta.
+	CSRAW public Vector3 tangent;
+
+	// Index to [[Mesh]] vertex data.
+	CSRAW public int index;
+END
+
+// A class representing BlendShape (also called morph-target).
+CONDITIONAL USE_BLENDSHAPES
+STRUCT MeshBlendShape
+	// Name of a BlendShape.
+	CSRAW public string name;
+
+	// Sparce vertex data.
+	CSRAW public MeshBlendShapeVertex[] vertices;
+END
+
+C++RAW
+ struct MonoMeshBlendShapeVertex
+{
+	Vector3f vertex;
+	Vector3f normal;
+	Vector3f tangent;
+	int index;
+};
+
+C++RAW
+ struct MonoMeshBlendShape
+{
+	ScriptingStringPtr name;
+	ScriptingArrayPtr vertices;
+};
+
+void MeshBlendShapeVertexToMono (const MeshBlendShapeVertex &src, MonoMeshBlendShapeVertex &dest) {
+	dest.vertex = src.vertex;
+	dest.normal = src.normal;
+	dest.tangent = src.tangent;
+	dest.index = src.index;
+}
+void MeshBlendShapeVertexToCpp (const MonoMeshBlendShapeVertex &src, MeshBlendShapeVertex &dest) {
+	dest.vertex = src.vertex;
+	dest.normal = src.normal;
+	dest.tangent = src.tangent;
+	dest.index = src.index;
+}
+
+class MeshBlendShapeToMono
+{
+public:
+	MeshBlendShapeToMono(const MeshBlendShape::VertexContainer& sharedVertices_) : sharedVertices(sharedVertices_) {}
+
+	void operator() (const MeshBlendShape &src, MonoMeshBlendShape &dest)
+	{
+		dest.name = CreateScriptingString(src.name);
+		const MeshBlendShape::VertexContainer vertices(sharedVertices.begin() + src.firstVertex, sharedVertices.begin() + src.firstVertex + src.vertexCount);
+
+		ScriptingTypePtr classVertex = GetScriptingTypeRegistry().GetType("UnityEngine", "MeshBlendShapeVertex");
+		dest.vertices = VectorToScriptingStructArray<MeshBlendShapeVertex, MonoMeshBlendShapeVertex>(vertices, classVertex, MeshBlendShapeVertexToMono);
+	}
+
+private:
+	const MeshBlendShape::VertexContainer& sharedVertices;
+};
+
+class MeshBlendShapeToCpp
+{
+public:
+	MeshBlendShapeToCpp(int meshVertexCount_, MeshBlendShape::VertexContainer& sharedVertices_) : meshVertexCount(meshVertexCount_), sharedVertices(sharedVertices_) {}
+
+	void operator() (MonoMeshBlendShape &src, MeshBlendShape &dest)
+	{
+		dest.name = scripting_cpp_string_for(src.name);
+
+		MeshBlendShape::VertexContainer vertices;
+		ScriptingStructArrayToVector<MeshBlendShapeVertex, MonoMeshBlendShapeVertex>(src.vertices, vertices, MeshBlendShapeVertexToCpp);
+
+		for (MeshBlendShape::VertexContainer::iterator it = vertices.begin(), end = vertices.end(); it != end; ++it)
+		{
+			MeshBlendShapeVertex& v = *it;
+			if (v.index < 0 || v.index >= meshVertexCount)
+			{
+				ErrorStringMsg("Value (%d) of MeshBlendShapeVertex.index #%d is out of bounds (Mesh vertex count: %d) on BlendShape '%s'. It will be reset to 0.", v.index, it - vertices.begin(), meshVertexCount, dest.name.c_str());
+				v.index = 0;
+			}
+		}
+
+		dest.firstVertex = sharedVertices.size();
+		dest.vertexCount = vertices.size();
+
+		sharedVertices.insert(sharedVertices.end(), vertices.begin(), vertices.end());
+		dest.UpdateFlags(sharedVertices);
+	}
+
+private:
+	int meshVertexCount;
+	MeshBlendShape::VertexContainer& sharedVertices;
+};
+
+
+// Topology of [[Mesh]] faces.
+ENUM MeshTopology
+
+	// Mesh is made from triangles.
+	Triangles = 0,
+
+	// Mesh is made from quads.
+	Quads = 2,
+
+	// Mesh is made from lines.
+	Lines = 3,
+
+	// Mesh is a line strip.
+	LineStrip = 4,
+
+	// Mesh is made from points.
+	Points = 5,
+END
+
+
+
+// A class that allows creating or modifying meshes from scripts.
+
+CLASS Mesh : Object
+
+	// Creates an empty mesh
+	CSRAW public Mesh ()
+	{
+		Internal_Create(this);
+	}
+
+	CUSTOM private static void Internal_Create ([Writable]Mesh mono)
+	{
+		Mesh* mesh = NEW_OBJECT_MAIN_THREAD (Mesh);
+		mesh->Reset();
+		ConnectScriptingWrapperToObject (mono.GetScriptingObject(), mesh);
+		mesh->AwakeFromLoad(kInstantiateOrCreateFromCodeAwakeFromLoad);
+	}
+
+	// Clears all vertex data and all triangle indices.
+	CUSTOM void Clear (bool keepVertexLayout = true)
+	{
+		self->Clear (keepVertexLayout);
+	}
+
+	// Returns state of the Read/Write Enabled checkbox when model was imported.
+	AUTO_PROP bool isReadable GetIsReadable
+
+	// Works like isReadable, except it also returns true in editor outside the game loop.
+	CUSTOM_PROP internal bool canAccess { return self->CanAccessFromScript(); }
+
+	// Returns a copy of the vertex positions or assigns a new vertex positions array.
+	CUSTOM_PROP Vector3[] vertices
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().vector3;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelVertex))
+				return CreateScriptingArrayStride<Vector3f>(self->GetChannelPointer(kShaderChannelVertex), self->GetVertexCount(), klass, self->GetStride(kShaderChannelVertex));
+		}
+		else
+			ErrorStringMsg("Not allowed to access vertices on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+			self->SetVertices (GetScriptingArrayStart<Vector3f>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access vertices on mesh '%s'", self->GetName());
+	}
+
+	// The normals of the mesh.
+	CUSTOM_PROP Vector3[] normals
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().vector3;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelNormal))
+				return CreateScriptingArrayStride<Vector3f>(self->GetChannelPointer(kShaderChannelNormal), self->GetVertexCount(), klass, self->GetStride(kShaderChannelNormal));
+		}
+		else
+			ErrorStringMsg("Not allowed to access normals on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+		self->SetNormals (GetScriptingArrayStart<Vector3f>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access normals on mesh '%s'", self->GetName());
+	}
+
+	// The tangents of the mesh.
+	CUSTOM_PROP Vector4[] tangents
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().vector4;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelTangent))
+				return CreateScriptingArrayStride<Vector4f>(self->GetChannelPointer(kShaderChannelTangent), self->GetVertexCount(), klass, self->GetStride(kShaderChannelTangent));
+		}
+		else
+			ErrorStringMsg("Not allowed to access tangents on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+		self->SetTangents (GetScriptingArrayStart<Vector4f>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access tangents on mesh '%s'", self->GetName());
+	}
+
+	// The base texture coordinates of the mesh.
+	CUSTOM_PROP Vector2[] uv
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().vector2;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelTexCoord0))
+				return CreateScriptingArrayStride<Vector2f>(self->GetChannelPointer(kShaderChannelTexCoord0), self->GetVertexCount(), klass, self->GetStride(kShaderChannelTexCoord0));
+		}
+		else
+			ErrorStringMsg("Not allowed to access uv on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+			self->SetUv (0, GetScriptingArrayStart<Vector2f>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access uv on mesh '%s'", self->GetName());
+	}
+
+	// The second texture coordinate set of the mesh, if present.
+	CUSTOM_PROP Vector2[] uv2
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().vector2;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelTexCoord1))
+				return CreateScriptingArrayStride<Vector2f>(self->GetChannelPointer(kShaderChannelTexCoord1), self->GetVertexCount(), klass, self->GetStride(kShaderChannelTexCoord1));
+		}
+		else
+			ErrorStringMsg("Not allowed to access uv2 on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+			self->SetUv (1, GetScriptingArrayStart<Vector2f>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access uv2 on mesh '%s'", self->GetName());
+	}
+
+	OBSOLETE planned Use uv2 instead
+	CSRAW public Vector2[] uv1 { get { return uv2; } set { uv2 = value; } }
+
+	// The bounding volume of the mesh.
+	AUTO_PROP Bounds bounds GetBounds SetBounds
+
+
+	// Vertex colors of the mesh.
+	CUSTOM_PROP Color[] colors
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().color;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelColor))
+			{
+				ScriptingArrayPtr array = CreateScriptingArray<ColorRGBAf>(klass, self->GetVertexCount());
+				self->ExtractColorArrayConverting (GetScriptingArrayStart<ColorRGBAf>(array));
+				return array;
+			}
+		}
+		else
+			ErrorStringMsg("Not allowed to access colors on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+			self->SetColorsConverting (GetScriptingArrayStart<ColorRGBAf>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access colors on mesh '%s'", self->GetName());
+	}
+
+	// Vertex colors of the mesh.
+	CUSTOM_PROP Color32[] colors32
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().color32;
+		if (self->CanAccessFromScript())
+		{
+			if (self->IsAvailable(kShaderChannelColor))
+			{
+				ScriptingArrayPtr array = CreateScriptingArray<ColorRGBA32>(klass, self->GetVertexCount());
+				self->ExtractColorArray (GetScriptingArrayStart<ColorRGBA32>(array));
+				return array;
+			}
+		}
+		else
+			ErrorStringMsg("Not allowed to access colors on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+			self->SetColors (GetScriptingArrayStart<ColorRGBA32>(value), GetScriptingArraySize(value));
+		else
+			ErrorStringMsg("Not allowed to access colors on mesh '%s'", self->GetName());
+	}
+
+	// Recalculate the bounding volume of the mesh from the vertices.
+	CUSTOM void RecalculateBounds ()
+	{
+		if (self->CanAccessFromScript())
+			self->RecalculateBounds();
+		else
+			ErrorStringMsg("Not allowed to call RecalculateBounds() on mesh '%s'", self->GetName());
+	}
+
+	// Recalculates the normals of the mesh from the triangles and vertices.
+	CUSTOM void RecalculateNormals ()
+	{
+		if (self->CanAccessFromScript())
+			self->RecalculateNormals();
+		else
+			ErrorStringMsg("Not allowed to call RecalculateNormals() on mesh '%s'", self->GetName());
+	}
+
+
+	// Optimizes the mesh for display.
+	CUSTOM void Optimize ()
+	{
+	}
+
+	// An array containing all triangles in the mesh.
+	//
+	// If the mesh contains multiple sub meshes (materials) the triangle list will contain all triangles of all submeshes.
+	CUSTOM_PROP int[] triangles
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().int_32;
+		if (self->CanAccessFromScript())
+		{
+			Mesh::TemporaryIndexContainer triangles;
+			self->GetTriangles(triangles);
+			return CreateScriptingArray(&triangles[0], triangles.size(), klass);
+		}
+		else
+			ErrorStringMsg("Not allowed to access triangles on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+	{
+		if (self->CanAccessFromScript())
+		{
+			self->SetSubMeshCount(1);
+			self->SetIndices (GetScriptingArrayStart<UInt32>(value), GetScriptingArraySize(value), 0, kPrimitiveTriangles);
+		}
+		else
+			ErrorStringMsg("Not allowed to access triangles on mesh '%s'", self->GetName());
+	}
+
+
+	// Returns the triangle list for the submesh.
+	CUSTOM int[] GetTriangles (int submesh)
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().int_32;
+		if (self->CanAccessFromScript())
+		{
+			Mesh::TemporaryIndexContainer triangles;
+			self->GetTriangles(triangles, submesh);
+			return CreateScriptingArray(&triangles[0], triangles.size(), klass);
+		}
+		else
+			ErrorStringMsg("Not allowed to call GetTriangles() on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+
+	// Sets the triangle list for the submesh.
+	CUSTOM void SetTriangles(int[] triangles, int submesh)
+	{
+		if (self->CanAccessFromScript())
+		{
+			self->SetIndices(GetScriptingArrayStart<UInt32>(triangles), GetScriptingArraySize(triangles), submesh, kPrimitiveTriangles);
+		}
+		else
+			ErrorStringMsg("Not allowed to call SetTriangles() on mesh '%s'", self->GetName());
+	}
+
+
+	// Returns the index buffer for the submesh.
+	CUSTOM int[] GetIndices (int submesh)
+	{
+		ScriptingClassPtr klass = GetMonoManager().GetCommonClasses().int_32;
+		if (self->CanAccessFromScript())
+		{
+			Mesh::TemporaryIndexContainer indices;
+			self->GetIndices (indices, submesh);
+			return CreateScriptingArray(&indices[0], indices.size(), klass);
+		}
+		else
+			ErrorStringMsg("Not allowed to call GetIndices() on mesh '%s'", self->GetName());
+
+		return CreateEmptyStructArray(klass);
+	}
+
+	// Sets the index buffer for the submesh.
+	CUSTOM void SetIndices (int[] indices, MeshTopology topology, int submesh)
+	{
+		if (self->CanAccessFromScript())
+		{
+			self->SetIndices(GetScriptingArrayStart<UInt32>(indices), GetScriptingArraySize(indices), submesh, topology);
+		}
+		else
+			ErrorStringMsg("Not allowed to call SetIndices() on mesh '%s'", self->GetName());
+	}
+
+	// Gets the topology of a submesh.
+	CUSTOM MeshTopology GetTopology (int submesh)
+	{
+		if ((unsigned)submesh >= self->GetSubMeshCount())
+		{
+			ErrorString("Failed getting topology. Submesh index is out of bounds.");
+			return kPrimitiveTriangles;
+		}
+		return self->GetSubMeshFast(submesh).topology;
+	}
+
+	// Returns the number of vertices in the mesh (RO).
+	AUTO_PROP int vertexCount GetVertexCount
+
+	// The number of submeshes. Every material has a separate triangle list.
+	CUSTOM_PROP int subMeshCount
+	{
+		return self->GetSubMeshCount();
+	}
+	{
+		if(value < 0)
+		{
+			ErrorString ("subMeshCount can't be set to negative value");
+			return;
+		}
+		self->SetSubMeshCount(value);
+	}
+
+	//*undocumented* Internal api not really generally useful
+	OBSOLETE warning Use SetTriangles instead. Internally this function will convert the triangle strip to a list of triangles anyway.
+	CUSTOM void SetTriangleStrip (int[] triangles, int submesh)
+	{
+		UInt32* triStrip = GetScriptingArrayStart<UInt32>(triangles);
+		UNITY_TEMP_VECTOR(kMemGeometry, UInt32) newTriangles;
+		Destripify(triStrip, GetScriptingArraySize(triangles), newTriangles);
+		self->SetIndices (&newTriangles[0], newTriangles.size(), submesh, kPrimitiveTriangles);
+	}
+
+	//*undocumented* Internal api not really generally useful
+	OBSOLETE warning Use GetTriangles instead. Internally this function converts a list of triangles to a strip, so it might be slow, it might be a mess.
+	CUSTOM int[] GetTriangleStrip (int submesh)
+	{
+		Mesh::TemporaryIndexContainer triangles;
+		self->GetTriangles(triangles, submesh);
+
+		UNITY_TEMP_VECTOR(kMemGeometry, UInt32) strip;
+		Stripify(&triangles[0], triangles.size(), strip);
+
+		return CreateScriptingArray(&strip[0], strip.size(), GetMonoManager().GetCommonClasses().int_32);
+	}
+
+	// Combines several meshes into this mesh.
+	CUSTOM void CombineMeshes(CombineInstance[] combine, bool mergeSubMeshes = true, bool useMatrices = true)
+	{
+		CombineInstances combineVec;
+		combineVec.resize(GetScriptingArraySize(combine));
+		MonoCombineInstance* mono = GetScriptingArrayStart<MonoCombineInstance>(combine);
+		for (int i=0;i<combineVec.size();i++)
+		{
+			combineVec[i].transform = mono[i].transform;
+			combineVec[i].subMeshIndex = mono[i].subMeshIndex;
+			combineVec[i].mesh = PPtr<Mesh>(mono[i].meshInstanceID);
+		}
+		CombineMeshes(combineVec, *self, mergeSubMeshes, useMatrices);
+	}
+
+
+	// The bone weights of each vertex
+	CUSTOM_PROP BoneWeight[] boneWeights
+	{
+		int size = self->GetVertexCount();
+		BoneInfluence* weights = self->GetBoneWeights();
+		return CreateScriptingArray(weights, size, GetCommonScriptingClasses ().boneWeight);
+	}
+	{
+		self->SetBoneWeights(GetScriptingArrayStart<BoneInfluence> (value), GetScriptingArraySize(value));
+	}
+
+	// The bind poses. The bind pose at each index refers to the bone with the same index.
+	CUSTOM_PROP Matrix4x4[] bindposes
+	{
+		return CreateScriptingArray(self->GetBindposes(), self->GetBindposeCount(), GetCommonScriptingClasses ().matrix4x4);
+	}
+	{
+		self->SetBindposes(GetScriptingArrayStart<Matrix4x4f> (value), GetScriptingArraySize(value));
+	}
+
+	// Optimize mesh for frequent updates.
+	CUSTOM void MarkDynamic ()
+	{
+		if (self->CanAccessFromScript())
+			self->MarkDynamic();
+	}
+
+	// BlendShapes for this mesh.
+	CONDITIONAL USE_BLENDSHAPES
+	CUSTOM_PROP MeshBlendShape[] blendShapes
+	{
+		ScriptingTypePtr classBlendShape = GetScriptingTypeRegistry().GetType("UnityEngine", "MeshBlendShape");
+		return VectorToScriptingStructArray<MeshBlendShape, MonoMeshBlendShape>(self->GetShapesVector(), classBlendShape, MeshBlendShapeToMono(self->GetShapeVertexVector()));
+	}
+	{
+		Mesh::MeshBlendShapeContainer shapes;
+		self->GetShapeVertexVector().clear();
+		ScriptingStructArrayToVector<MeshBlendShape, MonoMeshBlendShape>(value, shapes, MeshBlendShapeToCpp(self->GetVertexCount(), self->GetShapeVertexVector()));
+		self->SwapShapesVector(shapes);
+	}
+
+	// Returns BlendShape count on this mesh.
+	CONDITIONAL USE_BLENDSHAPES
+	CUSTOM_PROP int blendShapeCount
+	{
+		return self->GetShapesVector().size();
+	}
+
+	// Returns name of BlendShape by given index.
+	CONDITIONAL USE_BLENDSHAPES
+	CUSTOM string GetBlendShapeName (int index)
+	{
+		const Mesh::MeshBlendShapeContainer& blendShapes = self->GetShapesVector();
+		if (index < 0 || index >= blendShapes.size())
+		{
+			ErrorStringMsg("Array index (%d) is out of bounds (size=%" PRINTF_SIZET_FORMAT ")", index, blendShapes.size());
+			return CreateScriptingString("");
+		}
+		else
+			return CreateScriptingString(blendShapes[index].name);
+	}
+
+END
+
+// Skinning bone weights of a vertex in the mesh.
+STRUCT BoneWeight
+	CSRAW private float m_Weight0;
+	CSRAW private float m_Weight1;
+	CSRAW private float m_Weight2;
+	CSRAW private float m_Weight3;
+
+	CSRAW private int m_BoneIndex0;
+	CSRAW private int m_BoneIndex1;
+	CSRAW private int m_BoneIndex2;
+	CSRAW private int m_BoneIndex3;
+
+	// Skinning weight for first bone.
+	CSRAW public float weight0 { get { return m_Weight0; } set { m_Weight0 = value; } }
+	// Skinning weight for second bone.
+	CSRAW public float weight1 { get { return m_Weight1; } set { m_Weight1 = value; } }
+	// Skinning weight for third bone.
+	CSRAW public float weight2 { get { return m_Weight2; } set { m_Weight2 = value; } }
+	// Skinning weight for fourth bone.
+	CSRAW public float weight3 { get { return m_Weight3; } set { m_Weight3 = value; } }
+
+	// Index of first bone.
+	CSRAW public int boneIndex0 { get { return m_BoneIndex0; } set { m_BoneIndex0 = value; } }
+	// Index of second bone.
+	CSRAW public int boneIndex1 { get { return m_BoneIndex1; } set { m_BoneIndex1 = value; } }
+	// Index of third bone.
+	CSRAW public int boneIndex2 { get { return m_BoneIndex2; } set { m_BoneIndex2 = value; } }
+	// Index of fourth bone.
+	CSRAW public int boneIndex3 { get { return m_BoneIndex3; } set { m_BoneIndex3 = value; } }
+
+	// used to allow BoneWeights to be used as keys in hash tables
+	public override int GetHashCode() {
+		return boneIndex0.GetHashCode() ^ (boneIndex1.GetHashCode()<<2) ^ (boneIndex2.GetHashCode()>>2) ^ (boneIndex3.GetHashCode()>>1)
+			^ (weight0.GetHashCode() << 5) ^ (weight1.GetHashCode()<<4) ^ (weight2.GetHashCode()>>4) ^ (weight3.GetHashCode()>>3);
+	}
+
+	// also required for being able to use BoneWeights as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is BoneWeight)) return false;
+
+		BoneWeight rhs=(BoneWeight)other;
+		return boneIndex0.Equals(rhs.boneIndex0)
+			&& boneIndex1.Equals(rhs.boneIndex1)
+			&& boneIndex2.Equals(rhs.boneIndex2)
+			&& boneIndex3.Equals(rhs.boneIndex3)
+			&& (new Vector4(weight0,weight1,weight2,weight3)).Equals(new Vector4(rhs.weight0,rhs.weight1,rhs.weight2,rhs.weight3));
+	}
+
+	//*undoc*
+	CSRAW public static bool operator == (BoneWeight lhs, BoneWeight rhs)
+	{
+		return lhs.boneIndex0 == rhs.boneIndex0
+			&& lhs.boneIndex1 == rhs.boneIndex1
+			&& lhs.boneIndex2 == rhs.boneIndex2
+			&& lhs.boneIndex3 == rhs.boneIndex3
+			&& (new Vector4( lhs.weight0, lhs.weight1, lhs.weight2, lhs.weight3 )
+				== new Vector4( rhs.weight0, rhs.weight1, rhs.weight2, rhs.weight3 ));
+	}
+
+	//*undoc*
+	CSRAW public static bool operator != (BoneWeight lhs, BoneWeight rhs)
+	{
+		return !(lhs == rhs);
+	}
+END
+
+/// The maximum number of bones affecting a single vertex
+ENUM SkinQuality
+	// Chooses the number of bones from the number current [[QualitySettings]] (Default)
+	Auto = 0,
+	// Use only 1 bone to deform a single vertex. (The most important bone will be used)
+	Bone1 = 1,
+	// Use 2 bones to deform a single vertex. (The most important bones will be used)
+	Bone2 = 2,
+	// Use 4 bones to deform a single vertex.
+	Bone4 = 4
+END
+
+// The Skinned Mesh filter
+NONSEALED_CLASS SkinnedMeshRenderer : Renderer
+
+	// The bones used to skin the mesh.
+	CUSTOM_PROP Transform[] bones
+	{
+		return CreateScriptingArrayFromUnityObjects(self->GetBones(), ClassID(Transform));
+	}
+	{
+		dynamic_array<PPtr<Transform> > transforms;
+		if (value != SCRIPTING_NULL)
+		{
+			int size = GetScriptingArraySize(value);
+			transforms.resize_uninitialized(size);
+
+			for (int i=0;i<size;i++)
+			{
+				int instanceID = GetInstanceIDFromScriptingWrapper(GetScriptingArrayElementNoRef<ScriptingObjectPtr>(value, i));
+				transforms[i] = PPtr<Transform> (instanceID);
+			}
+		}
+
+		self->SetBones(transforms);
+	}
+
+	AUTO_PTR_PROP Transform rootBone GetRootBone SetRootBone
+
+	// The maximum number of bones affecting a single vertex
+	AUTO_PROP SkinQuality quality GetQuality SetQuality
+
+	// The mesh used for skinning
+	AUTO_PTR_PROP Mesh sharedMesh GetMesh SetMesh
+
+	OBSOLETE warning Has no effect.
+	CSRAW public bool skinNormals  { get { return true; } set {} }
+
+	// If enabled, the Skinned Mesh will be updated when offscreen. If disabled, this also disables updating animations.
+	AUTO_PROP bool updateWhenOffscreen GetUpdateWhenOffscreen SetUpdateWhenOffscreen
+
+	// AABB of this Skinned Mesh in its local space.
+	CUSTOM_PROP Bounds localBounds
+	{
+		AABB result;
+		self->GetSkinnedMeshLocalAABB(result);
+		return result;
+	}
+	{
+		self->SetLocalAABB(value);
+	}
+
+	// Creates a snapshot of SkinnedMeshRenderer and stores it in mesh.
+	CUSTOM void BakeMesh (Mesh mesh)
+	{
+		self->BakeMesh(*mesh);
+	}
+
+	CONDITIONAL UNITY_EDITOR
+	CUSTOM_PROP internal Transform actualRootBone { return Scripting::ScriptingWrapperFor(&self->GetActualRootBone()); }
+
+	// Returns weight of BlendShape on this renderer.
+	CONDITIONAL USE_BLENDSHAPES
+	CUSTOM float GetBlendShapeWeight(int index) { return self->GetBlendShapeWeight(index); }
+
+	// Sets weight of BlendShape on this renderer.
+	CONDITIONAL USE_BLENDSHAPES
+	CUSTOM void SetBlendShapeWeight(int index, float value) { self->SetBlendShapeWeight(index, value); }
+
+END
+
+
+// The material class.
+NONSEALED_CLASS Material : Object
+
+	// Create a temporary material from a shader source string.
+	CSRAW public Material (string contents) { Internal_CreateWithString (this, contents); }
+
+	// Create a temporary Material from a [[Shader]].
+	CSRAW public Material (Shader shader) { Internal_CreateWithShader (this, shader); }
+
+	// Create a temporary Material by copying the shader and all properties from the /source/ Material.
+	CSRAW public Material (Material source) : base () { Internal_CreateWithMaterial (this, source); }
+
+
+	// The shader used by the material.
+	AUTO_PTR_PROP Shader shader GetShader SetShader
+
+
+	// The main material's color.
+	CSRAW public Color color { get { return GetColor ("_Color"); } set { SetColor ("_Color", value); } }
+
+
+	// The material's texture.
+	CSRAW public Texture mainTexture { get { return GetTexture ("_MainTex"); } set { SetTexture ("_MainTex", value); } }
+
+
+	// The texture offset of the main texture.
+	CSRAW public Vector2 mainTextureOffset { get { return GetTextureOffset("_MainTex"); } set { SetTextureOffset("_MainTex", value); } }
+
+
+	// The texture scale of the main texture.
+	CSRAW public Vector2 mainTextureScale { get { return GetTextureScale("_MainTex"); } set { SetTextureScale("_MainTex", value); } }
+
+	// Set a named color value.
+	CUSTOM void SetColor (string propertyName, Color color)
+	{
+		self->SetColor (ScriptingStringToProperty (propertyName), color);
+	}
+
+	// Get a named color value.
+	CUSTOM Color GetColor (string propertyName)
+	{
+		return self->GetColor (ScriptingStringToProperty (propertyName));
+	}
+
+
+	// Set a named vector value.
+	CSRAW public void SetVector (string propertyName, Vector4 vector)
+	{
+		SetColor (propertyName, new Color (vector.x, vector.y, vector.z, vector.w));
+	}
+
+	// Get a named vector value.
+	CSRAW public Vector4 GetVector (string propertyName)
+	{
+		Color temp = GetColor (propertyName);
+		return new Vector4 (temp.r, temp.g, temp.b, temp.a);
+	}
+
+
+	// Set a named texture.
+	CUSTOM void SetTexture (string propertyName, Texture texture)
+	{
+		self->SetTexture (ScriptingStringToProperty (propertyName), texture);
+	}
+
+
+	// Get a named texture.
+	CUSTOM Texture GetTexture (string propertyName)
+	{
+		return Scripting::ScriptingWrapperFor (self->GetTexture (ScriptingStringToProperty (propertyName)));
+	}
+
+
+	// Workaround for gcc/msvc where passing small mono structures by value does not work
+	CUSTOM private static void Internal_GetTextureOffset (Material mat, string name, out Vector2 output)
+	{
+		*output = mat->GetTextureOffset( ScriptingStringToProperty(name) );
+	}
+
+	CUSTOM private static void Internal_GetTextureScale (Material mat, string name, out Vector2 output)
+	{
+		*output = mat->GetTextureScale( ScriptingStringToProperty(name) );
+	}
+
+	// Sets the placement offset of texture /propertyName/.
+	CUSTOM void SetTextureOffset (string propertyName, Vector2 offset)
+	{
+		self->SetTextureOffset( ScriptingStringToProperty(propertyName), offset );
+	}
+
+	// Gets the placement offset of texture /propertyName/.
+	CSRAW public Vector2 GetTextureOffset (string propertyName)
+	{
+		Vector2 r;
+		Internal_GetTextureOffset(this, propertyName, out r);
+		return r;
+	}
+
+
+	// Sets the placement scale of texture /propertyName/.
+	CUSTOM void SetTextureScale (string propertyName, Vector2 scale)
+	{
+		self->SetTextureScale( ScriptingStringToProperty(propertyName), scale );
+	}
+
+	// Gets the placement scale of texture /propertyName/.
+	CSRAW public Vector2 GetTextureScale (string propertyName)
+	{
+		Vector2 r;
+		Internal_GetTextureScale(this, propertyName, out r);
+		return r;
+	}
+
+	// Set a named matrix for the shader.
+	CUSTOM void SetMatrix (string propertyName, Matrix4x4 matrix) {
+		self->SetMatrix (ScriptingStringToProperty(propertyName), matrix);
+	}
+
+	// Get a named matrix value from the shader.
+	CUSTOM Matrix4x4 GetMatrix (string propertyName) {
+		return self->GetMatrix (ScriptingStringToProperty(propertyName));
+	}
+
+
+	// Set a named float value.
+	CUSTOM void SetFloat (string propertyName, float value) {
+		self->SetFloat (ScriptingStringToProperty(propertyName), value);
+	}
+
+	// Get a named float value.
+	CUSTOM float GetFloat (string propertyName)
+	{
+		return self->GetFloat (ScriptingStringToProperty (propertyName));
+	}
+
+	CONDITIONAL !UNITY_FLASH
+	CUSTOM void SetBuffer (string propertyName, ComputeBuffer buffer) {
+		FastPropertyName fpName = ScriptingStringToProperty(propertyName);
+		self->SetComputeBuffer (fpName, buffer ? buffer->GetBufferHandle() : ComputeBufferID());
+	}
+
+
+	// Checks if material's shader has a property of a given name.
+	CUSTOM bool HasProperty (string propertyName)
+	{
+		return self->HasProperty (ScriptingStringToProperty (propertyName));
+	}
+
+	// Get the value of material's shader tag.
+	CUSTOM string GetTag (string tag, bool searchFallbacks, string defaultValue = "") {
+		return CreateScriptingString (self->GetTag (tag, !searchFallbacks, defaultValue));
+	}
+
+
+	// Interpolate properties between two materials.
+	CUSTOM void Lerp (Material start, Material end, float t)
+	{
+		const ShaderLab::PropertySheet &s1 = start->GetProperties();
+		const ShaderLab::PropertySheet &s2 = end->GetProperties();
+		self->GetWritableProperties().LerpProperties( s1, s2, clamp01(t) );
+	}
+
+
+	// How many passes are in this material (RO).
+	AUTO_PROP int passCount GetPassCount
+
+
+	// Activate the given /pass/ for rendering.
+	CUSTOM bool SetPass (int pass) {
+		Material& mat = *self;
+		if (pass >= mat.GetPassCount())
+		{
+			ErrorStringMsg("Trying to access pass %d, but material '%s' subshader (0) has only %d valid passes.",
+				pass,
+				mat.GetName(),
+				mat.GetPassCount());
+			return false;
+		}
+
+		if (!CheckShouldRenderPass (pass, mat))
+			return false;
+		s_CurrentShader = mat.GetShaderPPtr();
+		s_CurrentChannels = mat.SetPass(pass);
+		return s_CurrentChannels != NULL;
+	}
+
+	// Render queue of this material
+	AUTO_PROP int renderQueue GetRenderQueue SetRenderQueue
+
+	OBSOLETE warning Use the Material constructor instead.
+	CSRAW static public Material Create (string scriptContents)
+	{
+		return new Material (scriptContents);
+	}
+
+	CUSTOM private static void Internal_CreateWithString ([Writable]Material mono, string contents)
+	{
+		Material *mat = Material::CreateMaterial (contents.ToUTF8().c_str(), 0);
+		ConnectScriptingWrapperToObject (mono.GetScriptingObject(), mat);
+	}
+
+	CUSTOM private static void Internal_CreateWithShader ([Writable]Material mono, Shader shader)
+	{
+		Material *mat = Material::CreateMaterial (*shader, 0);
+		ConnectScriptingWrapperToObject (mono.GetScriptingObject(), mat);
+	}
+
+	CUSTOM private static void Internal_CreateWithMaterial ([Writable]Material mono, Material source)
+	{
+		Material *mat = Material::CreateMaterial (*source, 0);
+		ConnectScriptingWrapperToObject (mono.GetScriptingObject(), mat);
+	}
+
+	// Copy properties from other material into this material.
+	CUSTOM void CopyPropertiesFromMaterial (Material mat) {
+		if (mat != NULL)
+			self->CopyPropertiesFromMaterial(*mat);
+		else
+			ErrorString ("Trying to copy properties from null material.");
+	}
+
+	// Additional shader keywords set by this material.
+	CONDITIONAL ENABLE_MONO || PLATFORM_WINRT
+	CUSTOM_PROP String[] shaderKeywords {
+		const size_t count = self->GetShaderKeywords ().size ();
+
+		ScriptingArrayPtr array = CreateScriptingArray<ScriptingStringPtr> (GetScriptingManager().GetCommonClasses().string, count);
+		for (int i=0;i<count;i++)
+		{
+			SetScriptingArrayElement<ScriptingStringPtr>(array,i,CreateScriptingString(self->GetShaderKeywords ()[i]));
+		}
+		return array;
+	}
+	{
+		Material::ShaderKeywordsT names;
+		for (int i=0;i<GetScriptingArraySize (value);i++)
+			names.push_back (scripting_cpp_string_for (GetScriptingArrayElementNoRef<ScriptingStringPtr> (value, i)));
+		self->SetShaderKeywords (names);
+	}
+
+END
+
+
+// A flare asset. Read more about flares in the [[wiki:class-Flare|components reference]].
+CLASS Flare : Object
+
+END
+
+
+// Script interface for a [[wiki:class-LensFlare|Lens flare component]].
+CLASS LensFlare : Behaviour
+	// The [[wiki:class-Flare|flare asset]] to use.
+	AUTO_PTR_PROP Flare flare GetFlare SetFlare
+
+	// The strength of the flare.
+	AUTO_PROP float brightness GetBrightness SetBrightness
+
+	// The color of the flare.
+	AUTO_PROP Color color GetColor SetColor
+END
+
+
+// General functionality for all renderers.
+NONSEALED_CLASS Renderer : Component
+
+	CUSTOM_PROP internal Transform staticBatchRootTransform { return Scripting::ScriptingWrapperFor (self->GetStaticBatchRoot ()); } { self->SetStaticBatchRoot (value); }
+
+	CUSTOM_PROP internal int staticBatchIndex { return self->GetStaticBatchIndex(); }
+
+	CUSTOM internal void SetSubsetIndex (int index, int subSetIndexForMaterial)
+	{
+		self->SetMaterialCount (std::max(index+1, self->GetMaterialCount()));
+		self->SetSubsetIndex(index, subSetIndexForMaterial);
+	}
+
+	// Has this renderer been statically batched with any other renderers?
+	CUSTOM_PROP bool isPartOfStaticBatch { return self->GetStaticBatchIndex() != 0; }
+
+	// Matrix that transforms a point from world space into local space (RO).
+	AUTO_PROP Matrix4x4 worldToLocalMatrix GetWorldToLocalMatrix
+	// Matrix that transforms a point from local space into world space (RO).
+	AUTO_PROP Matrix4x4 localToWorldMatrix GetLocalToWorldMatrix
+
+
+	// Makes the rendered 3D object visible if enabled.
+	AUTO_PROP bool enabled GetEnabled SetEnabled
+
+
+	// Does this object cast shadows?
+	AUTO_PROP bool castShadows GetCastShadows SetCastShadows
+
+
+	// Does this object receive shadows?
+	AUTO_PROP bool receiveShadows GetReceiveShadows SetReceiveShadows
+
+
+	// The material of this object.
+
+	CUSTOM_PROP Material material
+	{
+		return Scripting::ScriptingWrapperFor (self->GetAndAssignInstantiatedMaterial (0, false));
+	}
+	{
+		self->SetMaterialCount (std::max(1, self->GetMaterialCount()));
+		self->SetMaterial (value, 0);
+	}
+
+
+	// The shared material of this object.
+	CUSTOM_PROP Material sharedMaterial
+	{
+		if (self->GetMaterialCount ())
+			return Scripting::ScriptingWrapperFor (self->GetMaterial (0));
+		else
+			return MonoObjectNULL (ClassID (Material));
+	}
+	{
+		self->SetMaterialCount (std::max(1, self->GetMaterialCount()));
+		self->SetMaterial (value, 0);
+	}
+
+
+	// All the shared materials of this object.
+	CUSTOM_PROP Material[] sharedMaterials
+	{
+		return CreateScriptingArrayFromUnityObjects(self->GetMaterialArray(), ClassID(Material));
+	}
+	{
+#if ENABLE_MONO
+		if (value == SCRIPTING_NULL)
+			RaiseNullException("material array is null");
+#endif
+
+		int size = GetScriptingArraySize(value);
+		self->SetMaterialCount (size);
+		for (int i=0;i<size;i++)
+			self->SetMaterial (ScriptingObjectToObject<Material> (GetScriptingArrayElementNoRef<ScriptingObjectPtr>(value, i)), i);
+	}
+
+	// All the materials of this object.
+	CUSTOM_PROP Material[] materials
+	{
+		int length = self->GetMaterialCount();
+		ScriptingArrayPtr array = CreateScriptingArray<ScriptingObjectPtr> (ScriptingClassFor(Material), length);
+
+		for (int i=0;i<length;i++)
+		{
+			Material* instantiated = self->GetAndAssignInstantiatedMaterial(i, false);
+			SetScriptingArrayElement<ScriptingObjectPtr>(array,i,Scripting::ScriptingWrapperFor(instantiated));
+		}
+
+		return array;
+	}
+	{
+		if (value == SCRIPTING_NULL)
+			RaiseNullException("material array is null");
+
+		int size = GetScriptingArraySize(value);
+		self->SetMaterialCount (size);
+		for (int i=0;i<size;i++)
+		{
+			ScriptingObjectPtr o = GetScriptingArrayElementNoRef<ScriptingObjectPtr>(value,i);
+			self->SetMaterial (ScriptingObjectToObject<Material> (o), i);
+		}
+	}
+
+	// The bounding volume of the renderer (RO).
+	CUSTOM_PROP Bounds bounds { return CalculateWorldAABB (self->GetGameObject ()); }
+
+	// The index of the lightmap applied to this renderer.
+	CUSTOM_PROP int lightmapIndex { return self->GetLightmapIndexInt(); } { return self->SetLightmapIndexInt(value); }
+
+	// The tiling & offset used for lightmap.
+	CUSTOM_PROP Vector4 lightmapTilingOffset
+	{
+		Vector4f st = self->GetLightmapST();
+		return Vector4f(st.x, st.y, st.z, st.w);
+	}
+	{
+		Vector4f st( value.x, value.y, value.z, value.w );
+		self->SetLightmapST( st );
+	}
+
+	// ''OnBecameVisible'' is called when the object became visible by any camera.
+	CSNONE void OnBecameVisible();
+
+
+	// ''OnBecameInvisible'' is called when the object is no longer visible by any camera.
+	CSNONE void OnBecameInvisible();
+
+	// Is this renderer visible in any camera? (RO)
+	AUTO_PROP bool isVisible IsVisibleInScene
+
+	// If enabled and baked light probes are present in the scene, an interpolated light probe
+	AUTO_PROP bool useLightProbes GetUseLightProbes SetUseLightProbes
+
+	// If set, Renderer will use this Transform's position to find the interpolated light probe;
+	AUTO_PTR_PROP Transform lightProbeAnchor GetLightProbeAnchor SetLightProbeAnchor
+
+	// Lets you add per-renderer material parameters without duplicating a material.
+	CUSTOM void SetPropertyBlock (MaterialPropertyBlock properties)
+	{
+		if (properties.GetPtr())
+			self->SetPropertyBlock (*properties);
+		else
+			self->ClearPropertyBlock ();
+	}
+
+
+	OBSOLETE planned No longer available
+	CUSTOM void Render (int material)
+	{
+		Shader* shader = s_CurrentShader;
+		if (!shader) {
+			ErrorString ("Render requires material.SetPass before!");
+			return;
+		}
+
+		GfxDevice& device = GetGfxDevice();
+
+		// D3D needs begin/end when rendering is called out-of-band
+		#if UNITY_EDITOR
+		bool outsideOfFrame = !device.IsInsideFrame();
+		if( outsideOfFrame )
+			device.BeginFrame();
+		#endif
+
+		float matWorld[16], matView[16];
+
+		CopyMatrix(device.GetViewMatrix(), matView);
+		CopyMatrix(device.GetWorldMatrix(), matWorld);
+
+		Matrix4x4f transformMatrix;
+		Matrix4x4f scaleOnly;
+		float scale;
+		TransformType matrixType = self->GetTransform().CalculateTransformMatrixDisableNonUniformScale (transformMatrix, scaleOnly, scale);
+		SetupObjectMatrix (transformMatrix, matrixType);
+
+		self->Render (material, *s_CurrentChannels);
+		device.SetViewMatrix(matView);
+		device.SetWorldMatrix(matWorld);
+
+		#if UNITY_EDITOR
+		if( outsideOfFrame )
+			device.EndFrame();
+		#endif
+	}
+END
+
+
+
+// A script interface for a [[wiki:class-Projector|projector component]].
+CLASS Projector : Behaviour
+
+	// The near clipping plane distance.
+	AUTO_PROP float nearClipPlane GetNearClipPlane SetNearClipPlane
+
+	// The far clipping plane distance.
+	AUTO_PROP float farClipPlane GetFarClipPlane SetFarClipPlane
+
+	// The field of view of the projection in degrees.
+	AUTO_PROP float fieldOfView GetFieldOfView SetFieldOfView
+
+	// The aspect ratio of the projection.
+	AUTO_PROP float aspectRatio GetAspectRatio SetAspectRatio
+
+	OBSOLETE planned Use orthographic instead
+	CSRAW public bool isOrthoGraphic { get { return orthographic; } set { orthographic = value; } }
+
+	// Is the projection orthographic (''true'') or perspective (''false'')?
+	AUTO_PROP bool orthographic GetOrthographic SetOrthographic
+
+	// Projection's half-size when in orthographic mode.
+	AUTO_PROP float orthographicSize GetOrthographicSize SetOrthographicSize
+
+	OBSOLETE planned use orthographicSize
+	CSRAW public float orthoGraphicSize { get { return orthographicSize; } set { orthographicSize = value; } }
+
+	// Which object layers are ignored by the projector.
+	AUTO_PROP int ignoreLayers GetIgnoreLayers SetIgnoreLayers
+
+	// The material that will be projected onto every object.
+	AUTO_PTR_PROP Material material GetMaterial SetMaterial
+END
+
+// A script interface for the [[wiki:class-Skybox|skybox component]].
+CLASS Skybox : Behaviour
+	// The material used by the skybox.
+	CUSTOM_PROP Material material { return Scripting::ScriptingWrapperFor (self->GetMaterial ()); } { self->SetMaterial (value); }
+END
+
+
+// A script interface for the [[wiki:class-TextMesh|text mesh component]].
+CLASS TextMesh : Component
+
+	// The text that is displayed.
+	CUSTOM_PROP string text { return CreateScriptingString (self->GetText ()); } { self->SetText (value); }
+
+	// The [[Font]] used.
+	AUTO_PTR_PROP Font font GetFont SetFont
+
+
+	// The font size to use (for dynamic fonts)
+	AUTO_PROP int fontSize GetFontSize SetFontSize
+
+	// The font style to use (for dynamic fonts)
+	AUTO_PROP FontStyle fontStyle GetFontStyle SetFontStyle
+
+	// How far should the text be offset from the transform.position.z when drawing
+	AUTO_PROP float offsetZ GetOffsetZ SetOffsetZ
+
+	// How lines of text are aligned (Left, Right, Center)
+	AUTO_PROP TextAlignment alignment GetAlignment SetAlignment
+
+	// Which point of the text shares the position of the Transform
+	AUTO_PROP TextAnchor anchor GetAnchor SetAnchor
+
+	// The size of each character (This scales the whole text)
+	AUTO_PROP float characterSize GetCharacterSize SetCharacterSize
+
+	// How much space will be in-between lines of text
+	AUTO_PROP float lineSpacing GetLineSpacing SetLineSpacing
+
+	// How much space will be inserted for a tab '\t' character. This is a multiplum of the 'spacebar' character offset
+	AUTO_PROP float tabSize GetTabSize SetTabSize
+
+	// Enable HTML-style tags for Text Formatting Markup.
+	AUTO_PROP bool richText GetRichText SetRichText
+
+	// Base color in which to render the text
+	AUTO_PROP Color color GetColor SetColor
+END
+
+//(Legacy Particle system)
+STRUCT Particle
+	CSRAW
+	private Vector3 m_Position;
+	private Vector3 m_Velocity;
+	private float   m_Size;
+	private float   m_Rotation;
+	private float   m_AngularVelocity;
+	private float   m_Energy;
+	private float   m_StartEnergy;
+	private Color   m_Color;
+
+	// The position of the particle.
+	CSRAW public Vector3 position { get { return m_Position; } set { m_Position = value; } }
+
+	// The velocity of the particle.
+	CSRAW public Vector3 velocity { get { return m_Velocity; } set { m_Velocity = value; } }
+
+	// The energy of the particle.
+	CSRAW public float   energy   { get { return m_Energy; }   set { m_Energy = value; } }
+
+	// The starting energy of the particle.
+	CSRAW public float   startEnergy   { get { return m_StartEnergy; }   set { m_StartEnergy = value; } }
+
+	// The size of the particle.
+	CSRAW public float   size     { get { return m_Size; }     set { m_Size = value; } }
+
+	// The rotation of the particle.
+	CSRAW public float   rotation     { get { return m_Rotation; }     set { m_Rotation = value; } }
+
+	// The angular velocity of the particle.
+	CSRAW public float   angularVelocity     { get { return m_AngularVelocity; }     set { m_AngularVelocity = value; } }
+
+	// The color of the particle.
+	CSRAW public Color   color    { get { return m_Color; }    set { m_Color = value; } }
+END
+
+// Simple struct that contains all the arguments needed by the internal DrawTexture.
+STRUCT internal InternalEmitParticleArguments
+	CSRAW public Vector3 pos;
+	CSRAW public Vector3 velocity;
+	CSRAW public float size;
+	CSRAW public float energy;
+	CSRAW public Color color;
+	CSRAW public float rotation;
+	CSRAW public float angularVelocity;
+END
+
+C++RAW
+
+struct MonoInternalEmitParticleArguments {
+	Vector3f pos;
+	Vector3f velocity;
+	float size;
+	float energy;
+	ColorRGBAf color;
+	float rotation;
+	float angularVelocity;
+};
+
+// (Legacy Particles) Script interface for particle emitters.
+CLASS ParticleEmitter : Component
+
+	// Should particles be automatically emitted each frame?
+	AUTO_PROP bool emit IsEmitting SetEmit
+
+	// The minimum size each particle can be at the time when it is spawned.
+	AUTO_PROP float minSize GetMinSize SetMinSize
+
+	// The maximum size each particle can be at the time when it is spawned.
+	AUTO_PROP float maxSize GetMaxSize SetMaxSize
+
+	// The minimum lifetime of each particle, measured in seconds.
+	AUTO_PROP float minEnergy GetMinEnergy SetMinEnergy
+
+	// The maximum lifetime of each particle, measured in seconds.
+	AUTO_PROP float maxEnergy GetMaxEnergy SetMaxEnergy
+
+	// The minimum number of particles that will be spawned every second.
+	AUTO_PROP float minEmission GetMinEmission SetMinEmission
+
+	// The maximum number of particles that will be spawned every second.
+	AUTO_PROP float maxEmission GetMaxEmission SetMaxEmission
+
+	// he amount of the emitter's speed that the particles inherit.
+	AUTO_PROP float emitterVelocityScale GetEmitterVelocityScale SetEmitterVelocityScale
+
+	// The starting speed of particles in world space, along X, Y, and Z.
+	AUTO_PROP Vector3 worldVelocity GetWorldVelocity SetWorldVelocity
+
+	// The starting speed of particles along X, Y, and Z, measured in the object's orientation.
+	AUTO_PROP Vector3 localVelocity GetLocalVelocity SetLocalVelocity
+
+	// A random speed along X, Y, and Z that is added to the velocity.
+	AUTO_PROP Vector3 rndVelocity GetRndVelocity SetRndVelocity
+
+	// If enabled, the particles don't move when the emitter moves. If false, when you move the emitter, the particles follow it around.
+	AUTO_PROP bool useWorldSpace GetUseWorldSpace SetUseWorldSpace
+
+	// If enabled, the particles will be spawned with random rotations.
+	AUTO_PROP bool rndRotation GetRndRotation SetRndRotation
+
+	// The angular velocity of new particles in degrees per second.
+	AUTO_PROP float angularVelocity GetAngularVelocity SetAngularVelocity
+
+	// A random angular velocity modifier for new particles.
+	AUTO_PROP float rndAngularVelocity GetRndAngularVelocity SetRndAngularVelocity
+
+	// Returns a copy of all particles and assigns an array of all particles to be the current particles.
+	CUSTOM_PROP Particle[] particles
+	{
+		int size = self->GetParticleCount();
+		ScriptingArrayPtr array = CreateScriptingArray<SimpleParticle> (GetMonoManager().GetCommonClasses().particle, self->GetParticleCount());
+		self->ReadParticles(GetScriptingArrayStart<SimpleParticle>(array), 0, size);
+		return array;
+	}
+	{
+		self->WriteParticles(GetScriptingArrayStart<SimpleParticle>(value), GetScriptingArraySize(value));
+	}
+
+	// The current number of particles (RO).
+	AUTO_PROP int particleCount GetParticleCount
+
+	// Removes all particles from the particle emitter.
+	AUTO void ClearParticles();
+
+	// Emit a number of particles.
+	CSRAW public void Emit () { Emit2 ( (int)Random.Range (minEmission, maxEmission) ); }
+
+	// Emit /count/ particles immediately
+
+	CSRAW public void Emit (int count) { Emit2 (count);}
+
+	// Emit a single particle with given parameters.
+	CSRAW public void Emit (Vector3 pos, Vector3 velocity, float size, float energy, Color color)
+	{
+		InternalEmitParticleArguments args = new InternalEmitParticleArguments();
+		args.pos = pos;
+		args.velocity = velocity;
+		args.size = size;
+		args.energy = energy;
+		args.color = color;
+		args.rotation = 0;
+		args.angularVelocity = 0;
+		Emit3 (ref args);
+	}
+	//
+	CSRAW public void Emit (Vector3 pos, Vector3 velocity, float size, float energy, Color color, float rotation, float angularVelocity)
+	{
+		InternalEmitParticleArguments args = new InternalEmitParticleArguments();
+		args.pos = pos;
+		args.velocity = velocity;
+		args.size = size;
+		args.energy = energy;
+		args.color = color;
+		args.rotation = rotation;
+		args.angularVelocity = angularVelocity;
+		Emit3 (ref args);
+	}
+
+	CUSTOM private void Emit2 (int count)
+	{
+		self->EmitResetEmitterPos (count, 0.0F);
+	}
+
+	CUSTOM private void Emit3 (ref InternalEmitParticleArguments args)
+	{
+		self->Emit (args.pos, args.velocity, args.size, args.energy, args.color, args.rotation, args.angularVelocity);
+	}
+
+	// Advance particle simulation by given time.
+	CUSTOM void Simulate (float deltaTime)
+	{
+		self->UpdateParticleSystem(deltaTime);
+	}
+
+	// Turns the ParticleEmitter on or off.
+	AUTO_PROP bool enabled GetEnabled SetEnabled
+END
+
+
+// (Legacy Particles) Particle animators move your particles over time, you use them to apply wind, drag & color cycling to your particle emitters.
+CLASS ParticleAnimator : Component
+	// Do particles cycle their color over their lifetime?
+	AUTO_PROP bool doesAnimateColor GetDoesAnimateColor SetDoesAnimateColor
+
+	// World space axis the particles rotate around.
+	AUTO_PROP Vector3 worldRotationAxis GetWorldRotationAxis SetWorldRotationAxis
+
+	// Local space axis the particles rotate around.
+	AUTO_PROP Vector3 localRotationAxis GetLocalRotationAxis SetLocalRotationAxis
+
+	// How the particle sizes grow over their lifetime.
+	AUTO_PROP float sizeGrow GetSizeGrow SetSizeGrow
+
+	// A random force added to particles every frame.
+	AUTO_PROP Vector3 rndForce GetRndForce SetRndForce
+
+	// The force being applied to particles every frame.
+	AUTO_PROP Vector3 force GetForce SetForce
+
+	// How much particles are slowed down every frame.
+	AUTO_PROP float damping GetDamping SetDamping
+
+	// Does the [[GameObject]] of this particle animator auto destructs?
+	AUTO_PROP bool autodestruct GetAutodestruct SetAutodestruct
+
+	// Colors the particles will cycle through over their lifetime.
+
+	CUSTOM_PROP Color[] colorAnimation
+	{
+		ColorRGBAf col[ParticleAnimator::kColorKeys];
+		self->GetColorAnimation(col);
+		return CreateScriptingArray(col, ParticleAnimator::kColorKeys, GetMonoManager().GetCommonClasses().color);
+	}
+	{
+		MonoRaiseIfNull(value);
+		if(GetScriptingArraySize(value) != ParticleAnimator::kColorKeys)
+		{
+			RaiseMonoException(" Array needs to contain exactly 5 Colors for colorAnimation.");
+			return;
+		}
+		self->SetColorAnimation(GetScriptingArrayStart<ColorRGBAf> (value));
+	}
+END
+
+
+// The trail renderer is used to make trails behind objects in the scene as they move about.
+CLASS TrailRenderer : Renderer
+
+	// How long does the trail take to fade out.
+	AUTO_PROP float time GetTime SetTime
+
+	// The width of the trail at the spawning point.
+	AUTO_PROP float startWidth GetStartWidth SetStartWidth
+
+	// The width of the trail at the end of the trail.
+	AUTO_PROP float endWidth GetEndWidth SetEndWidth
+
+	// Does the [[GameObject]] of this trail renderer auto destructs?
+	AUTO_PROP bool autodestruct GetAutodestruct SetAutodestruct
+
+END
+
+
+
+// The rendering mode for legacy particles.
+ENUM ParticleRenderMode
+	// Render the particles as billboards facing the player. (Default)
+	Billboard = 0,
+	// Stretch particles in the direction of motion.
+	Stretch = 3,
+	// Sort the particles back-to-front and render as billboards.
+	SortedBillboard = 2,
+	// Render the particles as billboards always facing up along the y-Axis.
+	HorizontalBillboard = 4,
+	// Render the particles as billboards always facing the player, but not pitching along the x-Axis.
+	VerticalBillboard = 5
+END
+
+// (Legacy Particles) Renders particles on to the screen.
+CLASS ParticleRenderer : Renderer
+	//  How particles are drawn.
+	AUTO_PROP ParticleRenderMode particleRenderMode GetRenderMode SetRenderMode
+
+	// How much are the particles stretched in their direction of motion.
+	AUTO_PROP float lengthScale GetLengthScale SetLengthScale
+
+	// How much are the particles strectched depending on "how fast they move"
+	AUTO_PROP float velocityScale GetVelocityScale SetVelocityScale
+
+	// How much are the particles strected depending on the [[Camera]]'s speed.
+	AUTO_PROP float cameraVelocityScale GetCameraVelocityScale SetCameraVelocityScale
+
+	// Clamp the maximum particle size.
+	AUTO_PROP float maxParticleSize GetMaxParticleSize SetMaxParticleSize
+
+	// Set horizontal tiling count.
+	AUTO_PROP int uvAnimationXTile GetUVAnimationXTile SetUVAnimationXTile
+	// Set vertical tiling count.
+	AUTO_PROP int uvAnimationYTile GetUVAnimationYTile SetUVAnimationYTile
+
+	// Set uv animation cycles
+	AUTO_PROP float uvAnimationCycles GetUVAnimationCycles SetUVAnimationCycles
+
+	OBSOLETE warning animatedTextureCount has been replaced by uvAnimationXTile and uvAnimationYTile.
+	CSRAW public int animatedTextureCount { get { return uvAnimationXTile; } set { uvAnimationXTile = value; }	}
+
+	//*undocumented fixed typo
+	CSRAW public float maxPartileSize { get { return maxParticleSize; } set { maxParticleSize = value; } }
+
+	//*undocumented UV Rect access
+	CUSTOM_PROP Rect[] uvTiles { return CreateScriptingArray(self->GetUVFrames(), self->GetNumUVFrames(), GetMonoManager().GetCommonClasses().rect); } { MonoRaiseIfNull(value); self->SetUVFrames(GetScriptingArrayStart<Rectf> (value), GetScriptingArraySize(value)); }
+
+CSRAW #if ENABLE_MONO
+	OBSOLETE error This function has been removed.
+	CSRAW public AnimationCurve widthCurve { get { return null; } set { } }
+
+	OBSOLETE error This function has been removed.
+	CSRAW public AnimationCurve heightCurve { get { return null; } set { } }
+
+	OBSOLETE error This function has been removed.
+	CSRAW public AnimationCurve rotationCurve { get { return null; } set { } }
+
+CSRAW #endif
+END
+
+
+// The line renderer is used to draw free-floating lines in 3D space.
+CLASS LineRenderer : Renderer
+	// Set the line width at the start and at the end.
+	AUTO void SetWidth(float start, float end);
+
+	// Set the line color at the start and at the end.
+	AUTO void SetColors(Color start, Color end);
+
+	// Set the number of line segments.
+	AUTO void SetVertexCount(int count);
+
+	// Set the position of the vertex in the line.
+	AUTO void SetPosition(int index, Vector3 position);
+
+	// If enabled, the lines are defined in world space.
+	AUTO_PROP bool useWorldSpace GetUseWorldSpace SetUseWorldSpace
+
+END
+
+
+
+// A block of material values to apply.
+CLASS MaterialPropertyBlock
+	// Just wraps a pointer to native property block object
+	CSRAW internal IntPtr m_Ptr;
+
+	//*undocumented*
+	CUSTOM internal void InitBlock() {
+		MonoMaterialPropertyBlock* block = new MonoMaterialPropertyBlock();
+		self.SetPtr(block, MonoMaterialPropertyBlock::CleanupMonoMaterialPropertyBlock);
+	}
+	//*undocumented*
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM internal void DestroyBlock() {
+		MonoMaterialPropertyBlock::CleanupMonoMaterialPropertyBlock((MonoMaterialPropertyBlock*)self.GetPtr());
+	}
+
+	//*undocumented*
+	CSRAW public MaterialPropertyBlock() { InitBlock(); }
+	CSRAW ~MaterialPropertyBlock() { DestroyBlock(); }
+
+	///*listonly*
+	CSRAW public void AddFloat (string name, float value)
+	{
+		AddFloat( Shader.PropertyToID(name), value );
+	}
+	// Add a float material property.
+	CUSTOM void AddFloat (int nameID, float value) {
+		ShaderLab::FastPropertyName name;
+		name.index = nameID;
+		self->AddProperty( name, &value, 1, 1, 1 );
+	}
+
+	///*listonly*
+	CSRAW public void AddVector (string name, Vector4 value) { AddVector( Shader.PropertyToID(name), value ); }
+	// Add a vector material property.
+	CUSTOM void AddVector (int nameID, Vector4 value) {
+		ShaderLab::FastPropertyName name;
+		name.index = nameID;
+#if ENABLE_MONO
+		self->AddProperty( name, value.GetPtr(), 1, 4, 1 );
+#endif
+	}
+
+	///*listonly*
+	CSRAW public void AddColor (string name, Color value)
+	{
+		AddColor( Shader.PropertyToID(name), value );
+	}
+	// Add a color material property.
+	CUSTOM void AddColor (int nameID, Color value) {
+		ShaderLab::FastPropertyName name;
+		name.index = nameID;
+#if ENABLE_MONO
+		self->AddProperty( name, value.GetPtr(), 1, 4, 1 );
+#endif
+	}
+
+	///*listonly*
+	CSRAW public void AddMatrix (string name, Matrix4x4 value) { AddMatrix( Shader.PropertyToID(name), value ); }
+	// Add a matrix material property.
+	CUSTOM void AddMatrix (int nameID, Matrix4x4 value) {
+		ShaderLab::FastPropertyName name;
+		name.index = nameID;
+#if ENABLE_MONO
+		self->AddProperty( name, value.GetPtr(), 4, 4, 1 );
+#endif
+	}
+
+	// Clear material property values.
+	CUSTOM void Clear() {
+#if ENABLE_MONO
+		self->Clear();
+#endif
+	}
+
+END
+
+
+// Color or depth buffer part of a [[RenderTexture]].
+STRUCT RenderBuffer
+	CSRAW internal int m_RenderTextureInstanceID;
+	CSRAW internal IntPtr m_BufferPtr;
+END
+
+// Simple struct that contains all the arguments needed by the internal DrawTexture.
+STRUCT internal InternalDrawTextureArguments
+	CSRAW public Rect screenRect;
+	#if PLATFORM_WINRT
+	CSRAW public int textureInstanceId;
+	#else
+	CSRAW public Texture texture;
+	#endif
+	CSRAW public Rect sourceRect;
+	CSRAW public int leftBorder;
+	CSRAW public int rightBorder;
+	CSRAW public int topBorder;
+	CSRAW public int bottomBorder;
+	CSRAW public Color32 color;
+	#if PLATFORM_WINRT
+	CSRAW public int matInstanceId;
+	#else
+	CSRAW public Material mat;
+	#endif
+END
+
+C++RAW
+
+struct MonoInternalDrawTextureArguments {
+	Rectf screenRect;
+	#if PLATFORM_WINRT
+	int				   textureInstanceId;
+	#else
+	ScriptingObjectOfType<Texture> texture;
+	#endif
+	Rectf sourceRect;
+	int leftBorder;
+	int rightBorder;
+	int topBorder;
+	int bottomBorder;
+	ColorRGBA32 color;
+	#if PLATFORM_WINRT
+	int					matInstanceId;
+	#else
+	ScriptingObjectOfType<Material> mat;
+	#endif
+};
+
+// Simple struct that contains the arguments needed by Internal_DrawMeshTR.
+STRUCT internal Internal_DrawMeshTRArguments
+	CSRAW public int layer;
+	CSRAW public int submeshIndex;
+	CSRAW public Quaternion rotation;
+	CSRAW public Vector3 position;
+	CSRAW public int castShadows;
+	CSRAW public int receiveShadows;
+END
+
+C++RAW
+
+struct MonoInternal_DrawMeshTRArguments {
+	int layer;
+	int submeshIndex;
+	Quaternionf rotation;
+	Vector3f position;
+	int castShadows;
+	int receiveShadows;
+};
+
+// Simple struct that contains all the arguments needed by Internal_DrawMeshMatrix.
+STRUCT internal Internal_DrawMeshMatrixArguments
+	CSRAW public int layer;
+	CSRAW public int submeshIndex;
+	CSRAW public Matrix4x4 matrix;
+	CSRAW public int castShadows;
+	CSRAW public int receiveShadows;
+END
+
+C++RAW
+
+struct MonoInternal_DrawMeshMatrixArguments {
+	int layer;
+	int submeshIndex;
+	Matrix4x4f matrix;
+	int castShadows;
+	int receiveShadows;
+};
+
+// Raw interface to Unity's drawing functions.
+CLASS Graphics
+
+	/// *listonly*
+	CSRAW static public void DrawMesh (Mesh mesh, Vector3 position, Quaternion rotation, Material material, int layer, Camera camera = null, int submeshIndex = 0, MaterialPropertyBlock properties = null) {
+		Internal_DrawMeshTRArguments arguments = new Internal_DrawMeshTRArguments ();
+		arguments.position = position;
+		arguments.rotation = rotation;
+		arguments.layer =  layer;
+		arguments.submeshIndex = submeshIndex;
+		arguments.castShadows = 1;
+		arguments.receiveShadows = 1;
+		Internal_DrawMeshTR(ref arguments, properties, material, mesh, camera);
+	}
+	// Draw a mesh.
+	CSRAW static public void DrawMesh (Mesh mesh, Matrix4x4 matrix, Material material, int layer, Camera camera = null, int submeshIndex = 0, MaterialPropertyBlock properties = null) {
+		Internal_DrawMeshMatrixArguments arguments = new Internal_DrawMeshMatrixArguments ();
+		arguments.matrix = matrix;
+		arguments.layer =  layer;
+		arguments.submeshIndex = submeshIndex;
+		arguments.castShadows = 1;
+		arguments.receiveShadows = 1;
+
+		Internal_DrawMeshMatrix(ref arguments, properties, material, mesh, camera);
+	}
+	//*undocumented*
+	CSRAW static public void DrawMesh (Mesh mesh, Vector3 position, Quaternion rotation, Material material, int layer, Camera camera, int submeshIndex, MaterialPropertyBlock properties, bool castShadows, bool receiveShadows) {
+		Internal_DrawMeshTRArguments arguments = new Internal_DrawMeshTRArguments ();
+		arguments.position = position;
+		arguments.rotation = rotation;
+		arguments.layer =  layer;
+		arguments.submeshIndex = submeshIndex;
+		arguments.castShadows = castShadows ? 1 : 0;
+		arguments.receiveShadows = receiveShadows ? 1 : 0;
+
+		Internal_DrawMeshTR(ref arguments, properties, material, mesh, camera);
+	}
+	//*undocumented*
+	CSRAW static public void DrawMesh (Mesh mesh, Matrix4x4 matrix, Material material, int layer, Camera camera, int submeshIndex, MaterialPropertyBlock properties, bool castShadows, bool receiveShadows) {
+		Internal_DrawMeshMatrixArguments arguments = new Internal_DrawMeshMatrixArguments ();
+		arguments.matrix = matrix;
+		arguments.layer =  layer;
+		arguments.submeshIndex = submeshIndex;
+		arguments.castShadows = castShadows ? 1 : 0;
+		arguments.receiveShadows = receiveShadows ? 1 : 0;
+
+		Internal_DrawMeshMatrix(ref arguments, properties, material, mesh, camera);
+	}
+	CUSTOM private static void Internal_DrawMeshTR (ref Internal_DrawMeshTRArguments arguments,  MaterialPropertyBlock properties, Material material, Mesh mesh, Camera camera) {
+		Camera* cameraPointer = camera;
+		Matrix4x4f matrix;
+		matrix.SetTR( arguments.position, arguments.rotation );
+		IntermediateRenderer* r = new IntermediateRenderer( matrix, mesh, material, arguments.layer, arguments.castShadows != 0, arguments.receiveShadows != 0, arguments.submeshIndex );
+
+		MaterialPropertyBlock* propertiesPtr = properties.GetPtr();
+		if (propertiesPtr)
+			r->SetPropertyBlock (*propertiesPtr);
+		AddIntermediateRenderer( r, cameraPointer );
+	}
+	CUSTOM private static void Internal_DrawMeshMatrix (ref Internal_DrawMeshMatrixArguments arguments, MaterialPropertyBlock properties, Material material, Mesh mesh, Camera camera) {
+		Camera* cameraPointer = camera;
+		IntermediateRenderer* r = new IntermediateRenderer( arguments.matrix, mesh, material, arguments.layer, arguments.castShadows != 0, arguments.receiveShadows != 0, arguments.submeshIndex );
+
+		MaterialPropertyBlock* propertiesPtr = properties.GetPtr();
+		if (propertiesPtr)
+			r->SetPropertyBlock (*propertiesPtr);
+		AddIntermediateRenderer (r, cameraPointer);
+	}
+
+	/// *listonly*
+	CSRAW static public void DrawMeshNow (Mesh mesh, Vector3 position, Quaternion rotation) { Internal_DrawMeshNow1(mesh, position, rotation, -1); }
+	/// *listonly*
+	CSRAW static public void DrawMeshNow (Mesh mesh, Vector3 position, Quaternion rotation, int materialIndex) { Internal_DrawMeshNow1(mesh, position, rotation, materialIndex); }
+	/// *listonly*
+	CSRAW static public void DrawMeshNow (Mesh mesh, Matrix4x4 matrix) { Internal_DrawMeshNow2(mesh, matrix, -1); }
+
+	// Draw a mesh immediately.
+	CSRAW static public void DrawMeshNow (Mesh mesh, Matrix4x4 matrix, int materialIndex) { Internal_DrawMeshNow2(mesh, matrix, materialIndex); }
+
+	CUSTOM private static void Internal_DrawMeshNow1 (Mesh mesh, Vector3 position, Quaternion rotation, int materialIndex) {
+		Shader* shader = s_CurrentShader;
+		if (!shader) {
+			ErrorString ("DrawMesh requires material.SetPass before!");
+			return;
+		}
+		DrawUtil::DrawMesh (*s_CurrentChannels, *mesh, position, rotation);
+	}
+	CUSTOM private static void Internal_DrawMeshNow2 (Mesh mesh, Matrix4x4 matrix, int materialIndex) {
+		Shader* shader = s_CurrentShader;
+		if (!shader) {
+			ErrorString ("DrawMesh requires material.SetPass before!");
+			return;
+		}
+		DrawUtil::DrawMesh (*s_CurrentChannels, *mesh, matrix, materialIndex);
+	}
+
+
+	// Draws a fully procedural geometry on the GPU.
+	CUSTOM static public void DrawProcedural (MeshTopology topology, int vertexCount, int instanceCount = 1) {
+		DrawUtil::DrawProcedural (topology, vertexCount, instanceCount);
+	}
+
+	// Draws a fully procedural geometry on the GPU.
+	CONDITIONAL !UNITY_FLASH
+	CUSTOM static public void DrawProceduralIndirect (MeshTopology topology, ComputeBuffer bufferWithArgs, int argsOffset = 0) {
+		DrawUtil::DrawProceduralIndirect (topology, bufferWithArgs.GetPtr(), argsOffset);
+	}
+
+	FLUSHCONDITIONS
+
+	OBSOLETE warning Use Graphics.DrawMeshNow instead.
+	CSRAW static public void DrawMesh (Mesh mesh, Vector3 position, Quaternion rotation) { Internal_DrawMeshNow1(mesh, position, rotation, -1); }
+	OBSOLETE warning Use Graphics.DrawMeshNow instead.
+	CSRAW static public void DrawMesh (Mesh mesh, Vector3 position, Quaternion rotation, int materialIndex) { Internal_DrawMeshNow1(mesh, position, rotation, materialIndex); }
+	OBSOLETE warning Use Graphics.DrawMeshNow instead.
+	CSRAW static public void DrawMesh (Mesh mesh, Matrix4x4 matrix) { Internal_DrawMeshNow2(mesh, matrix, -1); }
+	OBSOLETE warning Use Graphics.DrawMeshNow instead.
+	CSRAW static public void DrawMesh (Mesh mesh, Matrix4x4 matrix, int materialIndex) { Internal_DrawMeshNow2(mesh, matrix, materialIndex); }
+
+
+	///*listonly*
+	CSRAW public static void DrawTexture (Rect screenRect, Texture texture, Material mat = null) {
+		DrawTexture (screenRect, texture, 0,0,0,0, mat);
+	}
+	///*listonly*
+	CSRAW public static void DrawTexture (Rect screenRect, Texture texture, int leftBorder, int rightBorder, int topBorder, int bottomBorder, Material mat = null) {
+		DrawTexture (screenRect, texture, new Rect (0,0,1,1), leftBorder, rightBorder, topBorder, bottomBorder, mat);
+	}
+	///*listonly*
+	CSRAW public static void DrawTexture (Rect screenRect, Texture texture, Rect sourceRect, int leftBorder, int rightBorder, int topBorder, int bottomBorder, Material mat = null) {
+		InternalDrawTextureArguments arguments = new InternalDrawTextureArguments ();
+			arguments.screenRect = screenRect;
+			#if PLATFORM_WINRT
+			arguments.textureInstanceId = texture != null ? texture.GetInstanceID() : 0;
+			#else
+			arguments.texture = texture;
+			#endif
+			arguments.sourceRect = sourceRect;
+			arguments.leftBorder = leftBorder;
+			arguments.rightBorder = rightBorder;
+			arguments.topBorder = topBorder;
+			arguments.bottomBorder = bottomBorder;
+			Color32 c = new Color32();
+			c.r = c.g = c.b = c.a = 128;
+			arguments.color = c;
+			#if PLATFORM_WINRT
+			arguments.matInstanceId = mat != null ? mat.GetInstanceID() : 0;
+			#else
+			arguments.mat = mat;
+			#endif
+		DrawTexture (ref arguments);
+	}
+	// Draw a texture in screen coordinates.
+	CSRAW public static void DrawTexture (Rect screenRect, Texture texture, Rect sourceRect, int leftBorder, int rightBorder, int topBorder, int bottomBorder, Color color, Material mat = null) {
+		InternalDrawTextureArguments arguments = new InternalDrawTextureArguments ();
+			arguments.screenRect = screenRect;
+			#if PLATFORM_WINRT
+			arguments.textureInstanceId = texture != null ? texture.GetInstanceID() : 0;
+			#else
+			arguments.texture = texture;
+			#endif
+			arguments.sourceRect = sourceRect;
+			arguments.leftBorder = leftBorder;
+			arguments.rightBorder = rightBorder;
+			arguments.topBorder = topBorder;
+			arguments.bottomBorder = bottomBorder;
+			arguments.color = color;
+			#if PLATFORM_WINRT
+			arguments.matInstanceId = mat != null ? mat.GetInstanceID() : 0;
+			#else
+			arguments.mat = mat;
+			#endif
+		DrawTexture (ref arguments);
+	}
+
+	CUSTOM internal static void DrawTexture (ref InternalDrawTextureArguments arguments) {
+	#if PLATFORM_WINRT
+		DrawGUITexture (
+			arguments.screenRect,
+			PPtr<Texture>(arguments.textureInstanceId),
+			arguments.sourceRect,
+			arguments.leftBorder,
+			arguments.rightBorder,
+			arguments.topBorder,
+			arguments.bottomBorder,
+			ColorRGBA32(arguments.color),
+			PPtr<Material>(arguments.matInstanceId));
+	#else
+		DrawGUITexture (arguments.screenRect, arguments.texture, arguments.sourceRect, arguments.leftBorder, arguments.rightBorder, arguments.topBorder, arguments.bottomBorder, ColorRGBA32(arguments.color), arguments.mat);
+	#endif
+	}
+
+	/// *listonly*
+	CUSTOM static void Blit (Texture source, RenderTexture dest)
+	{
+		ImageFilters::Blit (source, dest);
+	}
+
+	// Copies source texture into destination render texture.
+	CSRAW public static void Blit (Texture source, RenderTexture dest, Material mat, int pass = -1)
+	{
+		Internal_BlitMaterial (source, dest, mat, pass, true);
+	}
+
+	CSRAW public static void Blit (Texture source, Material mat, int pass = -1)
+	{
+		Internal_BlitMaterial (source, null, mat, pass, false);
+	}
+
+	CUSTOM private static void Internal_BlitMaterial (Texture source, RenderTexture dest, Material mat, int pass, bool setRT)
+	{
+		Material* m = mat;
+		if (m == NULL)
+		{
+			ErrorString ("Graphics.Blit: material is null");
+			return;
+		}
+		ImageFilters::Blit (source, dest, m, pass, setRT);
+	}
+
+	// Copies source texture into destination, for multi-tap shader.
+	CSRAW public static void BlitMultiTap (Texture source, RenderTexture dest, Material mat, params Vector2[] offsets)
+	{
+		Internal_BlitMultiTap (source, dest, mat, offsets);
+	}
+
+	CUSTOM private static void Internal_BlitMultiTap (Texture source, RenderTexture dest, Material mat, Vector2[] offsets)
+	{
+		Material* m = mat;
+		if (m == NULL)
+		{
+			ErrorString ("Graphics.BlitMultiTap: material is null");
+			return;
+		}
+		int size = GetScriptingArraySize (offsets);
+		const Vector2f* arr = GetScriptingArrayStart<Vector2f> (offsets);
+		ImageFilters::BlitMultiTap (source, dest, m, size, arr);
+	}
+
+
+	///*listonly*
+	CSRAW public static void SetRenderTarget (RenderTexture rt) {
+		Internal_SetRT (rt);
+	}
+
+	///*listonly*
+	CSRAW public static void SetRenderTarget (RenderBuffer colorBuffer, RenderBuffer depthBuffer) {
+		Internal_SetRTBuffer (out colorBuffer, out depthBuffer);
+	}
+
+	// Sets current render target.
+	CSRAW public static void SetRenderTarget (RenderBuffer[] colorBuffers, RenderBuffer depthBuffer) {
+		Internal_SetRTBuffers (colorBuffers, out depthBuffer);
+	}
+
+	CUSTOM private static void Internal_SetRT (RenderTexture rt) {
+		RenderTexture::SetActive (rt);
+	}
+
+	CUSTOM private static void Internal_SetRTBuffer (out RenderBuffer colorBuffer, out RenderBuffer depthBuffer) {
+		RenderTexture* rtC = PPtr<RenderTexture>(colorBuffer->m_RenderTextureInstanceID);
+		RenderTexture* rtD = PPtr<RenderTexture>(depthBuffer->m_RenderTextureInstanceID);
+		if (rtC && !rtD)
+		{
+			ErrorString ("SetRenderTarget can only mix color & depth buffers from RenderTextures. You're trying to set depth buffer from the screen.");
+			return;
+		}
+		if (!rtC && rtD)
+		{
+			ErrorString ("SetRenderTarget can only mix color & depth buffers from RenderTextures. You're trying to set color buffer from the screen.");
+			return;
+		}
+		if (rtC)
+		{
+			int w = rtC->GetWidth();
+			int h = rtC->GetHeight();
+			RenderSurfaceHandle rsHandle(colorBuffer->m_BufferPtr);
+			RenderTexture::SetActive (1, &rsHandle, RenderSurfaceHandle(depthBuffer->m_BufferPtr), rtC, w, h);
+		}
+		else
+		{
+			RenderTexture::SetActive (NULL);
+		}
+	}
+
+	CUSTOM private static void Internal_SetRTBuffers (RenderBuffer[] colorBuffers, out RenderBuffer depthBuffer) {
+		int size = GetScriptingArraySize (colorBuffers);
+		if (size < 1 || size > kMaxSupportedRenderTargets)
+		{
+			ErrorString ("Invalid color buffer count for SetRenderTarget");
+			return;
+		}
+
+		const ScriptingRenderBuffer* arr = GetScriptingArrayStart<ScriptingRenderBuffer> (colorBuffers);
+		RenderTexture* rtC = PPtr<RenderTexture>(arr[0].m_RenderTextureInstanceID);
+		RenderTexture* rtD = PPtr<RenderTexture>(depthBuffer->m_RenderTextureInstanceID);
+		if (rtC && !rtD)
+		{
+			ErrorString ("SetRenderTarget can only mix color & depth buffers from RenderTextures. You're trying to set depth buffer from the screen.");
+			return;
+		}
+		if (!rtC && rtD)
+		{
+			ErrorString ("SetRenderTarget can only mix color & depth buffers from RenderTextures. You're trying to set color buffer from the screen.");
+			return;
+		}
+		if (rtC)
+		{
+			RenderSurfaceHandle colorHandles[kMaxSupportedRenderTargets];
+			for (int i = 0; i < size; ++i)
+				colorHandles[i].object = arr[i].m_BufferPtr;
+			int w = rtC->GetWidth();
+			int h = rtC->GetHeight();
+			RenderTexture::SetActive (size, colorHandles, RenderSurfaceHandle(depthBuffer->m_BufferPtr), rtC, w, h);
+		}
+		else
+		{
+			RenderTexture::SetActive (NULL);
+		}
+	}
+
+	// Currently active color buffer (RO).
+	CSRAW public static RenderBuffer activeColorBuffer { get { RenderBuffer res; GetActiveColorBuffer (out res); return res; } }
+
+	// Currently active depth buffer (RO).
+	CSRAW public static RenderBuffer activeDepthBuffer { get { RenderBuffer res; GetActiveDepthBuffer (out res); return res; } }
+
+	CUSTOM private static void GetActiveColorBuffer (out RenderBuffer res) {
+		GfxDevice& device = GetGfxDevice();
+		RenderTexture* rt = RenderTexture::GetActive();
+		res->m_RenderTextureInstanceID = rt ? rt->GetInstanceID() : 0;
+		res->m_BufferPtr = rt ? device.GetActiveRenderColorSurface(0).object : NULL;
+	}
+	CUSTOM private static void GetActiveDepthBuffer (out RenderBuffer res) {
+		GfxDevice& device = GetGfxDevice();
+		RenderTexture* rt = RenderTexture::GetActive();
+		res->m_RenderTextureInstanceID = rt ? rt->GetInstanceID() : 0;
+		res->m_BufferPtr = rt ? device.GetActiveRenderDepthSurface().object : NULL;
+	}
+
+	CSRAW public static void SetRandomWriteTarget (int index, RenderTexture uav) {
+		Internal_SetRandomWriteTargetRT (index, uav);
+	}
+
+	CONDITIONAL !UNITY_FLASH
+	CSRAW public static void SetRandomWriteTarget (int index, ComputeBuffer uav) {
+		Internal_SetRandomWriteTargetBuffer (index, uav);
+	}
+	CUSTOM public static void ClearRandomWriteTargets () {
+		GetGfxDevice().ClearRandomWriteTargets();
+	}
+
+	CUSTOM private static void Internal_SetRandomWriteTargetRT (int index, RenderTexture uav) {
+		RenderTexture* rt = uav;
+		TextureID tid = rt ? rt->GetTextureID() : TextureID();
+		GetGfxDevice().SetRandomWriteTargetTexture(index, tid);
+	}
+
+	CONDITIONAL !UNITY_FLASH
+	CUSTOM private static void Internal_SetRandomWriteTargetBuffer (int index, ComputeBuffer uav) {
+		GetGfxDevice().SetRandomWriteTargetBuffer(index, uav->GetBufferHandle());
+	}
+
+	FLUSHCONDITIONS
+
+	OBSOLETE warning Use SystemInfo.graphicsDeviceName instead.
+	CSRAW static public string deviceName { get { return SystemInfo.graphicsDeviceName; } }
+
+	OBSOLETE warning Use SystemInfo.graphicsDeviceVendor instead.
+	CSRAW static public string deviceVendor { get { return SystemInfo.graphicsDeviceVendor; } }
+
+	OBSOLETE warning Use SystemInfo.graphicsDeviceVersion instead.
+	CSRAW static public string deviceVersion { get { return SystemInfo.graphicsDeviceVersion; } }
+
+	OBSOLETE warning Use SystemInfo.supportsVertexPrograms instead.
+	CSRAW static public bool supportsVertexProgram { get { return SystemInfo.supportsVertexPrograms; } }
+
+	//*undocumented*
+	CUSTOM internal static void SetupVertexLights (Light[] lights)
+	{
+		const int size = GetScriptingArraySize(lights);
+		std::vector<Light*> lightsVec(size);
+		for (int i = 0; i < size; ++i)
+			lightsVec[i] = ScriptingObjectToObject<Light>(GetScriptingArrayElementNoRef<ScriptingObjectPtr> (lights, i));
+
+		SetupVertexLights(lightsVec);
+	}
+
+END
+
+
+
+// Represents a display resolution.
+STRUCT Resolution
+	// Keep in sync with ScreenManager::Resolution
+	CSRAW private int m_Width;
+	CSRAW private int m_Height;
+	CSRAW private int m_RefreshRate;
+
+	// Resolution width in pixels.
+	CSRAW public int width { get { return m_Width; } set { m_Width = value; } }
+	// Resolution height in pixels.
+	CSRAW public int height { get { return m_Height; } set { m_Height = value; } }
+	// Resolution's vertical refresh rate in Hz.
+	CSRAW public int refreshRate { get { return m_RefreshRate; } set { m_RefreshRate = value; } }
+END
+
+
+
+// Data of a lightmap.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CLASS LightmapData
+	CSRAW internal Texture2D m_Lightmap;
+	CSRAW internal Texture2D m_IndirectLightmap;
+
+	// Lightmap storing the full incoming light.
+	CSRAW public Texture2D lightmapFar { get { return m_Lightmap; } set { m_Lightmap = value; } }
+
+	OBSOLETE warning Use lightmapFar instead
+	CSRAW public Texture2D lightmap { get { return m_Lightmap; } set { m_Lightmap = value; } }
+
+	// Lightmap storing only the indirect incoming light.
+	CSRAW public Texture2D lightmapNear { get { return m_IndirectLightmap; } set { m_IndirectLightmap = value; } }
+END
+
+// Single, dual, or directional lightmaps rendering mode.
+ENUM LightmapsMode
+	// Single, traditional lightmap rendering mode.
+	Single = 0,
+
+	// Dual lightmap rendering mode.
+	Dual = 1,
+
+	// Directional rendering mode.
+	Directional = 2,
+END
+
+// Valid color spaces
+ENUM ColorSpace
+	// Uninitialized colorspace
+	Uninitialized = -1,
+
+	// Lightmap has been baked for gamma rendering
+	Gamma = 0,
+
+	// Lightmap has been baked for linear rendering
+	Linear = 1
+END
+
+
+// Stores light probes for the scene.
+CONDITIONAL ENABLE_MONO || PLATFORM_WINRT
+CLASS LightProbes : Object
+	// Returns spherical harmonics coefficients of a light probe at the given position. The light probe is interpolated from the light probes baked
+	CUSTOM void GetInterpolatedLightProbe(Vector3 position, Renderer renderer, float[] coefficients)
+	{
+		if (GetScriptingArraySize(coefficients) != kLightProbeBasisCount * 3)
+			RaiseArgumentException("Coefficients array must have 9*3 elements");
+
+		self->GetInterpolatedLightProbe(position, renderer, &GetScriptingArrayElement<float> (coefficients, 0));
+	}
+
+	// Positions of the baked light probes.
+	CUSTOM_PROP Vector3[] positions
+	{
+		return CreateScriptingArray(self->GetPositions(), self->GetPositionsSize(), GetCommonScriptingClasses ().vector3);
+	}
+
+	// Coefficients of the baked light probes. The coefficients represent a 3-band RGB spherical harmonics probe, with a total of 27 floats per light probe, laid out: rgbrgbrgb...
+
+	CUSTOM_PROP float[] coefficients
+	{
+		return CreateScriptingArray(reinterpret_cast<float*>(self->GetCoefficients()), self->GetPositionsSize()*kLightProbeCoefficientCount, GetCommonScriptingClasses ().floatSingle);
+	}
+	{
+		if (GetScriptingArraySize(value) != self->GetPositionsSize() * kLightProbeBasisCount * 3)
+			RaiseArgumentException("Coefficients array must have probeCount*9*3 elements");
+
+		self->SetCoefficients(&GetScriptingArrayElement<float> (value, 0), GetScriptingArraySize(value));
+	}
+
+	// The number of light probes.
+	CUSTOM_PROP int count
+	{
+		return self->GetPositionsSize();
+	}
+
+	// The number of cells (tetrahedra + outer cells) the space is divided to.
+	CUSTOM_PROP int cellCount
+	{
+		return self->GetTetrahedraSize();
+	}
+END
+
+// Stores lightmaps of the scene.
+CONDITIONAL ENABLE_MONO || PLATFORM_WINRT
+CLASS LightmapSettings : Object
+
+	// Lightmap array.
+	CUSTOM_PROP static LightmapData[] lightmaps
+	{ return VectorToScriptingClassArray<LightmapData, LightmapDataMono> (GetLightmapSettings().GetLightmaps(), GetScriptingTypeRegistry().GetType("UnityEngine", "LightmapData"), LightmapDataToMono); }
+	{ GetLightmapSettings().SetLightmaps (ScriptingClassArrayToVector<LightmapData, LightmapDataMono> (value, LightmapDataToCpp)); }
+
+	// Single, Dual or Directional lightmaps rendering mode.
+	CUSTOM_PROP static LightmapsMode lightmapsMode
+	{ return  GetLightmapSettings().GetLightmapsMode (); }
+	{ GetLightmapSettings().SetLightmapsMode (value); }
+
+	// Color space of the lightmap
+	CUSTOM_PROP static ColorSpace bakedColorSpace
+	{ return  GetLightmapSettings().GetBakedColorSpace (); }
+	{ }
+
+	// Holds all data needed by the light probes.
+	CUSTOM_PROP static LightProbes lightProbes
+	{
+		return Scripting::ScriptingWrapperFor(GetLightmapSettings().GetLightProbes());
+	}
+	{
+		GetLightmapSettings().SetLightProbes(value);
+	}
+END
+
+// Utility class for common geometric functions.
+CLASS GeometryUtility
+
+	// Calculates frustum planes.
+	CSRAW static public Plane[] CalculateFrustumPlanes (Camera camera)
+	{
+		return CalculateFrustumPlanes (camera.projectionMatrix * camera.worldToCameraMatrix);
+	}
+
+	// Calculates frustum planes.
+	CSRAW static public Plane[] CalculateFrustumPlanes (Matrix4x4 worldToProjectionMatrix)
+	{
+		Plane[] planes = new Plane[6];
+		Internal_ExtractPlanes (planes, worldToProjectionMatrix);
+		return planes;
+	}
+
+	CUSTOM private static void Internal_ExtractPlanes (Plane[] planes, Matrix4x4 worldToProjectionMatrix)
+	{
+		ExtractProjectionPlanes(worldToProjectionMatrix, GetScriptingArrayStart<Plane> (planes));
+	}
+
+
+	// Returns true if bounds are inside the plane array.
+	CUSTOM static bool TestPlanesAABB (Plane[] planes, Bounds bounds)
+	{
+		return TestPlanesAABB(GetScriptingArrayStart<Plane> (planes), GetScriptingArraySize(planes), bounds);
+	}
+END
+
+
+// Describes screen orientation.
+ENUM ScreenOrientation
+	//*undocumented*
+	Unknown = 0,
+
+	// Portrait orientation.
+	Portrait = 1,
+
+	// Portrait orientation, upside down.
+	PortraitUpsideDown = 2,
+
+	// Landscape orientation, counter-clockwise from the portrait orientation.
+	LandscapeLeft = 3,
+
+	// Landscape orientation, clockwise from the portrait orientation.
+	LandscapeRight = 4,
+
+	// Auto Rotation, will use enabled orientations.
+	AutoRotation = 5,
+
+	//*undocumented*
+	Landscape = 3
+END
+
+
+// Access to display information.
+CLASS Screen
+
+	// All fullscreen resolutions supported by the monitor (RO).
+
+	CUSTOM_PROP static Resolution[] resolutions
+	{
+		ScriptingClassPtr klass = GetMonoManager ().GetCommonClasses ().resolution;
+		ScreenManager::Resolutions resolutions = GetScreenManager ().GetResolutions ();
+		ScriptingArrayPtr array = CreateScriptingArray<ScreenManager::Resolution> (klass, resolutions.size ());
+		for (int i=0;i<resolutions.size ();i++)
+			SetScriptingArrayElement (array, i, resolutions[i]);
+
+		return array;
+	}
+
+	OBSOLETE planned
+	CSRAW static public Resolution[] GetResolution { get { return resolutions; } }
+
+	// The current screen resolution (RO).
+	CUSTOM_PROP static Resolution currentResolution { return GetScreenManager().GetCurrentResolution (); }
+
+	// Switches the screen resolution.
+	CUSTOM static void SetResolution (int width, int height, bool fullscreen, int preferredRefreshRate = 0)
+	{
+		#if WEBPLUG
+		if (fullscreen)
+		{
+			if (!GetScreenManager ().GetAllowFullscreenSwitch())
+			{
+				ErrorString("Fullscreen mode can only be enabled in the web player after clicking on the content.");
+				return;
+			}
+			// when going from windowed to fullscreen, show escape warning
+			if( !GetScreenManager().IsFullScreen() )
+				ShowFullscreenEscapeWarning();
+		}
+		#endif
+
+		GetScreenManager ().RequestResolution (width, height, fullscreen ? kFullscreenWindow : kWindowed, preferredRefreshRate);
+	}
+
+	// Should the cursor be visible?
+	CUSTOM_PROP static bool showCursor { return GetScreenManager ().GetShowCursor (); }  { GetScreenManager ().SetShowCursor (value); }
+
+	// Should the cursor be locked?
+	CUSTOM_PROP static bool lockCursor { return GetScreenManager ().GetLockCursor (); }  { GetScreenManager ().SetLockCursor (value); }
+
+
+	// The current width of the screen window in pixels (RO).
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM_PROP static int width { return GetScreenManager ().GetWidth (); }
+
+	// The current height of the screen window in pixels (RO).
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM_PROP static int height { return GetScreenManager ().GetHeight (); }
+
+	// The current DPI of the screen / device (RO).
+	CUSTOM_PROP static float dpi { return GetScreenManager ().GetDPI (); }
+
+	// Is the game running fullscreen?
+	CUSTOM_PROP static bool fullScreen
+	{
+		return GetScreenManager ().IsFullScreen ();
+	}
+	{
+		ScreenManager& screen = GetScreenManager();
+		bool goFullscreen = (bool)value;
+		if (goFullscreen  == screen.IsFullScreen ())
+		{
+			return;
+		}
+
+		#if WEBPLUG
+		if (goFullscreen)
+		{
+			if (!GetScreenManager().GetAllowFullscreenSwitch())
+			{
+				ErrorString("Fullscreen mode can only be enabled in the web player after clicking on the content.");
+				return;
+			}
+			// when going from windowed to fullscreen, show escape warning
+			if( !screen.IsFullScreen() )
+				ShowFullscreenEscapeWarning();
+		}
+		#endif
+
+		screen.RequestSetFullscreen (goFullscreen);
+	}
+
+	// Allow auto-rotation to portrait?
+	CUSTOM_PROP static bool autorotateToPortrait {
+		return GetScreenManager().GetIsOrientationEnabled(kAutorotateToPortrait);
+	} {
+		GetScreenManager().SetIsOrientationEnabled(kAutorotateToPortrait, value);
+	}
+
+	// Allow auto-rotation to portrait, upside down?
+	CUSTOM_PROP static bool autorotateToPortraitUpsideDown {
+		return GetScreenManager().GetIsOrientationEnabled(kAutorotateToPortraitUpsideDown);
+	} {
+		GetScreenManager().SetIsOrientationEnabled(kAutorotateToPortraitUpsideDown, value);
+	}
+
+	// Allow auto-rotation to landscape left?
+	CUSTOM_PROP static bool autorotateToLandscapeLeft {
+		return GetScreenManager().GetIsOrientationEnabled(kAutorotateToLandscapeLeft);
+	} {
+		GetScreenManager().SetIsOrientationEnabled(kAutorotateToLandscapeLeft, value);
+	}
+
+	// Allow auto-rotation to landscape right?
+	CUSTOM_PROP static bool autorotateToLandscapeRight {
+		return GetScreenManager().GetIsOrientationEnabled(kAutorotateToLandscapeRight);
+	} {
+		GetScreenManager().SetIsOrientationEnabled(kAutorotateToLandscapeRight, value);
+	}
+
+
+	// Specifies logical orientation of the screen.
+	CUSTOM_PROP static ScreenOrientation orientation {
+		return GetScreenManager ().GetScreenOrientation ();
+	} {
+		GetScreenManager ().RequestOrientation (value);
+	}
+
+	// A power saving setting, allowing the screen to dim some time after the
+	CUSTOM_PROP static int sleepTimeout {
+		return GetScreenManager ().GetScreenTimeout ();
+	} {
+		GetScreenManager ().SetScreenTimeout (value);
+	}
+END
+
+// Constants for special values of [[Screen.sleepTimeout]]. Use them to
+CLASS SleepTimeout
+	// Prevent screen dimming.
+	CSRAW public const int NeverSleep = -1;
+
+	// Set the sleep timeout to whatever user has specified in the system
+	CSRAW public const int SystemSetting = -2;
+END
+
+
+// Format of a [[RenderTexture]].
+ENUM RenderTextureFormat
+	// Color render texture format, 8 bits per channel.
+	ARGB32 = 0,
+
+	// A depth render texture format.
+	Depth = 1,
+
+	// Color render texture format, 16 bit floating point per channel.
+	ARGBHalf = 2,
+
+	// Color render texture format.
+	RGB565 = 4,
+
+	// Color render texture format, 4 bit per channel
+	ARGB4444 = 5,
+
+	// Color render texture format, 1 bit for Alpha channel, 5 bits for Red, Green and Blue channels
+	ARGB1555 = 6,
+
+	// Default color render texture format: will be chosen accordingly to Frame Buffer format and Platform
+	Default = 7,
+
+	// Default HDR color render texture format: will be chosen accordingly to Frame Buffer format and Platform
+	DefaultHDR = 9,
+
+	// Color render texture format, 32 bit floating point per channel.
+	ARGBFloat = 11,
+
+	// Two color (RG) render texture format, 32 bit floating point per channel.
+	RGFloat = 12,
+
+	// Two color (RG) render texture format, 16 bit floating point per channel.
+	RGHalf = 13,
+
+	// Scalar (R) render texture format, 32 bit floating point.
+	RFloat = 14,
+
+	// Scalar (R) render texture format, 16 bit floating point.
+	RHalf = 15,
+
+	// Scalar (R) render texture format, 8 bit fixed point.
+	R8 = 16,
+
+	// Four channel (ARGB) render texture format, 32 bit signed integer per channel.
+	ARGBInt = 17,
+
+	// Two channel (RG) render texture format, 32 bit signed integer per channel.
+	RGInt = 18,
+
+	// Scalar (R) render texture format, 32 bit signed integer.
+	RInt = 19
+
+END
+
+// Read write mode of a [[RenderTexture]].
+ENUM RenderTextureReadWrite
+	// The correct color space for the current position in the rendering pipeline
+	Default = 0,
+
+	// No sRGB reads or writes to this render texture
+	Linear = 1,
+
+	// sRGB reads and writes to this render texture
+	sRGB = 2
+
+END
+
+
+
+// Render textures are textures that can be rendered to.
+CLASS RenderTexture : Texture
+	CUSTOM private static void Internal_CreateRenderTexture ([Writable]RenderTexture rt)
+	{
+		RenderTexture* texture = NEW_OBJECT_MAIN_THREAD (RenderTexture);
+		texture->SetCreatedFromScript(true);
+		texture->Reset();
+		ConnectScriptingWrapperToObject (rt.GetScriptingObject(), texture);
+		texture->AwakeFromLoad(kInstantiateOrCreateFromCodeAwakeFromLoad);
+	}
+
+	// Creates a new RenderTexture object.
+
+	CSRAW public RenderTexture (int width, int height, int depth, RenderTextureFormat format, RenderTextureReadWrite readWrite)
+	{
+		Internal_CreateRenderTexture (this);
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		this.format = format;
+
+		bool sRGB = readWrite == RenderTextureReadWrite.sRGB;
+		if (readWrite == RenderTextureReadWrite.Default)
+		{
+			sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
+		}
+		Internal_SetSRGBReadWrite (this, sRGB);
+
+		this.isPowerOfTwo = Mathf.IsPowerOfTwo(width) &&  Mathf.IsPowerOfTwo(height);
+	}
+
+	// Creates a new RenderTexture object.
+
+	CSRAW public RenderTexture (int width, int height, int depth, RenderTextureFormat format)
+	{
+		Internal_CreateRenderTexture (this);
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		this.format = format;
+		Internal_SetSRGBReadWrite (this, QualitySettings.activeColorSpace == ColorSpace.Linear);
+		this.isPowerOfTwo = Mathf.IsPowerOfTwo(width) &&  Mathf.IsPowerOfTwo(height);
+	}
+
+	// Creates a new RenderTexture object.
+	CSRAW public RenderTexture (int width, int height, int depth)
+	{
+		Internal_CreateRenderTexture (this);
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		this.format = RenderTextureFormat.Default;
+		Internal_SetSRGBReadWrite (this, QualitySettings.activeColorSpace == ColorSpace.Linear);
+		this.isPowerOfTwo = Mathf.IsPowerOfTwo(width) && Mathf.IsPowerOfTwo(height);
+	}
+
+	// Allocate a temporary render texture.
+	CUSTOM static RenderTexture GetTemporary (int width, int height, int depthBuffer = 0, RenderTextureFormat format = RenderTextureFormat.Default, RenderTextureReadWrite readWrite = RenderTextureReadWrite.Default, int antiAliasing = 1) {
+		DepthBufferFormat depthFormat = DepthBufferFormatFromBits(depthBuffer);
+		UInt32 flags = RenderBufferManager::kRBCreatedFromScript;
+		return Scripting::ScriptingWrapperFor (GetRenderBufferManager().GetTempBuffer (width, height, depthFormat, static_cast<RenderTextureFormat>(format), flags, readWrite, antiAliasing));
+	}
+
+	// Release a temporary texture allocated with ::ref::GetTemporary.
+	CUSTOM static void ReleaseTemporary (RenderTexture temp) {
+		GetRenderBufferManager().ReleaseTempBuffer (temp);
+	}
+
+	CUSTOM private static int Internal_GetWidth (RenderTexture mono) { return mono->GetWidth(); }
+	CUSTOM private static void Internal_SetWidth (RenderTexture mono, int width) { mono->SetWidth(width); }
+	CUSTOM private static int Internal_GetHeight (RenderTexture mono) { return mono->GetHeight(); }
+	CUSTOM private static void Internal_SetHeight (RenderTexture mono, int width) { mono->SetHeight(width); }
+
+	CUSTOM private static void Internal_SetSRGBReadWrite (RenderTexture mono, bool sRGB) { mono->SetSRGBReadWrite(sRGB); }
+
+	CSRAW
+	// The width of the render texture in pixels.
+	override public int width { get { return Internal_GetWidth(this); } set { Internal_SetWidth(this,value); } }
+	// The height of the render texture in pixels.
+	override public int height { get { return Internal_GetHeight(this); } set { Internal_SetHeight(this,value); } }
+
+	// The precision of the render texture's depth buffer in bits (0, 16, 24 are supported)
+	CUSTOM_PROP int depth
+	{
+		DepthBufferFormat depthFormat = self->GetDepthFormat();
+		static int kDepthFormatBits[kDepthFormatCount] = { 0, 16, 24 };
+		return kDepthFormatBits[depthFormat];
+	}
+	{
+		DepthBufferFormat depthFormat = DepthBufferFormatFromBits(value);
+		self->SetDepthFormat( depthFormat );
+	}
+
+	//*undocumented*
+	CUSTOM_PROP bool isPowerOfTwo { return self->GetIsPowerOfTwo(); } {  }
+
+	// Does this render texture use sRGB read / write
+	CUSTOM_PROP bool sRGB { return self->GetSRGBReadWrite(); }
+
+	// The format of the render texture.
+	CUSTOM_PROP RenderTextureFormat format { return self->GetColorFormat(); } { self->SetColorFormat( static_cast<RenderTextureFormat>(value) ); }
+
+
+	// Generate mipmap levels?
+	AUTO_PROP bool useMipMap GetMipMap SetMipMap
+
+	// If enabled, this Render Texture will be used as a [[Cubemap]]
+	CUSTOM_PROP bool isCubemap
+	{
+		return self->GetDimension()==kTexDimCUBE;
+	}
+	{
+		self->SetDimension (value ? kTexDimCUBE : kTexDim2D);
+	}
+
+
+	CUSTOM_PROP bool isVolume
+	{
+		return self->GetDimension()==kTexDim3D;
+	}
+	{
+		self->SetDimension (value ? kTexDim3D : kTexDim2D);
+	}
+
+	CUSTOM_PROP int volumeDepth { return self->GetVolumeDepth(); } { self->SetVolumeDepth(value); }
+
+	AUTO_PROP int antiAliasing GetAntiAliasing SetAntiAliasing
+
+	AUTO_PROP bool enableRandomWrite GetEnableRandomWrite SetEnableRandomWrite
+
+
+	// Actually creates the RenderTexture.
+	AUTO bool Create ();
+	// Releases the RenderTexture.
+	AUTO void Release ();
+	// Is the render texture actually created?
+	AUTO bool IsCreated ();
+
+
+	// Discards the contents of the RenderTexture.
+	AUTO void DiscardContents ();
+
+	// Color buffer of the render texture (RO).
+	CSRAW public RenderBuffer colorBuffer { get { RenderBuffer res; GetColorBuffer (out res); return res; } }
+
+	// Depth buffer of the render texture (RO).
+	CSRAW public RenderBuffer depthBuffer { get { RenderBuffer res; GetDepthBuffer (out res); return res; } }
+
+	CUSTOM private void GetColorBuffer (out RenderBuffer res) {
+		RenderTexture* rt = self;
+		if (rt)
+		{
+			res->m_RenderTextureInstanceID = rt->GetInstanceID();
+			if (!rt->IsCreated())
+				rt->Create();
+			res->m_BufferPtr = rt->GetColorSurfaceHandle().object;
+		}
+		else
+		{
+			res->m_RenderTextureInstanceID = 0;
+			res->m_BufferPtr = NULL;
+		}
+	}
+
+	CUSTOM private void GetDepthBuffer (out RenderBuffer res) {
+		RenderTexture* rt = self;
+		if (rt)
+		{
+			res->m_RenderTextureInstanceID = rt->GetInstanceID();
+			if (!rt->IsCreated())
+				rt->Create();
+			res->m_BufferPtr = rt->GetDepthSurfaceHandle().object;
+		}
+		else
+		{
+			res->m_RenderTextureInstanceID = 0;
+			res->m_BufferPtr = NULL;
+		}
+	}
+
+
+	// Assigns this RenderTexture as a global shader property named /propertyName/.
+	CUSTOM void SetGlobalShaderProperty (string propertyName) { self->SetGlobalProperty (ScriptingStringToProperty (propertyName)); }
+
+	// The active render texture.
+	CUSTOM_PROP static RenderTexture active { return Scripting::ScriptingWrapperFor (RenderTexture::GetActive ()); } { RenderTexture::SetActive (value); RenderTexture::FindAndSetSRGBWrite (value); }
+
+
+	OBSOLETE warning Use SystemInfo.supportsRenderTextures instead.
+	CUSTOM_PROP static bool enabled { return RenderTexture::IsEnabled (); } { RenderTexture::SetEnabled (value); }
+
+
+	// Workaround for gcc/msvc where passing small mono structures by value does not work
+	CUSTOM private static void Internal_GetTexelOffset (RenderTexture tex, out Vector2 output)
+	{
+		if (gGraphicsCaps.usesHalfTexelOffset)
+		{
+			RenderTexture& renderTex = *tex;
+			output->x = renderTex.GetTexelSizeX() * 0.5f;
+			output->y = renderTex.GetTexelSizeY() * 0.5f;
+		}
+		else
+		{
+			output->x = 0.0f;
+			output->y = 0.0f;
+		}
+	}
+
+	//*undocumented* Generally used only in image effects...
+	CSRAW public Vector2 GetTexelOffset ()
+	{
+		Vector2 r;
+		Internal_GetTexelOffset(this, out r);
+		return r;
+	}
+
+	// Does the RenderTexture have stencil buffer? If rt is null, will report the status for the framebuffer.
+	CUSTOM public static bool SupportsStencil(RenderTexture rt)
+	{
+		return RenderTextureSupportsStencil(rt);
+	}
+
+	OBSOLETE error RenderTexture.SetBorderColor was removed
+	CSRAW public void SetBorderColor (Color color) { }
+
+END
+
+
+// Movie Textures (Pro only) are textures onto which movies are played back.
+CONDITIONAL ENABLE_MOVIES
+CLASS MovieTexture : Texture
+
+	// Starts playing the movie.
+	AUTO void Play ();
+
+	// Stops playing the movie, and rewinds it to the beginning
+	AUTO void Stop ();
+
+	// Pauses playing the movie.
+	AUTO void Pause ();
+
+	// Returns the [[AudioClip]] belonging to the MovieTexture.
+
+	CONDITIONAL ENABLE_AUDIO
+	AUTO_PTR_PROP AudioClip audioClip GetMovieAudioClip
+
+	// Set this to true to make the movie loop.
+
+	AUTO_PROP bool loop GetLoop SetLoop
+
+	// Returns whether the movie is playing or not
+
+	AUTO_PROP bool isPlaying IsPlaying
+
+	// If the movie is downloading from a web site, this returns if enough data has been downloaded so playback should be able to start without interruptions.
+
+	AUTO_PROP bool isReadyToPlay ReadyToPlay
+
+	// The time, in seconds, that the movie takes to play back completely.
+	AUTO_PROP float duration GetMovieDuration
+
+END
+
+
+// Low-level graphics library.
+CLASS GL
+	// Submit a vertex.
+	CUSTOM static void Vertex3 (float x, float y, float z) { GetGfxDevice().ImmediateVertex( x,y,z ); }
+	// Submit a vertex.
+	CUSTOM static void Vertex (Vector3 v) { GetGfxDevice().ImmediateVertex( v.x, v.y, v.z ); }
+
+	// Sets current vertex color.
+	CUSTOM static void Color (Color c) { GetGfxDevice().ImmediateColor(c.r, c.g, c.b, c.a); }
+
+	// Sets current texture coordinate (v.x,v.y,v.z) for all texture units.
+	CUSTOM static void TexCoord (Vector3 v)  { GetGfxDevice().ImmediateTexCoordAll(v.x, v.y, v.z); }
+
+	// Sets current texture coordinate (x,y) for all texture units.
+	CUSTOM static void TexCoord2 (float x, float y) { GetGfxDevice().ImmediateTexCoordAll(x, y, 0.0f); }
+
+	// Sets current texture coordinate (x,y,z) for all texture units.
+	CUSTOM static void TexCoord3 (float x, float y, float z) { GetGfxDevice().ImmediateTexCoordAll(x, y, z); }
+
+	// Sets current texture coordinate (x,y) for the actual texture /unit/.
+	CUSTOM static void MultiTexCoord2 (int unit, float x, float y)
+	{
+		GetGfxDevice().ImmediateTexCoord( unit, x, y, 0.0f );
+	}
+
+	// Sets current texture coordinate (x,y,z) to the actual texture /unit/.
+	CUSTOM static void MultiTexCoord3 (int unit, float x, float y, float z)
+	{
+		GetGfxDevice().ImmediateTexCoord( unit, x, y, z );
+	}
+
+	// Sets current texture coordinate (v.x,v.y,v.z) to the actual texture /unit/.
+	CUSTOM static void MultiTexCoord (int unit, Vector3 v)
+	{
+		GetGfxDevice().ImmediateTexCoord( unit, v.x, v.y, v.z );
+	}
+
+
+	// Mode for ::ref::Begin: draw triangles.
+	CSRAW public const int TRIANGLES = 0x0004;
+
+	// Mode for ::ref::Begin: draw triangle strip.
+	CSRAW public const int TRIANGLE_STRIP = 0x0005;
+
+	// Mode for ::ref::Begin: draw quads.
+	CSRAW public const int QUADS = 0x0007;
+
+	// Mode for ::ref::Begin: draw lines.
+	CSRAW public const int LINES = 0x0001;
+
+
+	// Begin drawing 3D primitives.
+	CUSTOM static void Begin (int mode) {
+		GfxPrimitiveType pt;
+		if( mode == 0x0004 )
+			pt = kPrimitiveTriangles;
+		else if( mode == 0x0005 )
+			pt = kPrimitiveTriangleStripDeprecated;
+		else if( mode == 0x0007 )
+			pt = kPrimitiveQuads;
+		else if( mode == 0x0001 )
+			pt = kPrimitiveLines;
+		else {
+			RaiseMonoException( "Invalid mode for GL.Begin" );
+			return;
+		}
+		GetGfxDevice().ImmediateBegin( pt );
+	}
+
+	// End drawing 3D primitives.
+	CUSTOM static void End () {
+		GetGfxDevice().ImmediateEnd();
+		GPU_TIMESTAMP();
+	}
+
+	// Helper function to set up an ortho perspective transform.
+	CUSTOM static void LoadOrtho ()
+	{
+		LoadFullScreenOrthoMatrix();
+	}
+
+	// Setup a matrix for pixel-correct rendering.
+	CUSTOM static void LoadPixelMatrix () {
+		// Now the hack: regular code (GUITexts, GUITExtures etc.) needs to add the
+		// vertical texel offset. However, looks like GUI code needs to subtract the
+		// vertical texel offset. No idea why; I guess it's because GUI code does
+		// the y-inversion by itself. So we pass true as the last parameter.
+		if (GetCurrentCameraPtr() != NULL)
+		{
+			LoadPixelMatrix( GetCurrentCamera().GetScreenViewportRect(), GetGfxDevice(), true, true );
+		}
+	}
+
+	// Do this "different name" trick because otherwise the wrapper functions for both
+	// LoadPixelMatrix overloads will have the same name, making a compile error.
+	CUSTOM private static void LoadPixelMatrixArgs(float left, float right, float bottom, float top)
+	{
+		// Now the hack: regular code (GUITexts, GUITExtures etc.) needs to add the
+		// vertical texel offset. However, looks like GUI code needs to subtract the
+		// vertical texel offset. No idea why; I guess it's because GUI code does
+		// the y-inversion by itself. So we pass true as the last parameter.
+		Rectf rect( left, bottom, right-left, top-bottom );
+		LoadPixelMatrix( rect, GetGfxDevice(), true, true );
+	}
+
+
+	// Setup a matrix for pixel-correct rendering.
+	CSRAW public static void LoadPixelMatrix (float left, float right, float bottom, float top)
+	{
+		LoadPixelMatrixArgs(left,right,bottom,top);
+	}
+
+	// Set the rendering viewport.
+	CUSTOM static void Viewport (Rect pixelRect) {
+		SetGLViewport(pixelRect);
+	}
+
+	// Load an arbitrary matrix to the current projection matrix.
+	CUSTOM static void LoadProjectionMatrix (Matrix4x4 mat) {
+		GetGfxDevice().SetProjectionMatrix (mat);
+	}
+
+	// Load the identity matrix to the current modelview matrix.
+	CUSTOM static void LoadIdentity () {
+		GetGfxDevice().SetViewMatrix (Matrix4x4f::identity.GetPtr()); // implicitly sets world to identity
+	}
+
+	// The current modelview matrix.
+	CUSTOM_PROP static Matrix4x4 modelview
+	{
+		Matrix4x4f temp;
+		GetGfxDevice().GetMatrix( temp.GetPtr() );
+		return temp;
+	}
+	{
+		GetGfxDevice().SetViewMatrix( value.GetPtr() );
+	}
+
+	// Multiplies the current modelview matrix with the one specified.
+	CUSTOM static void MultMatrix (Matrix4x4 mat) {
+		GetGfxDevice().SetWorldMatrix( mat.GetPtr() );
+	}
+
+	// Saves both projection and modelview matrices to the matrix stack.
+	CUSTOM static void PushMatrix()
+	{
+		GfxDevice& dev = GetGfxDevice();
+		g_ViewMatrixStack.Push(dev.GetViewMatrix());
+		g_WorldMatrixStack.Push(dev.GetWorldMatrix());
+		g_ProjectionMatrixStack.Push(dev.GetProjectionMatrix());
+	}
+
+	// Restores both projection and modelview matrices off the top of the matrix stack.
+	CUSTOM static void PopMatrix ()
+	{
+		GfxDevice& dev = GetGfxDevice();
+		g_WorldMatrixStack.Pop();
+		g_ViewMatrixStack.Pop();
+		g_ProjectionMatrixStack.Pop();
+		// Setting the view matrix clears the world matrix to be compatible with GL the ways
+		dev.SetViewMatrix(g_ViewMatrixStack.GetMatrix().GetPtr());
+		dev.SetWorldMatrix(g_WorldMatrixStack.GetMatrix().GetPtr());
+		dev.SetProjectionMatrix(g_ProjectionMatrixStack.GetMatrix());
+	}
+
+
+	// Compute GPU projection matrix from camera's projection matrix.
+	CUSTOM static Matrix4x4 GetGPUProjectionMatrix (Matrix4x4 proj, bool renderIntoTexture)
+	{
+		bool openGLStyle = gGraphicsCaps.usesOpenGLTextureCoords;
+		Matrix4x4f m = proj;
+		CalculateDeviceProjectionMatrix (m, openGLStyle, !openGLStyle && renderIntoTexture);
+		return m;
+	}
+
+
+	// Should rendering be done in wireframe?
+	CUSTOM_PROP static bool wireframe { return GetGfxDevice().GetWireframe(); } { GetGfxDevice().SetWireframe(value);  }
+
+
+	// Select whether to invert the backface culling (true) or not (false).
+	CUSTOM static void SetRevertBackfacing (bool revertBackFaces) { GetGfxDevice().SetUserBackfaceMode (revertBackFaces); }
+
+	// Clear the current render buffer.
+	CSRAW static public void Clear (bool clearDepth, bool clearColor, Color backgroundColor, float depth=1.0f) {
+		Internal_Clear (clearDepth, clearColor, backgroundColor, depth);
+	}
+
+	CUSTOM static private void Internal_Clear (bool clearDepth, bool clearColor, Color backgroundColor, float depth) {
+		UInt32 flags = 0;
+		if (clearColor) flags |= kGfxClearColor;
+		if (clearDepth) flags |= kGfxClearDepthStencil;
+		GetGfxDevice().Clear (flags, backgroundColor.GetPtr(), depth, 0);
+		GPU_TIMESTAMP();
+	}
+
+
+	// Clear the current render buffer with camera's skybox.
+	CUSTOM static void ClearWithSkybox (bool clearDepth, Camera camera) {
+		ClearWithSkybox(clearDepth, camera);
+	}
+
+	// Invalidate the internally cached renderstates.
+	CUSTOM static void InvalidateState () {
+		GL_CUSTOM_PushMatrix();
+		GfxDevice& dev = GetGfxDevice();
+		dev.InvalidateState();
+		GL_CUSTOM_PopMatrix();
+	}
+
+	// Send a user-defined event to a native code plugin.
+	CUSTOM static void IssuePluginEvent (int eventID)
+	{
+		GetGfxDevice().InsertCustomMarker (eventID);
+	}
+
+END
+
+
+// GUI STUFF
+// --------------------------------
+
+// Base class for images & text strings displayed in a GUI.
+NONSEALED_CLASS GUIElement : Behaviour
+
+	// Is a point on screen inside the element.
+	CUSTOM bool HitTest (Vector3 screenPosition, Camera camera = null) {
+		return self->HitTest (Vector2f (screenPosition.x, screenPosition.y), GetCameraOrWindowRect(camera));
+	}
+
+	// Returns bounding rectangle of [[GUIElement]] in screen coordinates.
+	CUSTOM Rect GetScreenRect (Camera camera = null) { return self->GetScreenRect (GetCameraOrWindowRect(camera)); }
+
+END
+
+// A texture image used in a 2D GUI.
+CLASS GUITexture : GUIElement
+	// The color of the GUI texture.
+	AUTO_PROP Color color GetColor SetColor
+
+	// The texture used for drawing.
+
+	AUTO_PTR_PROP Texture texture GetTexture SetTexture
+
+	// Pixel inset used for pixel adjustments for size and position.
+	CUSTOM_PROP Rect pixelInset { return self->GetPixelInset(); } { self->SetPixelInset(value); }
+
+
+	// The border defines the number of pixels from the edge that are not affected by scale.
+	CUSTOM_PROP RectOffset border
+	{
+		RectOffset* rectOffset = new RectOffset ();
+
+		rectOffset->left	= self->m_LeftBorder;
+		rectOffset->right	= self->m_RightBorder;
+		rectOffset->top		= self->m_TopBorder;
+		rectOffset->bottom	= self->m_BottomBorder;
+
+		ScriptingObjectWithIntPtrField<RectOffset> monoObject(scripting_object_new (GetCommonScriptingClasses ().rectOffset));
+		monoObject.SetPtr(rectOffset);
+		return monoObject.object;
+	}
+	{
+		self->m_LeftBorder		= value->left;
+		self->m_RightBorder		= value->right;
+		self->m_TopBorder		= value->top;
+		self->m_BottomBorder	= value->bottom;
+	}
+END
+
+
+// How multiline text should be aligned.
+ENUM TextAlignment
+	// Text lines are aligned on the left side.
+	Left = 0,
+	// Text lines are centered.
+	Center = 1,
+	// Text lines are aligned on the right side.
+	Right = 2
+END
+
+
+// Where the anchor of the text is placed.
+ENUM TextAnchor
+
+	// Text is anchored in upper left corner.
+	UpperLeft = 0,
+
+	// Text is anchored in upper side, centered horizontally.
+	UpperCenter = 1,
+
+	// Text is anchored in upper right corner.
+	UpperRight = 2,
+
+	// Text is anchored in left side, centered vertically.
+	MiddleLeft = 3,
+
+	// Text is centered both horizontally and vertically.
+	MiddleCenter = 4,
+
+	// Text is anchored in right side, centered vertically.
+	MiddleRight = 5,
+
+	// Text is anchored in lower left corner.
+	LowerLeft = 6,
+
+	// Text is anchored in lower side, centered horizontally.
+	LowerCenter = 7,
+
+	// Text is anchored in lower right corner.
+	LowerRight = 8
+
+END
+
+
+// A text string displayed in a GUI.
+CLASS GUIText : GUIElement
+
+	// The text to display.
+	CUSTOM_PROP string text { return CreateScriptingString (self->GetText ()); } { self->SetText (value); }
+
+	// The [[Material]] to use for rendering.
+	CUSTOM_PROP Material material
+	{
+		Material* material = self->GetMaterial ();
+		if (material == NULL)
+			material = GetBuiltinResource<Material> ("Font.mat");
+
+		Material* instantiated = &Material::GetInstantiatedMaterial (material, *self, false);
+		if (material != instantiated)
+			self->SetMaterial (instantiated);
+
+		return Scripting::ScriptingWrapperFor (instantiated);
+	}
+	{
+		self->SetMaterial (value);
+	}
+
+	// Workaround for gcc/msvc where passing small mono structures by value does not work
+	CUSTOM private void Internal_GetPixelOffset (out Vector2 output)
+	{
+		*output = self->GetPixelOffset();
+	}
+	CUSTOM private void Internal_SetPixelOffset (Vector2 p) { self->SetPixelOffset(p); }
+
+	// The pixel offset of the text.
+	CSRAW public Vector2 pixelOffset { get { Vector2 p; Internal_GetPixelOffset(out p); return p; } set { Internal_SetPixelOffset(value); }  }
+
+	// The font used for the text.
+	AUTO_PTR_PROP Font font GetFont SetFont
+
+	// The alignment of the text.
+	AUTO_PROP TextAlignment alignment GetAlignment SetAlignment
+
+	// The anchor of the text.
+	AUTO_PROP TextAnchor anchor GetAnchor SetAnchor
+
+	// The line spacing multiplier.
+	AUTO_PROP float lineSpacing GetLineSpacing SetLineSpacing
+
+	// The tab width multiplier.
+	AUTO_PROP float tabSize GetTabSize SetTabSize
+
+	// The font size to use (for dynamic fonts)
+	AUTO_PROP int fontSize GetFontSize SetFontSize
+
+	// The font style to use (for dynamic fonts)
+	AUTO_PROP FontStyle fontStyle GetFontStyle SetFontStyle
+
+	// Enable HTML-style tags for Text Formatting Markup.
+	AUTO_PROP bool richText GetRichText SetRichText
+
+	// Color used to render the text
+	AUTO_PROP Color color GetColor SetColor
+END
+// Info how to render a character from the font texture. See /Font.characterInfo/
+STRUCT CharacterInfo
+	CSRAW
+	// Unicode value of the character
+	public int index;
+	// UV coordinates for the character in the texture
+	public Rect	uv;
+	// Screen coordinates for the character in generated text meshes
+	public Rect	vert;
+	// How for to advance between the beginning of this charcater and the next.
+	public float width;
+	// The size of the character or 0 if it is the default font size.
+	public int size;
+	// The style of the character.
+	public FontStyle style;
+
+	// Is the character flipped?
+	public bool	flipped
+	{
+		get
+		{
+			return flippedInt != 0;
+		}
+		set
+		{
+			flippedInt = flipped ? 1 : 0;
+		}
+	}
+
+	internal int flippedInt;
+END
+
+C++RAW
+
+struct ScriptingCharacterInfo {
+	int index;
+	Rectf uv, vert;
+	float width;
+	int size, style;
+	int flippedInt;
+};
+
+// Script interface for [[wiki:class-Font|font assets]].
+CLASS Font : Object
+
+	CUSTOM private static void Internal_CreateFont ([Writable]Font _font, string name)
+	{
+		Font* font = NEW_OBJECT (Font);
+		SmartResetObject(*font);
+		font->SetNameCpp (name);
+		ConnectScriptingWrapperToObject (_font.GetScriptingObject(), font);
+	}
+	
+	// Creates a new font.
+	CSRAW public Font () { Internal_CreateFont (this,null); }
+
+	// Creates a new font named /name/.
+	CSRAW public Font (string name){ Internal_CreateFont (this,name); }
+
+	// The material used for the font display.
+	AUTO_PTR_PROP Material material GetMaterial SetMaterial
+
+	// Does this font have a specific character?
+	CUSTOM bool HasCharacter (char c) { return self->HasCharacter((int)c);}
+
+	// *undocumented*
+	CONDITIONAL ENABLE_MONO
+	CUSTOM_PROP string[] fontNames
+	{
+		MonoArray *arr = mono_array_new (mono_domain_get (), mono_get_string_class(), self->GetFontNames().size());
+		int idx = 0;
+		for (UNITY_VECTOR(kMemFont,UnityStr)::const_iterator i=self->GetFontNames().begin ();i != self->GetFontNames().end ();i++)
+		{
+			GetMonoArrayElement<MonoString*> (arr,idx) = CreateScriptingString (*i);
+			idx++;
+		}
+		return arr;
+	}
+	{
+		UNITY_VECTOR(kMemFont,UnityStr) names;
+		for (int i=0;i<mono_array_length_safe(value);i++)
+			names.push_back (scripting_cpp_string_for(GetMonoArrayElement<MonoString*>(value, i)));
+		self->SetFontNames(names);
+	}
+
+	// Access an array of all characters contained in the font texture.
+	CUSTOM_PROP public CharacterInfo[] characterInfo
+	{
+		const Font::CharacterInfos &infos = self->GetCharacterInfos();
+		int size = infos.size();
+		ScriptingArrayPtr array = CreateScriptingArray<ScriptingCharacterInfo> (GetMonoManager().GetCommonClasses().characterInfo, size);
+		ScriptingCharacterInfo *sci = GetScriptingArrayStart<ScriptingCharacterInfo>(array);
+		for (int i=0; i<size; i++)
+		{
+			sci[i].index = infos[i].index;
+			sci[i].uv = infos[i].uv;
+			sci[i].vert = infos[i].vert;
+			sci[i].width = infos[i].width;
+			sci[i].flippedInt = infos[i].flipped ? 1 : 0;
+			sci[i].size = infos[i].size;
+			sci[i].style = infos[i].style;
+		}
+		return array;
+	}
+	{
+		Font::CharacterInfos infos;
+		int size = GetScriptingArraySize(value);
+		infos.resize(size);
+		ScriptingCharacterInfo *sci = GetScriptingArrayStart<ScriptingCharacterInfo>(value);
+		for (int i=0; i<size; i++)
+		{
+			infos[i].index = sci[i].index;
+			infos[i].uv = sci[i].uv;
+			infos[i].vert = sci[i].vert;
+			infos[i].width = sci[i].width;
+			infos[i].flipped = sci[i].flippedInt != 0;
+			infos[i].size = sci[i].size;
+			infos[i].style = sci[i].style;
+		}
+		self->SetCharacterInfos (infos);
+	}
+
+	// Request characters to be added to the font texture (dynamic fonts only).
+
+	CUSTOM void RequestCharactersInTexture (string characters, int size = 0, FontStyle style = FontStyle.Normal)
+	{
+		UTF16String str(characters.ToUTF8().c_str());
+		self->CacheFontForText (str.text, str.length, size, style);
+	}
+
+	// Callback delegate for use with ::ref::textureRebuildCallback.
+	CSRAW public delegate void FontTextureRebuildCallback();
+	CSRAW private event FontTextureRebuildCallback m_FontTextureRebuildCallback = null;
+
+	CSRAW private void InvokeFontTextureRebuildCallback_Internal()
+	{
+		if (m_FontTextureRebuildCallback != null)
+			m_FontTextureRebuildCallback();
+	}
+
+	// A delegate which gets called when the font texture is rebuilt (dynamic fonts only).
+	CSRAW public FontTextureRebuildCallback textureRebuildCallback { get {
+			return m_FontTextureRebuildCallback; }
+		set { m_FontTextureRebuildCallback = value; }
+	}
+
+	// Get rendering info for a specific character
+	CUSTOM bool GetCharacterInfo(char ch, out CharacterInfo info, int size = 0, FontStyle style = FontStyle.Normal)
+	{
+		if (self->HasCharacterInTexture (ch, size, style))
+		{
+			info->index = ch;
+			info->size = size;
+			info->style = style;
+			bool flipped;
+			self->GetCharacterRenderInfo( ch, size, style, info->vert, info->uv, flipped);
+			info->flippedInt = flipped ? 1 : 0;
+			info->width = self->GetCharacterWidth (ch, size, style);
+			return true;
+		}
+		return false;
+	}
+
+END
+
+
+// [[Component]] added to a camera to make it render 2D GUI elements.
+CLASS GUILayer : Behaviour
+	// Get the GUI element at a specific screen position.
+	CUSTOM GUIElement HitTest (Vector3 screenPosition) { return Scripting::ScriptingWrapperFor (self->HitTest (Vector2f (screenPosition.x, screenPosition.y))); }
+END
+
+// Renders meshes inserted by the [[MeshFilter]] or [[TextMesh]].
+CLASS MeshRenderer : Renderer
+END
+
+// StaticBatchingUtility can prepare your objects to take advantage of Unity's static batching.
+CONDITIONAL !PLATFORM_WEBGL && !UNITY_FLASH
+CLASS StaticBatchingUtility
+
+	// Combine will prepare all children of the @@staticBatchRoot@@ for static batching.
+	CSRAW static public void Combine (GameObject staticBatchRoot)
+	{
+		InternalStaticBatchingUtility.Combine(staticBatchRoot);
+	}
+
+	// Combine will prepare all @@gos@@ for the static batching. @@staticBatchRoot@@ will be treated as their parent.
+	CSRAW static public void Combine (GameObject[] gos, GameObject staticBatchRoot)
+	{
+		InternalStaticBatchingUtility.Combine(gos, staticBatchRoot);
+	}
+
+
+	C++RAW
+
+	struct InternalMonoMeshInstance
+	{
+		int					meshInstanceID;
+		Matrix4x4f			transform;
+		Vector4f			lightmapTilingOffset;
+	};
+
+	CUSTOM static internal Mesh InternalCombineVertices (MeshSubsetCombineUtility.MeshInstance[] meshes, string meshName)
+	{
+		const int numMeshes = GetScriptingArraySize( meshes );
+
+		CombineInstances mi;
+
+		mi.resize ( numMeshes );
+		InternalMonoMeshInstance* instances = GetScriptingArrayStart<InternalMonoMeshInstance>( meshes );
+		for ( int i=0; i!=numMeshes; ++i )
+		{
+			mi[i].mesh = PPtr<Mesh>(instances[i].meshInstanceID);
+			mi[i].transform = instances[i].transform;
+			mi[i].lightmapTilingOffset = instances[i].lightmapTilingOffset;
+		}
+
+		Mesh* outMesh = CreateObjectFromCode<Mesh> (kDefaultAwakeFromLoad);
+
+		CombineMeshVerticesForStaticBatching ( mi, meshName, *outMesh );
+
+		return Scripting::ScriptingWrapperFor( outMesh );
+	}
+
+	C++RAW
+
+	struct InternalMonoSubMeshInstance
+	{
+		int	meshInstanceID;		// public Mesh mesh;
+		int vertexOffset;			// public int vertexOffset;
+		int goInstanceID;	// public GameObject gameObject;
+		int subMeshIndex;			// public int subMeshIndex;
+		Matrix4x4f transform;
+	};
+
+	CUSTOM static internal void InternalCombineIndices(MeshSubsetCombineUtility.SubMeshInstance[] submeshes, [Writable]Mesh combinedMesh)
+	{
+		InternalMonoSubMeshInstance* instances = GetScriptingArrayStart<InternalMonoSubMeshInstance>( submeshes );
+		int numSubMeshes = GetScriptingArraySize( submeshes );
+		CombineInstances smi;
+		smi.resize( numSubMeshes );
+
+		for( int i=0; i!=numSubMeshes; ++i )
+		{
+			smi[i].mesh				= PPtr<Mesh>(instances[i].meshInstanceID);
+			smi[i].vertexOffset		= instances[i].vertexOffset;
+			smi[i].subMeshIndex		= instances[i].subMeshIndex;
+			smi[i].transform = instances[i].transform;
+		}
+
+		Mesh* mesh = combinedMesh;
+		CombineMeshIndicesForStaticBatching (smi, *mesh, false, true);
+		mesh->SetIsReadable (false);
+		mesh->SetKeepIndices (true);
+		// Call awake to create the actual VBO; needed since we did SetIsReadable (false)
+		mesh->AwakeFromLoad (kDefaultAwakeFromLoad);
+	}
+END
+
+// When using HDR rendering it can sometime be desirable to switch to LDR rendering during ImageEffect rendering.
+CLASS ImageEffectTransformsToLDR : Attribute
+
+END
+
+// Any Image Effect with this attribute will be rendered after opaque geometry but before transparent geometry.
+CLASS ImageEffectOpaque : Attribute
+
+END
+
+// When using dynamic resolution, any Image Effect with this attribute will be rendered after scaling up to full size.
+CLASS ImageEffectAfterScale : Attribute
+
+END
+
+CSRAW
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model isComponent="true">
+  <ParentClass>Animator</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="animatePhysics" type="var" modifiers="public" />
+      <ReturnType>bool</ReturnType>
+    </Signature>
+    <Summary><![CDATA[When turned on, animations will be executed in the physics loop. This is only useful in conjunction with kinematic rigidbodies.]]></Summary>
+  </Section>
+</Model>

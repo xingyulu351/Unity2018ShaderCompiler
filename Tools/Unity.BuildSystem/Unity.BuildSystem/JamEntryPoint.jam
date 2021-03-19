@@ -1,0 +1,97 @@
+rule MyTop
+{
+   if ! [ RuleExists ExeLocation ] {
+    Exit Your jamplus does not have the ExeLocation rule. This is 99% certainly caused by your largefiles somehow being incorrect. Delete External/Jamplus/builds.zip and hg up -C (ensuring you have no local changes) and try again ;
+   }
+   local temp = [ ExeLocation ] ;
+
+   #the unity root is 6 folders up from the jam binary.
+   temp = $(temp:D) ;
+   temp = $(temp:D) ;
+   temp = $(temp:D) ;
+   temp = $(temp:D) ;
+   temp = $(temp:D) ;
+   temp = $(temp:D) ;
+   return $(temp) ;
+}
+
+mytop = [ MyTop ] ;
+
+rule WinArchFolder
+{
+    local p = [ ExeLocation ] ;
+    if $(p:I=win64) { return "win64" ; }
+    if $(p:I=win32) { return "win32" ; }
+    Exit error unknown windows architecture for path $(p) ;
+}
+
+TUNDRA = 1 ;
+
+# Pull in a user override file if present.
+NoCare UserOverride.jam ;
+include UserOverride.jam ;
+
+if $(TUNDRA) = 0
+{
+    Exit You are disabling tundra in UserOverride.jam.  This is no longer supported ;
+}
+
+BACKEND ?= JAM ;
+DEBUG ?= 0 ;
+DEBUG_BUILDPROGRAM ?= 0 ;
+DEBUG_PORT ?= 60979 ;
+
+if BuildProgram in $(JAM_COMMAND_LINE_TARGETS) || BuildSystemProjectFiles in $(JAM_COMMAND_LINE_TARGETS)  || BuildSystemTests in $(JAM_COMMAND_LINE_TARGETS)
+{
+    DEBUG = $(DEBUG_BUILDPROGRAM) ;
+}
+
+
+monobuilds = $(mytop)/External/MonoBleedingEdge/builds ;
+mcs = $(monobuilds)/monodistribution/bin/mcs ;
+
+local monoDll = $(monobuilds)/embedruntimes/osx/libmonosgen-2.0.dylib ;
+
+if $(OS) = NT
+{
+    local winArch = [ WinArchFolder ] ;
+    monoDll = $(monobuilds)/embedruntimes/$(winArch)/mono-2.0-sgen.dll ;
+}
+if $(OS) = LINUX
+{
+    monoDll = $(monobuilds)/embedruntimes/linux64/libmonosgen-2.0.so ;
+}
+
+optionsString = " " ;
+if $(DEBUG) = 1
+{
+    address = 127.0.0.1 ;
+    port = $(DEBUG_PORT) ;
+    addressAndPort = $(address):$(port) ;
+    Echo Starting Unity.BuildSystem in debug mode. ;
+    Echo 1) Open Tools/Unity.BuildSystem/Unity.BuildSystem.gen.sln in Rider. ;
+    Echo 2) In the menu, open Run->Edit Configurations ;
+    Echo 3) In the left-top, click the + icon, and select Mono Remote ;
+    Echo 4) In the port field, enter $(port) ;
+    Echo 5) Set a breakpoint somewhere. ;
+    Echo 6) In the menu, click Run->Debug ;
+    Echo 7) Go on, i'll wait here until you're done. If succesful you'll see a message here ;
+    optionsString = --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=y,address=$(addressAndPort) ;
+}
+
+if $(STATS) = 1 {
+    optionsString = --stats ;
+}
+
+LoadMono $(monoDll) : $(monobuilds)/monodistribution/lib : $(monobuilds)/monodistribution/etc : $(optionsString) ;
+if $(DEBUG) = 1
+{
+    Echo Continuing execution, hopefully with your debugger attached! ;
+}
+
+rule BindingPhaseFinished
+{
+    if [ RuleExists JamSharpRuntime_FinishedBindingPhase ] { JamSharpRuntime_FinishedBindingPhase ; }
+}
+
+RunMonoAssembly $(mytop)/artifacts/UnityBuildSystem/Unity.BuildSystem/Unity.BuildSystem.exe ;

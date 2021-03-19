@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AssemblyTypeInfoGenerator</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="gatherClassInfo" type="function" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[]]></Summary>
+  </Section>
+</Model>

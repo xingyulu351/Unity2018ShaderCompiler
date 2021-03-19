@@ -1,0 +1,34 @@
+use Test::More;
+
+use warnings;
+use strict;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+use File::Spec::Functions qw (catfile catdir);
+use File::Path qw(remove_tree);
+use File::Temp qw (tempdir);
+use GlobalOptions;
+use FileUtils;
+use Dirs;
+use Dirs;
+use lib Dirs::external_root();
+use JSON;
+
+my $utrRoot = Dirs::UTR_root();
+my $finderBin = catfile($utrRoot, 'find_errors.pl');
+my $filesSamplesBasePath = catdir($utrRoot, 't/TestData/ErrorDetection/ReportedArtifactsSamples');
+my @globalOptions = GlobalOptions::getOptions();
+my $globalOptions = new Options(options => \@globalOptions);
+
+canParseErrorsUsingDataFromWebService:
+{
+    my $resDir = tempdir();
+    my $outputFile = catfile($resDir, 'errors.json');
+    my $exitCode = system('perl', $finderBin, "--artifacts_path=$filesSamplesBasePath", "--output=$outputFile");
+    is($exitCode, 0);
+    ok(-e $outputFile);
+    remove_tree($resDir);
+}
+
+done_testing();

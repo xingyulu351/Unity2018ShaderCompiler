@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="EmptyClass" type="Class" namespace="">
+    <section>
+      <summary>This class doesn't have much</summary>      
+    </section>    
+  </member>
+</doc>

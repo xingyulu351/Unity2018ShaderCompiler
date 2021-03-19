@@ -1,0 +1,8 @@
+Version=4.5.0a5
+Platform=editor
+Revision=82766
+OsFamily=windows
+Changeset=4886caa49977
+Branch=toolsmiths/coverage
+Date=111222333
+Uri=http://dummy.com/api/coverage

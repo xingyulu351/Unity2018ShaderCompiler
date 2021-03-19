@@ -1,0 +1,20 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use RunTests qw (runTests isEmptyFolder);
+use File::Spec::Functions qw (canonpath);
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=integration', '--testfilter=Mesh', '--testtarget=TestEditor');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/NUnitConsole/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/NUnitConsole/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/NUnitConsole/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/TestPlan.txt"));
+}
+
+done_testing();

@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model isComponent="true" Namespace="UnityEngine">
+  <StaticVars />
+  <Vars>
+    <member id="Animator-animatePhysics">
+      <name>animatePhysics</name>
+      <summary><![CDATA[When turned on, animations will be executed in the physics loop. This is only useful in conjunction with kinematic rigidbodies.]]></summary>
+    </member>
+    <member id="Animator-animationSet">
+      <name>animationSet</name>
+      <summary><![CDATA[Gets/Sets the current AnimationSet.]]></summary>
+    </member>
+    <member id="Animator-applyRootMotion">
+      <name>applyRootMotion</name>
+      <summary><![CDATA[Should root motion be applied?]]></summary>
+    </member>
+    <member id="Animator-avatar">
+      <name>avatar</name>
+      <summary><![CDATA[Gets/Sets the current Avatar.]]></summary>
+    </member>
+    <member id="Animator-bodyPosition">
+      <name>bodyPosition</name>
+      <summary><![CDATA[The position of the body center of mass.]]></summary>
+    </member>
+    <member id="Animator-bodyRotation">
+      <name>bodyRotation</name>
+      <summary><![CDATA[The rotation of the body center of mass.]]></summary>
+    </member>
+    <member id="Animator-cullingMode">
+      <name>cullingMode</name>
+      <summary><![CDATA[Controls culling of this Animator component.]]></summary>
+    </member>
+    <member id="Animator-deltaPosition">
+      <name>deltaPosition</name>
+      <summary><![CDATA[Gets the avatar delta position for the last evaluated frame.]]></summary>
+    </member>
+    <member id="Animator-deltaRotation">
+      <name>deltaRotation</name>
+      <summary><![CDATA[Gets the avatar delta rotation for the last evaluated frame.]]></summary>
+    </member>
+    <member id="Animator-feetPivotActive">
+      <name>feetPivotActive</name>
+      <summary><![CDATA[Blends pivot point between body center of mass and feet pivot. At 0%, the blending point is body center of mass. At 100%, the blending point is feet pivot.]]></summary>
+    </member>
+    <member id="Animator-gravityWeight">
+      <name>gravityWeight</name>
+      <summary><![CDATA[The current gravity weight based on current animations that are played.]]></summary>
+    </member>
+    <member id="Animator-humanScale">
+      <name>humanScale</name>
+      <summary><![CDATA[Returns the scale of the current Avatar for a humanoid rig, (1 by default if the rig is generic).]]></summary>
+    </member>
+    <member id="Animator-isHuman">
+      <name>isHuman</name>
+      <summary><![CDATA[Returns true if the current rig is ]]><i>humanoid</i><![CDATA[, false if it is ]]><i>generic</i><![CDATA[.]]></summary>
+    </member>
+    <member id="Animator-isMatchingTarget">
+      <name>isMatchingTarget</name>
+      <summary><![CDATA[If automatic matching is active.]]></summary>
+    </member>
+    <member id="Animator-layerCount">
+      <name>layerCount</name>
+      <summary><![CDATA[The AnimatorController layer count.]]></summary>
+    </member>
+    <member id="Animator-layersAffectMassCenter">
+      <name>layersAffectMassCenter</name>
+      <summary><![CDATA[Internal.]]></summary>
+    </member>
+    <member id="Animator-leftFeetBottomHeight">
+      <name>leftFeetBottomHeight</name>
+      <summary><![CDATA[Get left foot bottom height.]]></summary>
+    </member>
+    <member id="Animator-pivotPosition">
+      <name>pivotPosition</name>
+      <summary><![CDATA[Get the current position of the pivot.]]></summary>
+    </member>
+    <member id="Animator-pivotWeight">
+      <name>pivotWeight</name>
+      <summary><![CDATA[Gets the pivot weight.]]></summary>
+    </member>
+    <member id="Animator-playbackTime">
+      <name>playbackTime</name>
+      <summary><![CDATA[Sets the playback position in the recording buffer.]]></summary>
+    </member>
+    <member id="Animator-recorderStartTime">
+      <name>recorderStartTime</name>
+      <summary><![CDATA[Start time of the first frame of the buffer relative to the frame at which ]]><link ref="Animator.StartRecording">StartRecording</link><![CDATA[ was called.]]></summary>
+    </member>
+    <member id="Animator-recorderStopTime">
+      <name>recorderStopTime</name>
+      <summary><![CDATA[End time of the recorded clip relative to when ]]><link ref="Animator.StartRecording">StartRecording</link><![CDATA[ was called.]]></summary>
+    </member>
+    <member id="Animator-rightFeetBottomHeight">
+      <name>rightFeetBottomHeight</name>
+      <summary><![CDATA[Get right foot bottom height.]]></summary>
+    </member>
+    <member id="Animator-rootPosition">
+      <name>rootPosition</name>
+      <summary><![CDATA[The root position, the position of the game object.]]></summary>
+    </member>
+    <member id="Animator-rootRotation">
+      <name>rootRotation</name>
+      <summary><![CDATA[The root rotation, the rotation of the game object.]]></summary>
+    </member>
+    <member id="Animator-runtimeAnimatorController">
+      <name>runtimeAnimatorController</name>
+      <summary><![CDATA[The runtime representation of AnimatorController that controls the Animator.]]></summary>
+    </member>
+    <member id="Animator-speed">
+      <name>speed</name>
+      <summary><![CDATA[The playback speed of the Animator. 1 is normal playback speed.]]></summary>
+    </member>
+    <member id="Animator-stabilizeFeet">
+      <name>stabilizeFeet</name>
+      <summary><![CDATA[Automatic stabilization of feet during transition and blending.]]></summary>
+    </member>
+    <member id="Animator-targetPosition">
+      <name>targetPosition</name>
+      <summary><![CDATA[Returns the position of the target specified by SetTarget(AvatarTarget targetIndex, float targetNormalizedTime)).]]></summary>
+    </member>
+    <member id="Animator-targetRotation">
+      <name>targetRotation</name>
+      <summary><![CDATA[Returns the rotation of the target specified by SetTarget(AvatarTarget targetIndex, float targetNormalizedTime)).]]></summary>
+    </member>
+  </Vars>
+  <Constructors />
+  <MemberFunctions>
+    <member id="Animator.GetAnimatorStateRuntimeModificator">
+      <name>GetAnimatorStateRuntimeModificator</name>
+      <summary><![CDATA[Queries an AnimatorstateRuntimeModificator.]]></summary>
+    </member>
+    <member id="Animator.GetAnimatorTransitionInfo">
+      <name>GetAnimatorTransitionInfo</name>
+      <summary><![CDATA[Gets the Transition information on a specified AnimatorController layer.]]></summary>
+    </member>
+    <member id="Animator.GetBoneTransform">
+      <name>GetBoneTransform</name>
+      <summary><![CDATA[Returns transform mapped to this human bone id.]]></summary>
+    </member>
+    <member id="Animator.GetBool">
+      <name>GetBool</name>
+      <summary><![CDATA[Gets the value of a bool parameter.]]></summary>
+    </member>
+    <member id="Animator.GetCurrentAnimationClipState">
+      <name>GetCurrentAnimationClipState</name>
+      <summary><![CDATA[Gets the list of AnimationInfo currently played by the current state.]]></summary>
+    </member>
+    <member id="Animator.GetCurrentAnimatorStateInfo">
+      <name>GetCurrentAnimatorStateInfo</name>
+      <summary><![CDATA[Gets the current State information on a specified AnimatorController layer.]]></summary>
+    </member>
+    <member id="Animator.GetFloat">
+      <name>GetFloat</name>
+      <summary><![CDATA[Gets the value of a float parameter.]]></summary>
+    </member>
+    <member id="Animator.GetIKPosition">
+      <name>GetIKPosition</name>
+      <summary><![CDATA[Gets the position of an IK goal.]]></summary>
+    </member>
+    <member id="Animator.GetIKPositionWeight">
+      <name>GetIKPositionWeight</name>
+      <summary><![CDATA[Gets the translative weight of an IK goal (0 = at the original animation before IK, 1 = at the goal).]]></summary>
+    </member>
+    <member id="Animator.GetIKRotation">
+      <name>GetIKRotation</name>
+      <summary><![CDATA[Gets the rotation of an IK goal.]]></summary>
+    </member>
+    <member id="Animator.GetIKRotationWeight">
+      <name>GetIKRotationWeight</name>
+      <summary><![CDATA[Gets the rotational weight of an IK goal (0 = rotation before IK, 1 = rotation at the IK goal).]]></summary>
+    </member>
+    <member id="Animator.GetInteger">
+      <name>GetInteger</name>
+      <summary><![CDATA[Gets the value of an integer parameter.]]></summary>
+    </member>
+    <member id="Animator.GetLayerName">
+      <name>GetLayerName</name>
+      <summary><![CDATA[Gets name of the layer.]]></summary>
+    </member>
+    <member id="Animator.GetLayerWeight">
+      <name>GetLayerWeight</name>
+      <summary><![CDATA[Gets the layer's current weight.]]></summary>
+    </member>
+    <member id="Animator.GetNextAnimationClipState">
+      <name>GetNextAnimationClipState</name>
+      <summary><![CDATA[Gets the list of AnimationInfo currently played by the next state.]]></summary>
+    </member>
+    <member id="Animator.GetNextAnimatorStateInfo">
+      <name>GetNextAnimatorStateInfo</name>
+      <summary><![CDATA[Gets the next State information on a specified AnimatorController layer.]]></summary>
+    </member>
+    <member id="Animator.InterruptMatchTarget">
+      <name>InterruptMatchTarget</name>
+      <summary><![CDATA[Interrupts the automatic target matching.]]></summary>
+    </member>
+    <member id="Animator.IsInTransition">
+      <name>IsInTransition</name>
+      <summary><![CDATA[Is the specified AnimatorController layer in a transition.]]></summary>
+    </member>
+    <member id="Animator.IsParameterControlledByCurve">
+      <name>IsParameterControlledByCurve</name>
+      <summary><![CDATA[Returns true if a parameter is controlled by an additional curve on an animation.]]></summary>
+    </member>
+    <member id="Animator.MatchTarget">
+      <name>MatchTarget</name>
+      <summary><![CDATA[Automatically adjust the gameobject position and rotation so that the AvatarTarget reaches the matchPosition when the current state is at the specified progress.]]></summary>
+    </member>
+    <member id="Animator.SetAnimatorStateRuntimeModificator">
+      <name>SetAnimatorStateRuntimeModificator</name>
+      <summary><![CDATA[Applies an AnimatorstateRuntimeModificator.]]></summary>
+    </member>
+    <member id="Animator.SetBool">
+      <name>SetBool</name>
+      <summary><![CDATA[Sets the value of a bool parameter.]]></summary>
+    </member>
+    <member id="Animator.SetFloat">
+      <name>SetFloat</name>
+      <summary><![CDATA[Sets the value of a float parameter.]]></summary>
+    </member>
+    <member id="Animator.SetIKPosition">
+      <name>SetIKPosition</name>
+      <summary><![CDATA[Sets the position of an IK goal.]]></summary>
+    </member>
+    <member id="Animator.SetIKPositionWeight">
+      <name>SetIKPositionWeight</name>
+      <summary><![CDATA[Sets the translative weight of an IK goal (0 = at the original animation before IK, 1 = at the goal).]]></summary>
+    </member>
+    <member id="Animator.SetIKRotation">
+      <name>SetIKRotation</name>
+      <summary><![CDATA[Sets the rotation of an IK goal.]]></summary>
+    </member>
+    <member id="Animator.SetIKRotationWeight">
+      <name>SetIKRotationWeight</name>
+      <summary><![CDATA[Sets the rotational weight of an IK goal (0 = rotation before IK, 1 = rotation at the IK goal).]]></summary>
+    </member>
+    <member id="Animator.SetInteger">
+      <name>SetInteger</name>
+      <summary><![CDATA[Sets the value of an integer parameter.]]></summary>
+    </member>
+    <member id="Animator.SetLayerWeight">
+      <name>SetLayerWeight</name>
+      <summary><![CDATA[Sets the layer's current weight.]]></summary>
+    </member>
+    <member id="Animator.SetLookAtPosition">
+      <name>SetLookAtPosition</name>
+      <summary><![CDATA[Sets the look at position.]]></summary>
+    </member>
+    <member id="Animator.SetLookAtWeight">
+      <name>SetLookAtWeight</name>
+      <summary><![CDATA[Set look at weights.]]></summary>
+    </member>
+    <member id="Animator.SetTarget">
+      <name>SetTarget</name>
+      <summary><![CDATA[Sets an AvatarTarget and a targetNormalizedTime for the current state.]]></summary>
+    </member>
+    <member id="Animator.StartPlayback">
+      <name>StartPlayback</name>
+      <summary><![CDATA[Sets the animator in playback mode.]]></summary>
+    </member>
+    <member id="Animator.StartRecording">
+      <name>StartRecording</name>
+      <summary><![CDATA[Sets the animator in recording mode, and allocates a circular buffer of size ]]><i>frameCount</i><![CDATA[.]]></summary>
+    </member>
+    <member id="Animator.StopPlayback">
+      <name>StopPlayback</name>
+      <summary><![CDATA[Stops the animator playback mode. When playback stops, the avatar resumes getting control from game logic.]]></summary>
+    </member>
+    <member id="Animator.StopRecording">
+      <name>StopRecording</name>
+      <summary><![CDATA[Stops animator record mode.]]></summary>
+    </member>
+  </MemberFunctions>
+  <StaticFunctions>
+    <member id="Animator.StringToHash">
+      <name>StringToHash</name>
+      <summary><![CDATA[Generates an parameter id from a string.]]></summary>
+    </member>
+  </StaticFunctions>
+  <Operators />
+  <Messages />
+  <Section>
+    <Signature>
+      <Declaration name="Animator" type="class" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[Interface to control the Mecanim animation system.]]></Summary>
+  </Section>
+  <BaseType id="Behaviour">
+    <StaticVars />
+    <Vars>
+      <member id="Behaviour-enabled">
+        <name>enabled</name>
+        <summary><![CDATA[Enabled Behaviours are Updated, disabled Behaviours are not.]]></summary>
+      </member>
+      <member id="Component-animation">
+        <name>animation</name>
+        <summary><![CDATA[The ]]><link ref="Animation">Animation</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-audio">
+        <name>audio</name>
+        <summary><![CDATA[The ]]><link ref="AudioSource">AudioSource</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-camera">
+        <name>camera</name>
+        <summary><![CDATA[The ]]><link ref="Camera">Camera</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-collider">
+        <name>collider</name>
+        <summary><![CDATA[The ]]><link ref="Collider">Collider</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-constantForce">
+        <name>constantForce</name>
+        <summary><![CDATA[The ]]><link ref="ConstantForce">ConstantForce</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-gameObject">
+        <name>gameObject</name>
+        <summary><![CDATA[The game object this component is attached to. A component is always attached to a game object.]]></summary>
+      </member>
+      <member id="Component-guiText">
+        <name>guiText</name>
+        <summary><![CDATA[The ]]><link ref="GUIText">GUIText</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-guiTexture">
+        <name>guiTexture</name>
+        <summary><![CDATA[The ]]><link ref="GUITexture">GUITexture</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (Read Only). (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-hingeJoint">
+        <name>hingeJoint</name>
+        <summary><![CDATA[The ]]><link ref="HingeJoint">HingeJoint</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-light">
+        <name>light</name>
+        <summary><![CDATA[The ]]><link ref="Light">Light</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-networkView">
+        <name>networkView</name>
+        <summary><![CDATA[The ]]><link ref="NetworkView">NetworkView</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (Read Only). (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-particleSystem">
+        <name>particleSystem</name>
+        <summary><![CDATA[The ]]><link ref="ParticleSystem">ParticleSystem</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-renderer">
+        <name>renderer</name>
+        <summary><![CDATA[The ]]><link ref="Renderer">Renderer</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-rigidbody">
+        <name>rigidbody</name>
+        <summary><![CDATA[The ]]><link ref="Rigidbody">Rigidbody</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Component-tag">
+        <name>tag</name>
+        <summary><![CDATA[The tag of this game object.]]></summary>
+      </member>
+      <member id="Component-transform">
+        <name>transform</name>
+        <summary><![CDATA[The ]]><link ref="Transform">Transform</link><![CDATA[ attached to this ]]><link ref="GameObject">GameObject</link><![CDATA[ (null if there is none attached).]]></summary>
+      </member>
+      <member id="Object-hideFlags">
+        <name>hideFlags</name>
+        <summary><![CDATA[Should the object be hidden, saved with the scene or modifiable by the user?]]></summary>
+      </member>
+      <member id="Object-name">
+        <name>name</name>
+        <summary><![CDATA[The name of the object.]]></summary>
+      </member>
+    </Vars>
+    <Constructors />
+    <MemberFunctions>
+      <member id="Component.BroadcastMessage">
+        <name>BroadcastMessage</name>
+        <summary><![CDATA[Calls the method named ]]><varname>methodName</varname><![CDATA[ on every ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ in this game object or any of its children.]]></summary>
+      </member>
+      <member id="Component.CompareTag">
+        <name>CompareTag</name>
+        <summary><![CDATA[Is this game object tagged with ]]><varname>tag</varname><![CDATA[?]]></summary>
+      </member>
+      <member id="Component.GetComponent">
+        <name>GetComponent</name>
+        <summary><![CDATA[Returns the component of Type ]]><varname>type</varname><![CDATA[ if the game object has one attached, null if it doesn't.]]></summary>
+      </member>
+      <member id="Component.GetComponentInChildren">
+        <name>GetComponentInChildren</name>
+        <summary><![CDATA[Returns the component of Type ]]><varname>type</varname><![CDATA[ in the ]]><link ref="GameObject">GameObject</link><![CDATA[ or any of its children using depth first search.]]></summary>
+      </member>
+      <member id="Component.GetComponents">
+        <name>GetComponents</name>
+        <summary><![CDATA[Returns all components of Type ]]><varname>type</varname><![CDATA[ in the ]]><link ref="GameObject">GameObject</link><![CDATA[.]]></summary>
+      </member>
+      <member id="Component.GetComponentsInChildren">
+        <name>GetComponentsInChildren</name>
+        <summary><![CDATA[Returns all components of Type ]]><varname>type</varname><![CDATA[ in the ]]><link ref="GameObject">GameObject</link><![CDATA[ or any of its children.]]></summary>
+      </member>
+      <member id="Component.SendMessage">
+        <name>SendMessage</name>
+        <summary><![CDATA[Calls the method named ]]><varname>methodName</varname><![CDATA[ on every ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ in this game object.]]></summary>
+      </member>
+      <member id="Component.SendMessageUpwards">
+        <name>SendMessageUpwards</name>
+        <summary><![CDATA[Calls the method named ]]><varname>methodName</varname><![CDATA[ on every ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ in this game object and on every ancestor of the behaviour.]]></summary>
+      </member>
+      <member id="Object.GetInstanceID">
+        <name>GetInstanceID</name>
+        <summary><![CDATA[Returns the instance id of the object.]]></summary>
+      </member>
+      <member id="Object.ToString">
+        <name>ToString</name>
+        <summary><![CDATA[Returns the name of the game object.]]></summary>
+      </member>
+    </MemberFunctions>
+    <StaticFunctions>
+      <member id="Object.Destroy">
+        <name>Destroy</name>
+        <summary><![CDATA[Removes a gameobject, component or asset.]]></summary>
+      </member>
+      <member id="Object.DestroyImmediate">
+        <name>DestroyImmediate</name>
+        <summary><![CDATA[Destroys the object ]]><varname>obj</varname><![CDATA[ immediately. You are strongly recommended to use Destroy instead.]]></summary>
+      </member>
+      <member id="Object.DontDestroyOnLoad">
+        <name>DontDestroyOnLoad</name>
+        <summary><![CDATA[Makes the object ]]><varname>target</varname><![CDATA[ not be destroyed automatically when loading a new scene.]]></summary>
+      </member>
+      <member id="Object.FindObjectOfType">
+        <name>FindObjectOfType</name>
+        <summary><![CDATA[Returns the first active loaded object of Type ]]><varname>type</varname><![CDATA[.]]></summary>
+      </member>
+      <member id="Object.FindObjectsOfType">
+        <name>FindObjectsOfType</name>
+        <summary><![CDATA[Returns a list of all active loaded objects of Type ]]><varname>type</varname><![CDATA[.]]></summary>
+      </member>
+      <member id="Object.Instantiate">
+        <name>Instantiate</name>
+        <summary><![CDATA[Clones the object ]]><varname>original</varname><![CDATA[ and returns the clone.]]></summary>
+      </member>
+    </StaticFunctions>
+    <Operators>
+      <member id="Object-operator_Object">
+        <name>bool</name>
+        <summary><![CDATA[Does the object exist?]]></summary>
+      </member>
+      <member id="Object-operator_ne">
+        <name>operator !=</name>
+        <summary><![CDATA[Compares if two objects refer to a different object.]]></summary>
+      </member>
+      <member id="Object-operator_eq">
+        <name>operator ==</name>
+        <summary><![CDATA[Compares if two objects refer to the same.]]></summary>
+      </member>
+    </Operators>
+    <Messages />
+  </BaseType>
+  <InheritsFrom>Animator</InheritsFrom>
+</Model>

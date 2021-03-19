@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AssetDatabase</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="LoadAssetAtPath" type="function" modifiers="static" />      
+    </Signature>    
+  </Section>
+</Model>

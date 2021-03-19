@@ -1,0 +1,22 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+
+use RunTests runTests;
+
+RunTest_TestResultsXmlAndTestFilterAreSpecified_SavesItIntoTheSpecifiedLocation:
+{
+    my $testresultsXml = catfile(tempdir(), "tr.xml");
+    my ($exitCode, $artifactsPath) = runTests('--profile=katana-native-editor', '--testfilter=VR', "--testresultsxml=$testresultsXml");
+    ok(-d canonpath("$artifactsPath/cgbatch"));
+    ok(-d canonpath("$artifactsPath/DocCombiner"));
+    ok(-d canonpath("$artifactsPath/editor"));
+    ok(-d canonpath("$artifactsPath/UnWrapCL"));
+    ok(not -e $testresultsXml);
+}
+
+done_testing();

@@ -1,0 +1,25 @@
+SubDir TOP ;
+
+local targetdir = $(TOP)/artifacts/TypeForwarderGenerator ;
+
+local dlls =
+    $(TOP)/External/Mono.Cecil/builds/lib/net35/Mono.Cecil.dll
+    $(TOP)/External/Mono.Cecil/builds/lib/net35/Mono.Cecil.Mdb.dll
+    MonoOptions
+;
+
+for file in $(dlls)
+{
+    on $(file)
+    {
+        local dest = $(file:D=$(targetdir)) ;
+        if $(BINDING)
+        {
+            dest = $(BINDING:D=$(targetdir)) ;
+        }
+        CopyFile : $(dest) : $(file) ;
+        Needs TypeForwarderGenerator : $(dest) ;
+    }
+}
+
+BuildAssemblyFromFolderWithCSFiles TypeForwarderGenerator : 4.0 : $(targetdir)/TypeForwarderGenerator.exe : $(TOP)/Tools/TypeForwarderGenerator : $(dlls) ;

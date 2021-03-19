@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AnimatorControllerLayer</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="name" type="var" />
+      <ReturnType>string</ReturnType>
+    </Signature>
+    <Summary><![CDATA[]]></Summary>
+  </Section>
+</Model>

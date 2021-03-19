@@ -1,0 +1,134 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Input/InputManager.h"
+#include "Runtime/Input/TimeManager.h"
+#include "Runtime/Misc/DeveloperConsole.h"
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Misc/DebugUtility.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Misc/DeveloperConsole.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+
+#if UNITY_EDITOR
+	#include "Editor/Src/EditorSettings.h"
+	#include "Editor/Src/EditorUserBuildSettings.h"
+	#include "Editor/Mono/MonoEditorUtility.h"
+	#include "Editor/Src/AssetPipeline/MonoCompilationPipeline.h"
+#endif
+	
+using namespace Unity;
+
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// Class containing methods to ease debugging while developing a game.
+CLASS Debug
+
+	// Draws a line from the /point/ start to /end/ with color for a duration of time and with or without depth testing. If duration is 0 then the line is rendered 1 frame.
+
+	CUSTOM public static void DrawLine (Vector3 start, Vector3 end, Color color = Color.white, float duration = 0.0f, bool depthTest = true) { DebugDrawLine (start, end, color, duration, depthTest); }
+
+	
+	// Draws a line from /start/ to /start/ + /dir/ with color for a duration of time and with or without depth testing. If duration is 0 then the line is rendered 1 frame.
+	
+	CSRAW public static void DrawRay (Vector3 start, Vector3 dir, Color color = Color.white, float duration = 0.0f, bool depthTest = true) { DrawLine (start, start + dir, color, duration, depthTest); }
+	
+	
+	// Pauses the editor.
+	CUSTOM static void Break () { PauseEditor (); }
+
+	// Breaks into the attached debugger, if present
+	CUSTOM static void DebugBreak ()
+	{ 
+		#if DEBUGMODE && (PLATFORM_WIN && !PLATFORM_WINRT)
+		if( IsDebuggerPresent() )
+			::DebugBreak();
+		#endif
+	}		
+	
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void Internal_Log (int level, string msg, [Writable]Object obj)
+	{
+		DebugStringToFile (msg.ToUTF8().c_str(), 0, __FILE__, __LINE__, (level==0?kScriptingLog:level==1?kScriptingWarning:kScriptingError) | kMayIgnoreLineNumber, obj.GetInstanceID());
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void Internal_LogException (Exception exception, [Writable]Object obj)
+	{
+		LogException (exception, obj.GetInstanceID());
+	}
+
+	// Logs /message/ to the Unity Console.
+	CSRAW public static void Log (object message) { Internal_Log (0, message != null ? message.ToString () : "Null", null); }
+
+	// Logs /message/ to the Unity Console.
+	CSRAW public static void Log (object message, Object context) 
+	{ 
+		Internal_Log (0, message != null ? message.ToString () : "Null", context); 
+	}
+	
+	// A variant of Debug.Log that logs an error message to the console.
+	CSRAW public static void LogError (object message) { Internal_Log (2, message != null ? message.ToString () : "Null", null); }
+
+	// A variant of Debug.Log that logs an error message to the console.
+	CSRAW public static void LogError (object message, Object context) { Internal_Log (2,message.ToString (), context); }
+
+	// Clears errors from the developer console.
+	CUSTOM public static void ClearDeveloperConsole () 
+	{ 
+	#if UNITY_HAS_DEVELOPER_CONSOLE
+		if (GetDeveloperConsolePtr() != NULL) GetDeveloperConsolePtr()->Clear(); 
+	#endif
+	}
+
+	// Opens or closes developer console.
+	CUSTOM_PROP static bool developerConsoleVisible
+	{ 
+	#if UNITY_HAS_DEVELOPER_CONSOLE
+		if (GetDeveloperConsolePtr() != NULL) return GetDeveloperConsolePtr()->IsVisible();
+	#endif
+		return false;
+	}
+	{
+	#if UNITY_HAS_DEVELOPER_CONSOLE
+		if (GetDeveloperConsolePtr() != NULL) return GetDeveloperConsolePtr()->SetOpen(value);
+	#endif
+	}
+
+	// A variant of Debug.Log that logs an error message from an exception to the console.
+	CSRAW public static void LogException (Exception exception) { Internal_LogException (exception, null); }
+
+	// A variant of Debug.Log that logs an error message to the console.
+	CSRAW public static void LogException (Exception exception, Object context) { Internal_LogException (exception, context); }
+
+	CONDITIONAL UNITY_EDITOR
+	CUSTOM internal static void LogPlayerBuildError (string message,string file,int line, int column)
+	{ 
+		DebugStringToFilePostprocessedStacktrace (message.ToUTF8().c_str(), "", "", 1, file.ToUTF8().c_str(), line, kScriptingError | kDontExtractStacktrace, 0, GetBuildErrorIdentifier());
+	}
+	
+	// A variant of Debug.Log that logs a warning message to the console.
+	CSRAW public static void LogWarning (object message) { Internal_Log (1,message.ToString (), null); }
+
+	// A variant of Debug.Log that logs a warning message to the console.
+	CSRAW public static void LogWarning (object message, Object context) { Internal_Log (1,message.ToString (), context); }
+	
+	// In the Build Settings dialog there is a check box called "Development Build".
+	CUSTOM_PROP static bool isDebugBuild { return GetBuildSettings().isDebugBuild; }
+		
+	CUSTOM internal static void OpenConsoleFile() { DeveloperConsole_OpenConsoleFile(); }
+END
+
+CSRAW }

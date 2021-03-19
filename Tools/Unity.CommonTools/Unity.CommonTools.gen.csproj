@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BDA06DB4-4CA7-6647-66E0-59CA2990E4DB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Unity.CommonTools</RootNamespace>
+    <AssemblyName>Unity.CommonTools</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>6</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\artifacts\Bee.CSharpSupport\Unity.CommonTools\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\artifacts\Bee.CSharpSupport\Unity.CommonTools\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="ArgumentBuilder.cs">
+  </Compile>
+  <Compile Include="ConsoleLog.cs">
+  </Compile>
+  <Compile Include="CSharpCompiler.cs">
+  </Compile>
+  <Compile Include="DebugViewHelper.cs">
+  </Compile>
+  <Compile Include="Ensure.cs">
+  </Compile>
+  <Compile Include="Files.cs">
+  </Compile>
+  <Compile Include="HashSetExtensions.cs">
+  </Compile>
+  <Compile Include="ILog.cs">
+  </Compile>
+  <Compile Include="ImageComparer.cs">
+  </Compile>
+  <Compile Include="ImageTools.cs">
+  </Compile>
+  <Compile Include="ITestResultWriter.cs">
+  </Compile>
+  <Compile Include="LoggedScope.cs">
+  </Compile>
+  <Compile Include="LogMessageFormatExtension.cs">
+  </Compile>
+  <Compile Include="MicrosoftCppCompiler.cs">
+  </Compile>
+  <Compile Include="MicrosoftCSharpCompiler.cs">
+  </Compile>
+  <Compile Include="MonoRuntime.cs">
+  </Compile>
+  <Compile Include="Paths.cs">
+  </Compile>
+  <Compile Include="Platform.cs">
+  </Compile>
+  <Compile Include="Screenshot.cs">
+  </Compile>
+  <Compile Include="ScreenshotLinux.cs">
+  </Compile>
+  <Compile Include="ScreenshotMac.cs">
+  </Compile>
+  <Compile Include="ScreenshotWin.cs">
+  </Compile>
+  <Compile Include="Shell.cs">
+  </Compile>
+  <Compile Include="SocketPolicyServer.cs">
+  </Compile>
+  <Compile Include="SocketResponder.cs">
+  </Compile>
+  <Compile Include="StopWatch.cs">
+  </Compile>
+  <Compile Include="StreamExtensions.cs">
+  </Compile>
+  <Compile Include="TeamCityTestResultWriter.cs">
+  </Compile>
+  <Compile Include="TestExecutionResult.cs">
+  </Compile>
+  <Compile Include="TestResult.cs">
+  </Compile>
+  <Compile Include="TestResultCallback.cs">
+  </Compile>
+  <Compile Include="TestResultWriterExtension.cs">
+  </Compile>
+  <Compile Include="WavFileCreator.cs">
+  </Compile>
+  <Compile Include="Workspace.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Color</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="red" type="var" modifiers="public static" />
+      <ReturnType hasLink="true">Color</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Solid red. RGBA is (1, 0, 0, 1).]]></Summary>
+  </Section>
+</Model>

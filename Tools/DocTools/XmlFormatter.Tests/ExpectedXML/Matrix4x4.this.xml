@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Matrix4x4</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="this[int,int]" type="var" modifiers="public" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Access element at [row, column].]]></Summary>
+    <Description><![CDATA[Both ]]><varname>row</varname><![CDATA[ and ]]><varname>column</varname><![CDATA[ must be from 0 to 3 inclusive. A matrix is 4x4 array
+of numbers, and you can access the individual elements using this function.]]><br /><br /><![CDATA[Note the standard math notation - row is the first index.]]></Description>
+  </Section>
+  <Section>
+    <Signature>
+      <Declaration name="this[int]" type="var" modifiers="public" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Access element at sequential index (0..15 inclusive).]]></Summary>
+    <Description><![CDATA[A matrix is 4x4 array of numbers (16 numbers in total). You can access
+the individual elements using "flattened" index with this.
+The ]]><varname>index</varname><![CDATA[ is ]]><monotype>row+column*4</monotype><![CDATA[.]]></Description>
+  </Section>
+</Model>

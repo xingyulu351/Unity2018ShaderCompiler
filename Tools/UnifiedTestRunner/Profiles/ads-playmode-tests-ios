@@ -1,0 +1,1 @@
+--suite=playmode --projectlist=Tests/UnityAdsPlaymodeTests/projectlist.txt --platform=iOS

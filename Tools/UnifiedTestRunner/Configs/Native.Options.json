@@ -1,0 +1,21 @@
+[
+{"names":["platform"],"description":"Specifies the platform to run the tests on.","valueType":2,"defaultValue":null,"allowedValues":["Android","Editor","iOS","Lumin","None","PS4","PSM","PSP2","SamsungTV","Standalone","StandaloneLinux","StandaloneLinux64","StandaloneLinuxUniversal","StandaloneOSX","StandaloneWindows","StandaloneWindows64","Switch","Tizen","tvOS","WebGL","WebPlayer","WiiU","WSAPlayer","XboxOne"]},
+{"names":["configuration"],"description":"Special per platform custom config.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["architecture"],"description":"CPU architecture to run tests on.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testresultsxml"],"description":"Specifies an output XML file for test results. XML contains states of executed tests and possible failure messages.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["artifactspath"],"description":"Path to store build and run artifacts","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["logfile"],"description":"Path to logfile","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["scriptingbackend"],"description":"Specifies the scripting backend to run the tests with.","valueType":2,"defaultValue":null,"allowedValues":["DotNet","Il2Cpp","Mono","NotSet"]},
+{"names":["scriptingruntimeversion"],"description":"Specifies the scripting runtime version to run the tests with.","valueType":2,"defaultValue":"Latest","allowedValues":["Latest","Legacy","NotSet"]},
+{"names":["apiprofile"],"description":"Specifies the api profile to run the tests with.","valueType":2,"defaultValue":"NotSet","allowedValues":["All","Full","NotSet","Profile2_0","Profile4_6","ProfileNetStandard2_0","Subset"]},
+{"names":["executioncount"],"description":"Number of times to execute each test.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["debugallocator"],"description":"Enable DebugAllocator for the run.","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["wasm"],"description":"Enable Wasm","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["category"],"description":"Native tests category","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testfilter"],"description":"Native tests filters (partial match)","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["list"],"description":"If specified, runner will only print list of tests without running them","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["dontreportperformancedata"],"description":"Don't report performance data when running performance tests.","valueType":0,"defaultValue":null,"allowedValues":[],"hidden":"true"},
+{"names":["assetpipelinev2"],"description":"Enable Asset Import Pipeline V2 backend for the test run.","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["test-runner-log"],"description":"Path to store output from the test runner","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["saveoptions"],"description":"Will save all the option definitions to specified file. Used by external tools","valueType":2,"defaultValue":null,"allowedValues":[],"hidden":"true"}
+]

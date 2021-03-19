@@ -1,0 +1,6 @@
+Configuration
+External/Tristripper
+External/UnityObject
+PlatformDependent
+Runtime
+Shaders

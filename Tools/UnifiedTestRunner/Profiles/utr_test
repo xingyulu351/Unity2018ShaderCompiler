@@ -1,0 +1,1 @@
+--suite=integration --suite=runtime --suite=graphics --suite=native --suite=performance-runtime --testfilter=2d --native-testfilter=atomic --performance-runtime-testfilter=Shadow --graphics-testfilter=Skybox --artifacts_path=c:\artifacts

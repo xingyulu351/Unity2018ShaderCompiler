@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="AccelerationEvent" type="Struct" namespace="UnityEngine">
+    <section>
+      <summary>Structure describing acceleration status of the device.</summary>
+    </section>
+    <member name="AccelerationEvent._acceleration" type="Property">
+      <section>
+        <signature><![CDATA[acceleration]]></signature>
+        <summary>Value of acceleration.</summary>
+      </section>
+    </member>
+    <member name="AccelerationEvent._deltaTime" type="Property">
+      <section>
+        <signature><![CDATA[deltaTime]]></signature>
+        <summary>Amount of time passed since last accelerometer measurement.</summary>
+      </section>
+    </member>
+  </member>
+</doc>

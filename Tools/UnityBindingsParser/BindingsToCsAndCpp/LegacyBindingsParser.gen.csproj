@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5DE2D184-3291-598B-F2A9-11B319F0A4F9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>LegacyBindingsParser</RootNamespace>
+    <AssemblyName>LegacyBindingsParser</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>6</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\LegacyBindingsParser\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\LegacyBindingsParser\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="ICSharpCode.NRefactory" >
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.Cecil" >
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.CSharp" >
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework" >
+      <HintPath>..\..\..\External\NUnit\framework\net45\nunit.framework.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="ConsumerDispatcher.cs">
+  </Compile>
+  <Compile Include="CppExports.cs">
+  </Compile>
+  <Compile Include="CppGenerator.cs">
+  </Compile>
+  <Compile Include="CppMethod.cs">
+  </Compile>
+  <Compile Include="CppMetroExports.cs">
+  </Compile>
+  <Compile Include="CppMonoExports.cs">
+  </Compile>
+  <Compile Include="CppProperty.cs">
+  </Compile>
+  <Compile Include="CppScriptingExports.cs">
+  </Compile>
+  <Compile Include="CppStrippingExports.cs">
+  </Compile>
+  <Compile Include="CppUnit.cs">
+  </Compile>
+  <Compile Include="CSAutoMethod.cs">
+  </Compile>
+  <Compile Include="CSAutoProperty.cs">
+  </Compile>
+  <Compile Include="CSBaseMethod.cs">
+  </Compile>
+  <Compile Include="CSBaseProperty.cs">
+  </Compile>
+  <Compile Include="CSConstructor.cs">
+  </Compile>
+  <Compile Include="CSharpGenerator.cs">
+  </Compile>
+  <Compile Include="CSharpSignatureAnalyzer.cs">
+  </Compile>
+  <Compile Include="CSMethod.cs">
+  </Compile>
+  <Compile Include="CSProperty.cs">
+  </Compile>
+  <Compile Include="CSRawMethod.cs">
+  </Compile>
+  <Compile Include="CSUnit.cs">
+  </Compile>
+  <Compile Include="Exceptions.cs">
+  </Compile>
+  <Compile Include="GeneratorBase.cs">
+  </Compile>
+  <Compile Include="IndentedWriter.cs">
+  </Compile>
+  <Compile Include="MapBuilder.cs">
+  </Compile>
+  <Compile Include="Options.cs">
+  </Compile>
+  <Compile Include="ParsingHelpers.cs">
+  </Compile>
+  <Compile Include="Program.cs">
+  </Compile>
+  <Compile Include="ReturnCodes.cs">
+  </Compile>
+  <Compile Include="TypeDefs.cs">
+  </Compile>
+  <Compile Include="Unit.cs">
+  </Compile>
+  <Compile Include="ValidationHelpers.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UnityBindingsParser\UnityBindingsParser.gen.csproj" >
+      <Project>{A507D489-8BD0-5616-5E59-DE2C4BAE103C}</Project>
+      <Name>UnityBindingsParser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Unity.CommonTools\Unity.CommonTools.gen.csproj" >
+      <Project>{BDA06DB4-4CA7-6647-66E0-59CA2990E4DB}</Project>
+      <Name>Unity.CommonTools</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

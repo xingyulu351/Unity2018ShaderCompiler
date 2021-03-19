@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="NamespaceA.ClassReferencingMovedClassFunction" type="Class" namespace="NamespaceA">
+    <section>
+      <summary>This class references [[ClassMovedToNamespace.Foo]]</summary>
+      <description>Yes it does</description>
+    </section>
+  </member>
+</doc>

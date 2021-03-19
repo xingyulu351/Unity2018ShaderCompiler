@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass></ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="AndroidJavaRunnable" type="delegate" namespace="UnityEngine" modifiers="public" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[AndroidJavaRunnable is the Unity representation of a java.lang.Runnable object.]]></Summary>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[#pragma strict
+// Pass execution context over to the Java UI thread.
+function Start() {
+	var unityPlayer = new ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[("com.unity3d.player.UnityPlayer");
+	var activity = unityPlayer.GetStatic.<AndroidJavaObject>("currentActivity");
+	activity.Call("runOnUiThread", new ]]><link ref="AndroidJavaRunnable">AndroidJavaRunnable</link><![CDATA[(runOnUiThread));
+}
+function runOnUiThread() {
+	]]><link ref="Debug.Log">Debug.Log</link><![CDATA[("I'm running on the Java UI thread!");
+}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    // Pass execution context over to the Java UI thread.
+    void Start() {
+        ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[ unityPlayer = new ]]><link ref="AndroidJavaClass">AndroidJavaClass</link><![CDATA[("com.unity3d.player.UnityPlayer");
+        ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[ activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        activity.Call("runOnUiThread", new ]]><link ref="AndroidJavaRunnable">AndroidJavaRunnable</link><![CDATA[(runOnUiThread));
+    }
+    void runOnUiThread() {
+        ]]><link ref="Debug.Log">Debug.Log</link><![CDATA[("I'm running on the Java UI thread!");
+    }
+}]]></CSharp>
+    </Example>
+  </Section>
+</Model>

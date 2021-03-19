@@ -1,0 +1,35 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Graphics/LightProbeGroup.h"
+
+CSRAW
+using System;
+namespace UnityEngine
+{
+
+// Light Probe Group
+CLASS LightProbeGroup : Component
+
+	// Editor only function to access and modify probe positions.
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	CUSTOM_PROP Vector3[] probePositions
+	{
+	#if UNITY_EDITOR
+		return CreateScriptingArray (self->GetPositions(), self->GetPositionsSize (), GetCommonScriptingClasses ().vector3);
+	#else
+		return CreateScriptingArray ((const Vector3f*)NULL, 0, GetCommonScriptingClasses ().vector3);
+	#endif
+	}
+	{
+	#if UNITY_EDITOR
+		self->SetPositions (&GetMonoArrayElement<Vector3f> (value, 0), mono_array_length_safe(value));
+	#endif
+	}
+END
+
+CSRAW }

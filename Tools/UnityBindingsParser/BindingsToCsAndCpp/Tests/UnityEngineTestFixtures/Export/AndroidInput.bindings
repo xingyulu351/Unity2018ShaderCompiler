@@ -1,0 +1,84 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Input/GetInput.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+
+#if PLATFORM_ANDROID
+	#include <PlatformDependent/AndroidPlayer/AndroidInput.h>
+	#include <android/input.h>
+#endif
+
+CSRAW
+
+namespace UnityEngine
+{
+
+// AndroidInput provides support for off-screen touch input, such as a touchpad.
+CONDITIONAL PLATFORM_ANDROID || UNITY_EDITOR
+CLASS AndroidInput
+
+	// Hide constructor
+	CSRAW private AndroidInput() {}
+
+	// Returns object representing status of a specific touch on a secondary touchpad (Does not allocate temporary variables).
+	CUSTOM static Touch GetSecondaryTouch (int index)
+	{
+		Touch touch;
+#if PLATFORM_ANDROID
+		if (index >= 0 && index < GetTouchCount ((int)AINPUT_SOURCE_TOUCHPAD))
+		{
+			if (!GetTouch ((int)AINPUT_SOURCE_TOUCHPAD, index, touch))
+				RaiseMonoException ("Internal error.");
+		}
+		else
+			RaiseMonoException ("Index out of bounds.");
+#endif			
+		return touch;
+	}
+
+	// Number of secondary touches. Guaranteed not to change throughout the frame. (RO).
+	CUSTOM_PROP static int touchCountSecondary
+	{
+#if PLATFORM_ANDROID
+		return GetTouchCount((int)AINPUT_SOURCE_TOUCHPAD);
+#else
+		return 0;
+#endif
+	}
+
+	// Property indicating whether the system provides secondary touch input.
+	CUSTOM_PROP static bool secondaryTouchEnabled
+	{
+#if PLATFORM_ANDROID
+		return IsInputDeviceEnabled((int)AINPUT_SOURCE_TOUCHPAD);
+#else
+		return false;
+#endif
+	}
+	
+	// Property indicating the width of the secondary touchpad.
+	CUSTOM_PROP static int secondaryTouchWidth
+	{
+#if PLATFORM_ANDROID
+		return GetTouchpadWidth();
+#else
+		return 0;
+#endif
+	}
+
+	// Property indicating the height of the secondary touchpad.
+	CUSTOM_PROP static int secondaryTouchHeight
+	{
+#if PLATFORM_ANDROID
+		return GetTouchpadHeight();
+#else
+		return 0;
+#endif
+	}
+
+END
+
+CSRAW
+}

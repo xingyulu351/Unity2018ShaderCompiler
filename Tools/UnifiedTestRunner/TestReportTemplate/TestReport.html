@@ -1,0 +1,155 @@
+<!doctype html>
+<html ng-app="testReportApp">
+
+<head>
+    <title>Test Report</title>
+    <script src="TestReport.files/js/lib/angular.min.js"></script>
+    <script src="TestReport.files/js/lib/moment.min.js"></script>
+    <script src="TestReport.files/js/lib/moment-duration-format.js"></script>
+    <script id="data" type="application/json">
+        TEST_EXECUTION_DATA
+    </script>
+</head>
+<script type="text/javascript" src="TestReport.files/js/app.js"></script>
+<script type="text/javascript" src="TestReport.files/js/config.js"></script>
+<script type="text/javascript" src="TestReport.files/js/TestReportController.js"></script>
+<link rel="stylesheet" href="TestReport.files/css/report.css">
+<link rel="stylesheet" href="TestReport.files/css/style.css">
+<link rel="stylesheet" href="TestReport.files/css/animate.css">
+<link rel="stylesheet" href="TestReport.files/css/bootstrap.css">
+
+<body ng-controller="TestReportController">
+    <div id="wrapper">
+        NG_TEMPLATE_GenericTest.tmpl.html
+        NG_TEMPLATE_GraphicsTest.tmpl.html
+        NG_TEMPLATE_PerformanceRuntime.tmpl.html
+        NG_TEMPLATE_SuiteDataMemoryLeaks.tmpl.html
+        <div class="row">
+            <div class="col-lg-3 animated-panel zoomIn" style="-webkit-animation: 0.4s;">
+                <div class="hpanel">
+                    <div class="panel-body text-center h-200">
+                        <div>Unity Version: <strong>{{data['product-version'].unity_version}}</strong></div>
+                        <div>Branch: <strong>{{data['product-version'].branch}}</strong></div>
+                        <div>Revision: <strong>{{cleanupRevision(data['product-version'].revision)}}</strong></div>
+                    </div>
+                    <div class="panel-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 text-center m-t-md animated-panel zoomIn" style="-webkit-animation: 0.1s;">
+                <h1>
+                    Summary
+                </h1>
+                <p>
+                    Summary on running <strong>Unified Test Runner</strong>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 animated-panel zoomIn" style="animation-delay: 0.2s;">
+                <div class="hpanel">
+                    <div class="panel-heading">
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div id="states_filter">
+                                <label class="checkbox-inline" ng-repeat="state in states">
+                                    <input type="checkbox" ng-model="statesFilter[state.value]">{{state.name}}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id="session_summary">
+                                <table class="table">
+                                    <tr>
+                                        <th>All Tests</th>
+                                        <th>Passed</th>
+                                        <th>Failures</th>
+                                        <th>Errors</th>
+                                        <th>Ignored</th>
+                                        <th>Skipped</th>
+                                        <th>Inconclusive</th>
+                                        <th>Time</th>
+                                    </tr>
+                                    <tr ng-class='{success : data.summary.success, fail: !data.summary.success}'>
+                                        <td>{{data.summary.testsCount}}</td>
+                                        <td>{{data.summary.successCount}}</td>
+                                        <td>{{data.summary.failedCount}}</td>
+                                        <td>{{data.summary.errorCount}}</td>
+                                        <td>{{data.summary.ignoredCount}}</td>
+                                        <td>{{data.summary.skippedCount}}</td>
+                                        <td>{{data.summary.inconclusiveCount}}</td>
+                                        <td>{{formatDuration(data.summary.time)}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" ng-repeat="suite in data.suites">
+                <div ng-if="suite.error || suite.failureReasons || hasAnyVisibleTests(suite)">
+                    <div class="col-lg-12 animated-panel zoomIn" style="animation-delay: 0.2s;">
+                        <div class="hpanel">
+                            <div class="panel-heading" />
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <h2>Suite type: {{suite.name}} {{suite.description}}</h2>
+                                <div ng-show="suite.error" class="fail">
+                                    {{suite.error}}
+                                </div>
+                                <!--this one eventually will be removed-->
+                                <div ng-repeat="reason in suite.failureReasons" class="fail">
+                                    {{reason}}
+                                </div>
+                                <div ng-repeat="error in suite.errors" class="fail">
+                                    {{error}}
+                                </div>
+                                <div id="suite_sattelite_data">
+                                    <div ng-repeat="(key, dataEntry) in suite.data">
+                                        <div ng-switch="key">
+                                            <div ng-switch-when='MemoryLeaks' class="animate-switch">
+                                                <div ng-include src="'SuiteDataMemoryLeaks.tmpl.html'"> </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a ng-click="isSuiteCommandLineCollapsed = !isSuiteCommandLineCollapsed">Show command line (to run suite locally)</a>
+                                    <div ng-hide="isSuiteCommandLineCollapsed" select-on-click>
+                                        {{suiteCommandLine(suite)}}
+                                    </div>
+                                </div>
+                                <h3>Suite Artifacts:</h3>
+                                <div id="suite_artifacts">
+                                    <div ng-repeat="artifact in suite.artifacts">
+                                        <a target="_blank" href="{{formatLink (artifact)}}">{{artifact}}</a>
+                                    </div>
+                                </div>
+
+                                <div ng-switch on="suite.name">
+                                    <div class="animate-switch" ng-switch-when="graphics">
+                                        <div ng-include src="'GraphicsTest.tmpl.html'"> </div>
+                                    </div>
+                                    <div class="animate-switch" ng-switch-default>
+                                        <div class="force-performance-template" ng-if="isPerformanceData(suite)">
+                                            <div ng-include src="'PerformanceRuntime.tmpl.html'"> </div>
+                                        </div>
+                                        <div class="use-generic-template" ng-if="!isPerformanceData(suite)">
+                                            <div ng-include src="'GenericTest.tmpl.html'"> </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

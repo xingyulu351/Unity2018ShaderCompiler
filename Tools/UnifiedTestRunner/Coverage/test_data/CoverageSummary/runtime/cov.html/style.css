@@ -1,0 +1,17 @@
+h1,h2,p,th,td { font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif }
+p,th,td { font-size: 10pt }
+th,td { border-left: 0.5em solid transparent; border-right: 0.5em solid transparent }
+th { background-color: #f2f3f5 }
+th:hover { background-color: #bae6fd }
+th.selected { background-color: #daecf6 }
+th.selected span { font-size: smaller; color: gray }
+th a:link, th a:visited { text-decoration: none; color: black }
+th a { display: block }
+tr.first { background-color: #e8e8e8 }
+p.tab { padding: 0.4em; border-bottom: thin solid gray }
+p.tab span { padding: 0.4em; border- }
+span.tabLF { border-left:  thin solid gray; border-top: thin solid gray; border-bottom:thin solid white }
+span.tabRF { border-right: thin solid gray; border-top: thin solid gray; border-bottom:thin solid white }
+span.tabLB { border-right: thin solid gray; border-bottom: thin solid gray; background-color: #e8e8e8 }
+span.tabRB { border-left:  thin solid gray; border-bottom: thin solid gray; background-color: #e8e8e8 }
+span.created { float: right; font-size: x-small; margin-bottom: 0.6em }

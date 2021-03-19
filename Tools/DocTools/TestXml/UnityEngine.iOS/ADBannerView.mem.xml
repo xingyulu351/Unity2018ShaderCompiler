@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="iOS.ADBannerView" type="Class" namespace="UnityEngine.iOS">
+    <section>
+      <summary>ADBannerView is a wrapper around the ADBannerView class found in the Apple iAd framework and is only available on iOS.</summary>
+      <description>It provides a view that displays banner advertisements to the user.</description>
+      <example>
+        <code lang="js"><![CDATA[private ADBannerView banner = null;
+
+void Start()
+{
+	banner = new iOS.ADBannerView(ADBannerView.Type.Banner, ADBannerView.Layout.Top);
+	iOS.ADBannerView.onBannerWasClicked += OnBannerClicked;
+	iOS.ADBannerView.onBannerWasLoaded  += OnBannerLoaded;
+}
+
+void OnBannerClicked()
+{
+	Debug.Log("Clicked!\n");
+}
+
+void OnBannerLoaded()
+{
+	Debug.Log("Loaded!\n");
+	banner.visible = true;
+}]]></code>
+      </example>
+    </section>
+    <member name="iOS.ADBannerView.BannerWasClickedDelegate" type="Delegate">
+      <section>
+        <summary>Will be fired when banner was clicked.</summary>
+        <description>Please note, that app will loose focus on banner click, so the delegate will be called on first frame after ad was shown.</description>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView.BannerWasLoadedDelegate" type="Delegate">
+      <section>
+        <summary>Will be fired when banner loaded new ad.</summary>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView.ctor" type="Constructor">
+      <section>
+        <signature><![CDATA[ctor(Type,Layout)]]></signature>
+        <summary>Creates a banner view with given type and auto-layout params.</summary>
+        <description>Please check if given type is available by calling ADBannerView.IsAvailable.</description>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView._onBannerWasClicked" type="Event">
+      <section undoc="true" />
+    </member>
+    <member name="iOS.ADBannerView._onBannerWasLoaded" type="Event">
+      <section undoc="true" />
+    </member>
+    <member name="iOS.ADBannerView.IsAvailable" type="Method">
+      <section>
+        <signature><![CDATA[IsAvailable(Type)]]></signature>
+        <summary>Checks if the banner type is available (e.g. MediumRect is available only starting with ios6).</summary>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView._loaded" type="Property">
+      <section>
+        <signature><![CDATA[loaded]]></signature>
+        <summary>Checks if banner contents are loaded.</summary>
+        <description>You should hide banner if it is not loaded to avoid showing blank view.</description>
+        <example>
+          <code lang="js"><![CDATA[if(banner.visible && !banner.loaded)
+	banner.visible = false;]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView._visible" type="Property">
+      <section>
+        <signature><![CDATA[visible]]></signature>
+        <summary>Banner visibility. Initially banner is not visible.</summary>
+        <description>Please note that if you hide banner, ads might not be reloaded with time, so if you no longer need banner it is better to delete it completely.</description>
+        <example>
+          <code lang="js"><![CDATA[void OnBannerClicked()
+{
+	Debug.Log("Clicked!\n");
+	banner.visible = false;
+	banner = null;
+}]]></code>
+        </example>
+        <example>
+          <code lang="js"><![CDATA[void OnBannerLoaded()
+{
+	Debug.Log("Loaded!\n");
+	banner.visible = true;
+}]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView._layout" type="Property">
+      <section>
+        <signature><![CDATA[layout]]></signature>
+        <summary>Banner layout.</summary>
+        <description>You can set manual layout to move banner around yourself.</description>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView._position" type="Property">
+      <section>
+        <signature><![CDATA[position]]></signature>
+        <summary>The position of the banner view.</summary>
+        <description>It uses unity GUI coords and convention, so it is top-left corner coords. If you change it, banner will become manually layed-out automatically.
+Please note that for Traditional Banner x component is ignored.</description>
+      </section>
+    </member>
+    <member name="iOS.ADBannerView._size" type="Property">
+      <section>
+        <signature><![CDATA[size]]></signature>
+        <summary>The size of the banner view.</summary>
+        <description>It uses unity GUI coords.</description>
+      </section>
+    </member>
+  </member>
+</doc>

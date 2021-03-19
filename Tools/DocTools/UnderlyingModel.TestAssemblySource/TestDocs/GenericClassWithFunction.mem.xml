@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="GenericClassWithFunction_1" type="Class">
+    <section>
+      <summary>This is a generic class</summary>      
+    </section>
+    <member name="GenericClassWithFunction_1.Foo" type="Method">
+      <section>
+        <summary>Foo does foo</summary>
+      </section>
+    </member>
+  </member>
+</doc>

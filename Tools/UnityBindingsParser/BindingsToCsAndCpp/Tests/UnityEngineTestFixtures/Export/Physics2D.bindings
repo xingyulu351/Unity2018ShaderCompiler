@@ -1,0 +1,210 @@
+C++RAW
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingManager.h"
+
+#include "Runtime/Dynamics/2D/Physics2DManager.h"
+#include "Runtime/Dynamics/2D/Physics2DSettings.h"
+#include "Runtime/Dynamics/2D/RigidBody2D.h"
+#include "Runtime/Dynamics/2D/PolygonCollider2D.h"
+#include "Runtime/Dynamics/2D/CircleCollider2D.h"
+#include "Runtime/Dynamics/2D/BoxCollider2D.h"
+
+#include "Runtime/Graphics/SpriteFrame.h"
+
+CSRAW
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace UnityEngine
+{
+
+
+NONSEALED_CLASS Physics2D
+	CSRAW public const int kIgnoreRaycastLayer = 1 << 2;
+	CSRAW public const int kDefaultRaycastLayers = ~kIgnoreRaycastLayer;
+	CSRAW public const int kAllLayers = ~0;
+
+	
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM_PROP static Vector2 gravity { return GetPhysics2DSettings().GetGravity (); } { return GetPhysics2DSettings().SetGravity (value); }	
+
+	CUSTOM private static bool Internal_Raycast (Vector2 pointA, Vector2 pointB, out RaycastHit2D hitInfo, int layermask)
+	{
+		bool didHit = GetPhysics2DManager().Raycast (pointA, pointB, layermask, hitInfo);
+		if (!didHit)
+			return false;
+		hitInfo->collider = reinterpret_cast<Collider2D*>(ScriptingGetObjectReference (hitInfo->collider));
+		return true;
+	}
+
+	CUSTOM private static bool Internal_RaycastTest (Vector2 pointA, Vector2 pointB, int layermask)
+	{
+		return GetPhysics2DManager().RaycastTest (pointA, pointB, layermask);
+	}
+
+	CSRAW static public bool Linecast (Vector2 start, Vector2 end, int layerMask = kDefaultRaycastLayers)
+	{
+		return Internal_RaycastTest(start, end, layerMask);
+	}
+
+	CSRAW static public bool Linecast (Vector2 start, Vector2 end, out RaycastHit2D hitInfo, int layerMask = kDefaultRaycastLayers)
+	{
+		return Internal_Raycast(start, end, out hitInfo, layerMask);
+	}
+
+	CUSTOM static RaycastHit2D[] LinecastAll (Vector2 start, Vector2 end, int layerMask = kDefaultRaycastLayers)
+	{
+		return ScriptingRaycastAll2D (start, end, layerMask);
+	}
+
+	CUSTOM static void IgnoreLayerCollision (int layer1, int layer2, bool ignore = true)
+	{
+		GetPhysics2DSettings().IgnoreCollision(layer1, layer2, ignore);
+	}
+
+	CUSTOM static bool GetIgnoreLayerCollision (int layer1, int layer2)
+	{
+		return GetPhysics2DSettings().GetIgnoreCollision(layer1, layer2);
+	}
+
+END
+
+
+// NOTE: must match memory layout of native RaycastHit2D
+STRUCT RaycastHit2D
+	CSRAW private Vector2 m_Point;
+	CSRAW private Vector2 m_Normal;
+	#if PLATFORM_WINRT
+	CSRAW private int m_ColliderHandle;
+	#else
+	CSRAW private Collider2D m_Collider;
+	#endif
+	
+	CSRAW public Vector2 point { get { return m_Point; } set { m_Point = value; } }
+	CSRAW public Vector2 normal { get { return m_Normal; } set { m_Normal = value; } }
+	
+	CONDITIONAL !PLATFORM_WINRT
+	CSRAW public Collider2D collider { get { return m_Collider; }   }
+	
+	CONDITIONAL PLATFORM_WINRT
+	CSRAW public Collider2D collider { get { return UnityEngineInternal.ScriptingUtils.GCHandleToObject<Collider2D>(m_ColliderHandle); } }
+
+	CSRAW public Rigidbody2D rigidbody { get { return collider != null ? collider.attachedRigidbody : null; }  }
+	
+	CSRAW public Transform transform { get {
+		Rigidbody2D body = rigidbody;
+		if (body != null)
+			return body.transform;
+		else if (collider != null)
+			return collider.transform;
+		else
+			return null;
+	} }
+
+END
+
+CLASS Rigidbody2D : Component
+	CUSTOM void AddForce (Vector2 force) { self->AddForce (force); }
+	CUSTOM void AddTorque (float torque) { self->AddTorque (torque); }
+	CUSTOM void AddForceAtPosition (Vector2 force, Vector2 position) { self->AddForceAtPosition (force, position); }
+
+	CUSTOM void Sleep() { self->SetSleeping(true); }
+	CUSTOM bool IsSleeping() { return self->IsSleeping(); }
+	CUSTOM void WakeUp() { self->SetSleeping(false); }
+
+	AUTO_PROP float drag GetDrag SetDrag
+	AUTO_PROP float angularDrag GetAngularDrag SetAngularDrag
+	AUTO_PROP float gravityScale GetGravityScale SetGravityScale
+
+	AUTO_PROP float mass GetMass SetMass
+
+	CSNONE void OnCollision2DEnter (Collision2D info);
+	CSNONE void OnCollision2DExit (Collision2D info);
+	CSNONE void OnCollision2DStay (Collision2D info);
+
+END
+
+NONSEALED_CLASS Collider2D : Component
+	AUTO_PROP bool enabled GetEnabled SetEnabled
+	AUTO_PTR_PROP Rigidbody2D attachedRigidbody GetRigidbody
+
+	AUTO_PROP int shapeCount GetShapeCount
+
+	CSNONE void OnCollision2DEnter (Collision2D info);
+	CSNONE void OnCollision2DExit (Collision2D info);
+	CSNONE void OnCollision2DStay (Collision2D info);
+
+END
+
+
+CLASS CircleCollider2D : Collider2D
+	AUTO_PROP Vector2 center GetCenter SetCenter
+	AUTO_PROP float radius GetRadius SetRadius
+END
+
+CLASS BoxCollider2D : Collider2D
+	AUTO_PROP Vector2 center GetCenter SetCenter
+	AUTO_PROP Vector2 size GetSize SetSize
+END
+
+
+CLASS PolygonCollider2D : Collider2D
+
+	CUSTOM_PROP Vector2[] points
+	{
+		ScriptingClassPtr klass = GetScriptingManager().GetCommonClasses().vector2;
+		return CreateScriptingArrayStride<Vector2f>(self->GetPoints(), self->GetPointCount(), klass, sizeof(*self->GetPoints()));
+	}
+	{
+		self->SetPoints(GetScriptingArrayStart<Vector2f>(value), GetScriptingArraySize(value));
+	}
+
+	AUTO_PROP int pathCount GetPathCount SetPathCount
+
+	CUSTOM int CalculatePointCount() { return self->CalculatePointCount(); }
+
+	CUSTOM Vector2[] GetPath(int index)
+	{
+		const PolygonCollider2D::TPath& path = self->GetPath(index);
+		ScriptingClassPtr klass = GetScriptingManager().GetCommonClasses().vector2;
+		return CreateScriptingArrayStride<Vector2f>(path.data(), path.size(), klass, sizeof(*path.data()));
+	}
+
+	CUSTOM void SetPath(int index, Vector2[] points)
+	{
+		const Vector2f* arrayStart = GetScriptingArrayStart<Vector2f>(points);
+		const int arraySize = GetScriptingArraySize(points);
+		PolygonCollider2D::TPath path;
+		path.assign(arrayStart, arrayStart+arraySize);
+		self->SetPath(index, path);
+	}
+
+	CONDITIONAL ENABLE_SPRITES
+	CUSTOM void GenerateFrom(SpriteFrame spriteFrame, float hullTolerance, byte alphaTolerance, bool holeDetection)
+	{
+		self->GenerateFrom(spriteFrame, hullTolerance, alphaTolerance, holeDetection, 0);
+		// Note: we don't support 'extrude' for physics meshes on purpose.
+	}
+
+END
+
+
+CSRAW [StructLayout (LayoutKind.Sequential)]
+NONSEALED_CLASS Collision2D
+	CSRAW internal Rigidbody2D    m_Rigidbody;
+	CSRAW internal Collider2D     m_Collider;
+	
+	CSRAW public Rigidbody2D rigidbody { get { return m_Rigidbody; } }
+	CSRAW public Collider2D collider { get { return m_Collider; } }
+	CSRAW public Transform transform { get { return rigidbody != null ? rigidbody.transform : collider.transform; } }
+	CSRAW public GameObject gameObject { get { return m_Rigidbody != null ? m_Rigidbody.gameObject : m_Collider.gameObject; } }
+END
+
+
+
+CSRAW }

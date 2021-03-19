@@ -1,0 +1,1 @@
+--suite=playmode --projectlist=Tests/UnityAdsPlaymodeTests/projectlist.txt --platform=Android --architecture=arm64 --scripting-backend=il2cpp

@@ -1,0 +1,11 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: unity-editor
+Source: http://unity3d.com
+
+Files: *
+Copyright: <2004-2015> <Unity Technologies>
+License: Proprietary
+
+License: Proprietary
+Use of the Unity Editor is subject to the terms of the Software License
+Agreement found at https://unity3d.com/legal/eula.

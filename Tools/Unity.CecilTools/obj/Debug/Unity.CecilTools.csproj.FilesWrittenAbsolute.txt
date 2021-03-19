@@ -1,0 +1,5 @@
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CecilTools\bin\Debug\Unity.CecilTools.dll.mdb
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CecilTools\bin\Debug\Unity.CecilTools.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CecilTools\obj\Debug\Unity.CecilTools.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CecilTools\obj\Debug\Unity.CecilTools.dll.mdb
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CecilTools\bin\Debug\Unity.Cecil.dll

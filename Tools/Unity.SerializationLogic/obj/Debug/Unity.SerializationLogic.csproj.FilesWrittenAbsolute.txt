@@ -1,0 +1,7 @@
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\bin\Debug\Unity.SerializationLogic.dll.mdb
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\bin\Debug\Unity.SerializationLogic.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\obj\Debug\Unity.SerializationLogic.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\obj\Debug\Unity.SerializationLogic.dll.mdb
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\bin\Debug\Unity.Cecil.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\bin\Debug\Unity.CecilTools.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.SerializationLogic\bin\Debug\Unity.CecilTools.dll.mdb

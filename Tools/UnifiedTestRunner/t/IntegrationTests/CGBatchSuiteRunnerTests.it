@@ -1,0 +1,37 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+use RunTests qw (runTests);
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=cgbatch');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/UnityShaderCompiler/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/UnityShaderCompiler/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/TestResults.xml"));
+}
+
+RunTest_TestResultsXmlIsSpecified_SavesItIntoTheSpecifiedLocation:
+{
+    my $testresultsXml = catfile(tempdir(), "tr.xml");
+    my ($exitCode, $artifactsPath) = runTests('--suite=cgbatch', "--testresultsxml=$testresultsXml");
+
+    ok(-e $testresultsXml);
+}
+
+if ($^O eq 'MSWin32')
+{
+RunTest_VariationIsSpecified_ProducesExpectedArtifacts:
+    {
+        my ($exitCode, $artifactsPath) = runTests('--suite=cgbatch', '--variation=64');
+        is($exitCode, 0);
+    }
+}
+
+done_testing();

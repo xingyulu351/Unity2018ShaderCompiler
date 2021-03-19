@@ -1,0 +1,31 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// Behaviours are Components that can be enabled or disabled.
+CSRAW
+NONSEALED_CLASS Behaviour : Component
+	// Enabled Behaviours are Updated, disabled Behaviours are not.
+	AUTO_PROP bool enabled GetEnabled SetEnabled
+END
+
+
+CSRAW }
+

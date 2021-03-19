@@ -1,0 +1,57 @@
+NRefactory bugs
+
+1) comments are lost when they occur in the same line as pragma #endif
+
+#endif // comment is lost
+
+
+2) can't parse
+
+#if UNITY_IPHONE || UNITY_ANDROID
+    internal static void DoTextField (Rect position, int id, GUIContent content, bool multiline, int maxLength, GUIStyle style, string secureText = null) {
+#else
+    internal static void DoTextField (Rect position, int id, GUIContent content, bool multiline, int maxLength, GUIStyle style) {
+#endif
+
+3) pragma #endif gets misplaced
+
+// The tangent mode of the keyframe.
+// This is used only in the editor and will always return 0 in the player.
+public int tangentMode
+	{
+		get {
+			#if UNITY_EDITOR
+			return m_TangentMode;
+			#else
+			return 0;
+			#endif
+		}
+		set {
+			#if UNITY_EDITOR
+			m_TangentMode = value;
+			#endif
+		}
+	}
+
+becomes
+
+		// The tangent mode of the keyframe.
+		// This is used only in the editor and will always return 0 in the player.
+		public int tangentMode
+		{
+			get {
+				#if UNITY_EDITOR
+				return m_TangentMode;
+				#else
+				return 0;
+				#endif
+			}
+#if UNITY_EDITOR
+				#endif
+			set { m_TangentMode = value; }
+		}
+
+
+
+
+

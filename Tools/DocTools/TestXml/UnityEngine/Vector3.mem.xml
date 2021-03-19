@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Vector3" type="Struct" namespace="UnityEngine">
+    <section>
+      <summary>Representation of 3D vectors and points.</summary>
+      <description>This structure is used throughout Unity to pass 3D positions and directions around.
+It also contains functions for doing common vector operations.
+
+Besides the functions listed below, other classes can be used to manipulate vectors and points as well.
+For example the [[Quaternion]] and the [[Matrix4x4]] classes are useful for rotating or transforming vectors and points.</description>
+    </section>
+    <member name="Vector3.ToString" type="Method">
+      <section>
+        <signature><![CDATA[ToString()]]></signature>
+        <signature><![CDATA[ToString(string)]]></signature>
+        <summary>Returns a nicely formatted string for this vector.</summary>
+      </section>
+    </member>
+    <member name="Vector3._sqrMagnitude" type="Property">
+      <section>
+        <signature><![CDATA[sqrMagnitude]]></signature>
+        <summary>Returns the squared length of this vector (RO).</summary>
+        <description>The magnitude of a vector /v/ is calculated as Mathf.Sqrt(Vector3.Dot(v, v)). However, the
+Sqrt calculation is quite complicated and takes longer to execute than the normal arithmetic
+operations. 
+Calculating the squared magnitude instead of using the ::ref::magnitude property is much faster -
+the calculation is basically the same only without the slow Sqrt call. If you are using
+magnitudes simply to compare distances, then you can just as well compare squared magnitudes against
+the squares of distances since the comparison will give the same result.
+
+SA: ::ref::magnitude.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	// detects when the other transform is closer than closeDistance
+	// this is faster than using Vector3.magnitude
+
+	var other : Transform;
+	var closeDistance = 5.0;
+	
+	function Update() {
+		if (other) {
+			var offset = other.position - transform.position;
+			var sqrLen = offset.sqrMagnitude;
+			// square the distance we compare with
+			if( sqrLen < closeDistance*closeDistance )
+				print ("The other transform is close to me!");
+		}
+	}]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Vector3.Min" type="Method">
+      <section>
+        <signature><![CDATA[Min(Vector3,Vector3)]]></signature>
+        <summary>Returns a vector that is made from the smallest components of two vectors.</summary>
+        <description>SA: ::ref::Max function.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	var a : Vector3 = Vector3 (1, 2, 3);
+	var b : Vector3 = Vector3 (4, 3, 2);
+	print (Vector3.Min(a,b)); // prints (1.0,2.0,2.0)]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Vector3.op_Plus" type="Operator">
+      <section>
+        <signature><![CDATA[Plus(Vector3,Vector3)]]></signature>
+        <summary>Adds two vectors.</summary>
+        <description>Adds corresponding components together.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	// prints (5.0,7.0,9.0)
+	print (Vector3(1,2,3) + Vector3(4,5,6));]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Vector3._x" type="Field">
+      <section>
+        <summary>X component of the vector.</summary>
+      </section>
+    </member>
+  </member>
+</doc>

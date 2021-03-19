@@ -1,0 +1,7 @@
+{
+	"suites": [{
+		"name": "performance-runtime",
+		"args": ["--platform=PS4", "--executioncount=10"],
+		"details": "each test is executed 10 times on PS4"
+	}]
+}

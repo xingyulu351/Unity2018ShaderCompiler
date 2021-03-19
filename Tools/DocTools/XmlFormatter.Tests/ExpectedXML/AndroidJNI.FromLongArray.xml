@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AndroidJNI</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="FromLongArray" type="function" modifiers="public static" />
+      <ParamElement name="array" type="IntPtr" />
+      <ReturnType>long[]</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Convert a Java array of ]]><tt>long</tt><![CDATA[ to a managed array of System.Int64.]]></Summary>
+    <ParamWithDoc>
+      <name>array</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[See Also: ]]><link ref="AndroidJNI.GetFloatArrayElement">AndroidJNI.GetFloatArrayElement</link><![CDATA[, ]]><link ref="AndroidJNI.GetArrayLength">AndroidJNI.GetArrayLength</link><![CDATA[.]]></Description>
+  </Section>
+</Model>

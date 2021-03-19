@@ -1,0 +1,8 @@
+{Assemblies:"build/CombinedAssemblies",
+HtmlOutputRoot:"build/UserDocumentation/html",
+Memfiles:"Documentation/MemberDocs",
+Mem2files:"Documentation/ApiDocs",
+Mem2TranslatedRoot:"Documentation/ApiDocs_Translated",
+StaticFilesSource:"Tools/DocTools/APIDocumentationGenerator/StaticFiles",
+XSLTSource:"Tools/DocTools/APIDocumentationGenerator/XSLT",
+XmlOutputRoot:"build/temp/UserDocumentation/XML"}

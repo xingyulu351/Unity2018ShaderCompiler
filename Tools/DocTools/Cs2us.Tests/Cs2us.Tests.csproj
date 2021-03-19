@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2A667AE0-9AF4-4BF5-8A6C-A80BD724A867}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Cs2us.Tests</RootNamespace>
+    <AssemblyName>Cs2us.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Cecil">
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory">
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.Cecil">
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.CSharp">
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\External\NUnit\framework\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ArrayTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseClassConversionTest.cs" />
+    <Compile Include="BaseConversionTest.cs" />
+    <Compile Include="ClassBasedTests.cs" />
+    <Compile Include="AttributesTests.cs" />
+    <Compile Include="CommentTests.cs" />
+    <Compile Include="StringUtils.cs" />
+    <Compile Include="TryCatchTests.cs" />
+    <Compile Include="SwitchCaseTests.cs" />
+    <Compile Include="WhileStatementTests.cs" />
+    <Compile Include="EnumTests.cs" />
+    <Compile Include="GenericsTests.cs" />
+    <Compile Include="MethodTests.cs" />
+    <Compile Include="ForStatementTests.cs" />
+    <Compile Include="IntegrationTests.cs" />
+    <Compile Include="IfElseStatementTests.cs" />
+    <Compile Include="OperatorTests.cs" />
+    <Compile Include="MemberTests.cs" />
+    <Compile Include="ResourceBasedTests.cs" />
+    <Compile Include="TypeTests.cs" />
+    <Compile Include="LocalVarTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestScenario.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cs2us\Cs2us.csproj">
+      <Project>{8B5DFF9B-8459-42F0-A194-EAAC160979F8}</Project>
+      <Name>Cs2us</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnityScriptUtils\UnityScriptUtils.csproj">
+      <Project>{F3345B7B-8C7B-4E26-B6E7-7156EE4F62DA}</Project>
+      <Name>UnityScriptUtils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

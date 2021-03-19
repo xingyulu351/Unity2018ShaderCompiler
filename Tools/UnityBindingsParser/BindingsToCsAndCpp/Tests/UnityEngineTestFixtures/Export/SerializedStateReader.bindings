@@ -1,0 +1,210 @@
+C++RAW
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#if ENABLE_SERIALIZATION_BY_CODEGENERATION
+#include "Runtime/Mono/MonoBehaviourSerialization_ByCodeGeneration.h"
+#endif
+
+CSRAW
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using Object=UnityEngine.Object;
+
+namespace UnityEngine.Serialization
+{
+
+CONDITIONAL ENABLE_SERIALIZATION_BY_CODEGENERATION
+CLASS public SerializedStateReader : ISerializedStateReader
+
+	CSRAW public static ISerializedStateReader Instance = null;
+
+	CSRAW public static void Init()
+	{
+		if(Instance == null)
+			Instance = new SerializedStateReader();
+	}
+	CSRAW public static void SetInstance(ISerializedStateReader reader)
+	{
+		Instance = reader;
+	}
+	CSRAW public void Align()
+	{
+		INTERNAL_Align();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_Align()
+	{
+		NativeExt_MonoBehaviourSerialization_ReaderAlign();
+	}
+
+	CSRAW public byte ReadByte()
+	{
+		return INTERNAL_ReadByte();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static byte INTERNAL_ReadByte()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadByte();
+	}
+
+	CSRAW public int ReadInt32()
+	{
+		return INTERNAL_ReadInt32();
+	}
+	
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static int INTERNAL_ReadInt32()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadInt();
+	}
+
+	CSRAW public float ReadSingle()
+	{
+		return INTERNAL_ReadSingle();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static float INTERNAL_ReadSingle()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadFloat();
+	}
+	
+	CSRAW public double ReadDouble()
+	{
+		return INTERNAL_ReadDouble();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static double INTERNAL_ReadDouble()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadDouble();
+	}
+	
+	CSRAW public bool ReadBoolean()
+	{
+		return INTERNAL_ReadBoolean();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static bool INTERNAL_ReadBoolean()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadBool() == 1;
+	}
+	
+	CSRAW public string ReadString()
+	{
+		return INTERNAL_ReadString();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static string INTERNAL_ReadString()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadString();
+	}
+	
+	CSRAW public object ReadUnityEngineObject()
+	{
+		return INTERNAL_ReadUnityEngineObject();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static object INTERNAL_ReadUnityEngineObject()
+	{
+		return NativeExt_MonoBehaviourSerialization_ReadUnityEngineObject();
+	}
+	
+	CSRAW public object ReadAnimationCurve()
+	{
+		var animation_curve = new AnimationCurve();
+		INTERNAL_ReadAnimationCurve(animation_curve);
+		return animation_curve;
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_ReadAnimationCurve(AnimationCurve animation_curve)
+	{
+		NativeExt_MonoBehaviourSerialization_ReadAnimationCurve(animation_curve);
+	}
+	
+	CSRAW public object ReadGradient()
+	{
+		var gradient = new Gradient();
+		INTERNAL_ReadGradient(gradient);
+		return gradient;
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_ReadGradient(Gradient gradient)
+	{
+		NativeExt_MonoBehaviourSerialization_ReadGradient(gradient);
+	}
+	
+	CSRAW public object ReadGUIStyle()
+	{
+		var style = new GUIStyle();
+		INTERNAL_ReadGUIStyle(style);
+		return style;
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_ReadGUIStyle(GUIStyle style)
+	{
+		NativeExt_MonoBehaviourSerialization_ReadGUIStyle(style);
+	}
+
+	CSRAW public object ReadRectOffset()
+	{
+		var rect_offset = new RectOffset();
+		INTERNAL_RectOffset(rect_offset);
+		return rect_offset;
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_RectOffset(RectOffset rect_offset)
+	{
+		NativeExt_MonoBehaviourSerialization_ReadRectOffset(rect_offset);
+	}
+
+	CSRAW public byte[] ReadArrayOfByte()
+	{
+		return ReadArrayInternal<byte>(ReadByte);
+	}
+
+	CSRAW public List<byte> ReadListOfByte()
+	{
+		return ReadListInternal<byte>(ReadByte);
+	}
+
+	CSRAW private T[] ReadArrayInternal<T>(Func<T> reader)
+	{
+		var length = ReadInt32();
+		var result = new T[length];
+		for(var i = 0; i < length; ++i)
+			result[i] = reader();
+		return result;
+	}
+
+	CSRAW private List<T> ReadListInternal<T>(Func<T> reader)
+	{
+		var length = ReadInt32();
+		var result = new List<T>(length);
+		for(var i = 0; i < length; ++i)
+			result.Add(reader());
+		return result;
+	}
+	
+END
+
+CONDITIONAL !ENABLE_SERIALIZATION_BY_CODEGENERATION && PLATFORM_WINRT
+CLASS public SerializedStateReader
+	CSRAW public static void SetInstance(ISerializedStateReader reader)
+	{
+	}
+END
+
+CSRAW
+}

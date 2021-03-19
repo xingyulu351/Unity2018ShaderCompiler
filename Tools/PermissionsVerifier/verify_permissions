@@ -1,0 +1,266 @@
+#!/usr/bin/perl -w
+
+#
+# A perl script that verifies a Unity project folder permissions
+# Sets the exit status to 0 if the project is writeable by the effective user, 
+# else returns non-zero.
+#
+
+use strict;
+use Fcntl ':mode';
+use File::Spec;
+use Cwd;
+use Carp qw(croak);
+
+$|=1;
+my $optIsUnityProject = 0; # If set, verify_permissions has different requirements for the Assets, Temp and Library folders
+my $optFixPermissions = 0; # If set, try to fix the permissions instead of failing
+my $end_of_options = 0;
+my @paths;
+my $orig_user_uid = untaint($ENV{SUDO_UID} || $>);
+my $orig_user_name = untaint($ENV{SUDO_USER}||$ENV{USER});
+my $error_count = 0;
+my %seen; # Only scan each path once -- this is required in order to avoid infinite recursion on circular symbolic links
+
+$<=$>;
+
+# Hack around perl's tainted mode
+sub untaint_all {
+	my @u;
+	for my $i (@_) {
+		$i =~ /^(.*)$/s;
+		push @u,$1;
+	}
+	return @u;
+}
+
+sub untaint {
+	$_[0] =~ /^(.*)$/s ;
+	return $1;
+}
+
+sub abs_path {
+	my $path = shift;
+	local $>=0;
+	return untaint( Cwd::abs_path($path) ) || croak "Could not resolve $path.";
+}
+
+sub usage 
+{
+	print STDERR "Usage:\n   verify_permissions [--is-unity-project] [--fix-permissions] [--uid=USER_ID] PROJECT_PATH [PROJECT_PATH2 [...]]\n";
+	exit 2;
+}
+
+
+sub combine_nor {
+	return $_[0] if $#_ == 0;
+	return join(', ',@_[0..$#_-1])." nor $_[$#_]";
+}
+
+sub perm_error
+{
+	my $path = shift;
+	my $is_asset_folder = shift;
+	my $mode = shift;
+	my @stats = do { local $>=0; untaint_all(stat _) };
+	my $perm_bits = S_IMODE($stats[2]);
+	my $dir = -d _?"Dir ":"";
+	my $owner = untaint(getpwuid($stats[4]))||"uid $stats[4]";
+	
+	$error_count++;
+
+	if ( ! $optFixPermissions )
+	{
+		printf "* %s%s (uid=%s, perms=%04o) is not %s by %s.", $dir, $path, $owner, $perm_bits, $mode, $orig_user_name;
+		print " Permissions need fixing\n";
+		exit 1;
+	}
+	else
+	{
+		# Changing the permissions:
+		#	Directories will get the execute, read and write bit set,
+		#	Files will get the read and write bit, unless they are in the Asset folder and the parent directory does not have the "sticky" bit set, then only the read bit will be set.
+		# If the file is not owned by the user the script will attempt to take ownership of the file. 
+		
+
+		# Temporarily set effective uid to root before messing around with the file permissions.
+		local $>=0;
+		# Attempt to take ownership of the file
+		if ( $orig_user_uid != $stats[4] ){
+			if ( ! chown($orig_user_uid,$stats[5],$path) )
+			{
+				print STDERR "Couild not change ownership of $path from $owner to $orig_user_name.\n	$!.\n	You have to run the script again with superuser privileges.\n";
+				exit 3;
+			}
+			print STDERR "Changed ownership of $path from $owner to $orig_user_name.\n";
+		}
+		
+		# Add the required permission bits
+		$perm_bits |= 0400;
+		$perm_bits |= 0100 if $dir; 
+		$perm_bits |= 0200 if $dir || !$is_asset_folder;
+		
+		if ( $perm_bits != S_IMODE($stats[2]) ) 
+		{
+			if ( ! chmod ($perm_bits, $path) ) 
+			{
+				printf STDERR "Could not change permissions of $path from %04o to %04o.\n	$!\n",S_IMODE($stats[2]),$perm_bits;
+				exit 4;
+			}
+			printf STDERR "Permissions of $path have been changed from %04o to %04o.\n",S_IMODE($stats[2]),$perm_bits;
+		}
+	}
+}
+
+# Note, you need to call stat($path) before calling this function
+sub check_file_permissions
+{
+	my ( $path, $is_asset_folder_and_not_sticky) = @_;
+	my @perm_errors;
+	push @perm_errors, "readalbe" unless (  -r _ );
+	
+	# In the Assets folder, as long as the parent folder is writable, and does not have the sticky bit set, we don't need to have write access to the file itself
+	push @perm_errors, "writeable" unless ( $is_asset_folder_and_not_sticky || -w _ ) ;
+
+	perm_error @_, combine_nor(@perm_errors) if @perm_errors;
+}
+
+our $recursion_level=0;
+
+sub recurse_directory
+{
+	my ( $path, $is_asset_folder ) = @_;
+	
+	# Only visit each path once
+	return if $seen{$path};
+	$seen{$path}++;
+	
+	local $recursion_level=$recursion_level+1;
+	
+	# Treat Asset folder inside projects differently
+	if ( $recursion_level < 3 &&  $optIsUnityProject && ! $is_asset_folder && $path =~ /\/Assets\/*$/ ) {
+		$is_asset_folder = $_[1] = 1;
+	}
+
+	{
+		# Temporarily set effective uid to root before stating the directory to avoid errors with browasbility of the parent directory
+		local $>=0;
+		stat($path) || die "Can't stat directory $path";
+	}
+	
+	my @perm_errors ;
+	
+	push @perm_errors, "browsable" unless ( -x _ );
+	push @perm_errors, "readalbe" unless ( -r _ );
+	push @perm_errors, "writeable" unless ( -w _ );
+	perm_error @_, combine_nor(@perm_errors) if @perm_errors;
+	
+	my $is_sticky = -k _ ; # When the sticky bit is set on a directory, one has to have write access to files to be able to delete them
+
+	my @dirs;
+	my $dirhandle;
+	{
+		local $>=0;
+		opendir($dirhandle, $path) || perm_error(@_,"browsable") ;
+	}
+	while ( my $entry = readdir $dirhandle )
+	{
+		next if $entry =~ /^\.(\.|git|svn|bzr|hq)?$/; # Ignore current and parent directory, and some version control system folders 
+		
+		my $full_path = untaint( File::Spec->catfile($path, $entry) );
+		{ local $>=0; lstat ($full_path) || die "Can't stat $full_path"; }
+		
+		if ( -d _ ) 
+		{
+			push @dirs,$full_path;
+		}
+		else
+		{
+			check_file_permissions($full_path, $is_asset_folder && ! $is_sticky);
+		}
+	}
+	closedir $dirhandle;
+	
+	# Recurse through subdirectories last in order to avoid having too many dirhandles open at the same time
+	for my $full_path (@dirs)
+	{
+		recurse_directory(abs_path($full_path), $is_asset_folder);
+	}
+
+	
+}
+
+# Parse arguments
+my @argv_u = untaint_all(@ARGV);
+
+while ( @argv_u ) 
+{
+	my $current = shift @argv_u;
+	if ( !$end_of_options && $current =~ /^-/ ) 
+	{
+		if ( $current =~ /unity-project/ ) 
+		{
+			$optIsUnityProject = 1;
+		}
+		elsif ( $current =~ /fix/ ) 
+		{
+			$optFixPermissions = 1;
+		}
+		elsif ( $current =~ /uid/ ) 
+		{
+			if ( $current =~/=\s*(.+)$/ ) {
+				$orig_user_uid=$1;
+			}
+			elsif (@argv_u) {
+				$orig_user_uid = shift @argv_u ;
+			}
+			else {
+				print "$current needs an user id argument\n";
+				usage;
+			}
+			if ( $< != 0 && $orig_user_uid != $< ) {
+				print "The --uid parameter requires superuser access\n";
+				usage;
+			}
+		}
+		elsif ( $current eq '--' ) ## -- marks end of options, the rest of the arguments should be treated as pure paths.
+		{
+			$end_of_options=1;
+		}
+		else
+		{
+			print "Unknown option $current\n";
+			usage;
+		}
+	}
+	elsif ( ! -d $current )
+	{
+		print "$current is not a valid directory path\n";
+		usage;
+	}
+	else
+	{
+		push @paths,$current;
+	}
+}
+
+$orig_user_name = untaint(getpwuid($orig_user_uid) || "uid $orig_user_uid");
+$>=$orig_user_uid; # We pretend that we are the non-privileged user while checking permissions
+
+print STDERR "verify_permissions @ARGV, running for $orig_user_name\n";
+
+usage unless @paths;
+
+for my $path (@paths) {
+	my $is_asset_folder = $optIsUnityProject && $path =~ /\/Assets\/*$/i;
+	recurse_directory(abs_path($path),$is_asset_folder);
+}
+
+if( $optFixPermissions ) {
+	print STDERR "Done fixing - ",($error_count?$error_count:'no')," error",($error_count==1?'':'s'),"\n";
+}
+else {
+	print STDERR "Done verifying - no errors\n";
+}
+exit 0;
+

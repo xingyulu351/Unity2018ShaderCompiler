@@ -1,0 +1,5 @@
+{
+	"_comment:" : "Should match UnityEngine.RuntimePlatform in lowercase",
+	"ios" : ["PlatformDependent/iPhonePlayer/Testing/Unity.Automation.Players.iPhone/Unity.Automation.Players.iPhone.csproj"],
+	"tvos" : ["PlatformDependent/iPhonePlayer/Testing/Unity.Automation.Players.iPhone/Unity.Automation.Players.iPhone.csproj"]
+}

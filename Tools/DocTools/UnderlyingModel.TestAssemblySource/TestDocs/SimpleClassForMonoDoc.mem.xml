@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="SimpleClassForMonoDoc" type="Class" namespace="">
+    <section>
+      <summary>This class has docs</summary>      
+    </section>
+    <member name="SimpleClassForMonoDoc.FieldA" type="Field">
+      <section>
+        <summary>docs for FieldA</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.FieldB" type="Field">
+      <section>
+        <summary>docs for FieldB</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.PropertyA" type="Property">
+      <section>
+        <summary>docs for PropertyA</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.PropertyB" type="Property">
+      <section>
+        <summary>docs for PropertyB</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.Foo" type="Method">
+      <section>
+        <summary>docs for Foo</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.Foo" type="Method">
+      <section>
+        <summary>docs for Foo</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.BarInt" type="Method">
+      <section>
+        <summary>docs for BarInt</summary>
+      </section>
+    </member>
+    <member name="SimpleClassForMonoDoc.Baz" type="Method">
+      <section>
+        <summary>docs for BarBool</summary>
+      </section>
+    </member>
+     <member name="SimpleClassForMonoDoc.Foo" type="Method">
+      <section>
+        <summary>docs for Foo</summary>
+      </section>
+    </member>   
+    <member name="SimpleClassForMonoDoc.FooBarBaz" type="Method">
+      <section>
+        <signature><![CDATA[FooBarBaz(int,float,bool)]]></signature>
+        <summary>docs for FooBarBaz</summary>
+        <param name="foo">Foo docs.</param>
+        <param name="bar">Bar docs.</param>
+        <param name="baz">Baz docs.</param>
+        <returns>Return doc.</returns>
+      </section>      
+    </member>
+    <member name="SimpleClassForMonoDoc.Baz" type="Method">
+      <section>
+        <signature><![CDATA[Baz(int)]]></signature>
+        <summary>docs for Baz(int).</summary>
+        <param name="a">a doc.</param>        
+      </section>
+      <section>
+        <signature><![CDATA[Baz(float)]]></signature>
+        <summary>docs for Baz(float).</summary>
+        <param name="b">b doc.</param>        
+      </section> 
+    </member>
+    <member name="SimpleClassForMonoDoc.Qux" type="Method">
+      <section>
+        <signature><![CDATA[Qux(int)]]></signature>
+        <signature><![CDATA[Qux(float)]]></signature>
+        <summary>docs for Qux.</summary>
+        <param name="a">a doc.</param>
+        <param name="b">b doc.</param>        
+      </section> 
+    </member>
+
+    <member name="SimpleClassForMonoDoc.OptionalParameters" type="Method">
+      <section>
+        <signature><![CDATA[OptionalParameters()]]></signature>
+        <signature><![CDATA[OptionalParameters(int)]]></signature>
+        <signature><![CDATA[OptionalParameters(int, int)]]></signature>
+        <signature><![CDATA[OptionalParameters(int, int, int)]]></signature>
+        <summary>Docs for OptionalParameters</summary>
+        <param name="a">a doc.</param>
+        <param name="b">b doc.</param>
+        <param name="c">c doc.</param>
+      </section>
+    </member>
+
+    <member name="SimpleClassForMonoDoc.DefaultValues" type="Method">
+      <section>
+        <signature><![CDATA[DefaultValues()]]></signature>
+        <signature><![CDATA[DefaultValues(int)]]></signature>
+        <signature><![CDATA[DefaultValues(int, int)]]></signature>
+        <summary>Docs for DefaultValues</summary>
+        <param name="a">a doc.</param>
+        <param name="b">b doc.</param>
+      </section>
+    </member>
+
+    <member name="SimpleClassForMonoDoc.DocsWithMarkup" type="Method">
+      <section>
+        <signature><![CDATA[DocsWithMarkup()]]></signature>
+        <summary>[[MyClass]] ::ref::MyPropertyOrMethod MyClass::ref::MyPropertyOrMethod [[MyClass.MyPropertyOrMethod]] MyClass::pref::MyPropertyOrMethod [[wiki:"help.html"|Help]] __bold__ __bold2__ ''italic'' ''italic2'' /variable/ /variable2/ @@monospaced@@ @@monospaced2@@ \\ SA:Something (RO) {img foo.png}</summary>
+        <param name="bold">__bold__</param>
+        <returns>''italic''</returns>
+      </section>
+    </member>
+
+    <member name="SimpleClassForMonoDoc.GenericParameter" type="Method">
+      <section>
+        <signature><![CDATA[GenericParameter(int, IDictionary<int, int>)]]></signature>
+        <summary>doc for GenericParameter</summary>
+      </section>
+    </member>
+
+    <member name="SimpleClassForMonoDoc.MultiDimArray" type="Method">
+      <section>
+        <signature><![CDATA[GenericParameter(int, int[,,,])]]></signature>
+        <summary>doc for MultiDimArray</summary>
+      </section>
+    </member>
+
+
+  </member>
+</doc>

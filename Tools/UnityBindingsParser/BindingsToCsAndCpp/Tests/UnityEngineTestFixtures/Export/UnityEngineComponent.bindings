@@ -1,0 +1,334 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/BaseClasses/Tags.h"
+#if ENABLE_AUDIO
+#include "Runtime/Audio/AudioClip.h"
+#include "Runtime/Audio/AudioSource.h"
+#include "Runtime/Audio/AudioListener.h"
+#endif
+#include "Runtime/Animation/Animation.h"
+#include "Runtime/Math/Color.h"
+#include "Runtime/Utilities/PlayerPrefs.h"
+#include "Runtime/Camera/Camera.h"
+#include "Runtime/Utilities/Word.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Filters/Misc/TextMesh.h"
+#include "Runtime/Dynamics/ConstantForce.h"
+#include "Runtime/Filters/Renderer.h"
+#include "Runtime/Network/NetworkView.h"
+#include "Runtime/Camera/RenderLayers/GUIText.h"
+#include "Runtime/Camera/RenderLayers/GUITexture.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/GetComponent.h"
+#if ENABLE_PHYSICS
+#include "Runtime/Dynamics/Rigidbody.h"
+#include "Runtime/Dynamics/Collider.h"
+#include "Runtime/Dynamics/HingeJoint.h"
+#endif
+#include "Runtime/Dynamics/2D/RigidBody2D.h"
+#include "Runtime/Dynamics/2D/Collider2D.h"
+#include "Runtime/Filters/Particles/ParticleEmitter.h"
+#include "Runtime/ParticleSystem/ParticleSystem.h"
+#include "Runtime/Animation/AnimationClip.h"
+#include "Runtime/File/ApplicationSpecificPersistentDataPath.h"
+#if ENABLE_MONO
+#include "Runtime/Mono/Coroutine.h"
+#endif
+
+using namespace Unity;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// Base class for everything attached to GameObjects.
+NONSEALED_CLASS Component : Object
+	
+	C++RAW
+ #define FAST_COMPONENT_QUERY_COMPONENT_HANDLE(x)  GameObject* go = self->GetGameObjectPtr(); if (go) {Unity::Component* com = go->QueryComponent (x); GetComponentScripting::ScriptingWrapperFor (com, *go, ClassID (x)); return com->GetGCHandle(); } else { RaiseMonoException ("The component is not attached to any game object!"); return 0; }
+
+	C++RAW
+ #define FAST_COMPONENT_QUERY_COMPONENT(x)  GameObject* go = self->GetGameObjectPtr(); if (go) return GetComponentScripting::ScriptingWrapperFor (go->QueryComponent (x), *go, ClassID (x)); else { RaiseMonoException ("The component is not attached to any game object!"); return SCRIPTING_NULL; }
+
+	// The [[Transform]] attached to this [[GameObject]] (null if there is none attached).
+	CSRAW
+	CSRAW public Transform transform 
+	{ 
+		get
+		{
+		#if PLATFORM_WINRT
+			return UnityEngineInternal.ScriptingUtils.GCHandleToObject<Transform>(InternalGetTransformHandle()); 
+		#else
+			return InternalGetTransform();
+		#endif
+		}
+	}
+
+	CUSTOM internal Transform InternalGetTransform()
+	{ 
+		FAST_COMPONENT_QUERY_COMPONENT(Transform);
+	}
+	CONDITIONAL PLATFORM_WINRT
+	CUSTOM internal int InternalGetTransformHandle()
+	{ 
+		FAST_COMPONENT_QUERY_COMPONENT_HANDLE(Transform);
+	}
+
+	// The [[Rigidbody]] attached to this [[GameObject]] (null if there is none attached).
+	CONDITIONAL ENABLE_PHYSICS
+	CUSTOM_PROP Rigidbody rigidbody { FAST_COMPONENT_QUERY_COMPONENT(Rigidbody) }
+	CUSTOM_PROP Rigidbody2D rigidbody2D { FAST_COMPONENT_QUERY_COMPONENT(Rigidbody2D) }
+
+	// The [[Camera]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP Camera camera { FAST_COMPONENT_QUERY_COMPONENT(Camera) }
+	// The [[Light]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP Light light { FAST_COMPONENT_QUERY_COMPONENT(Light) }
+	// The [[Animation]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP Animation animation { FAST_COMPONENT_QUERY_COMPONENT(Animation) }
+	// The [[ConstantForce]] attached to this [[GameObject]] (null if there is none attached).
+	CONDITIONAL ENABLE_PHYSICS
+	CUSTOM_PROP ConstantForce constantForce { FAST_COMPONENT_QUERY_COMPONENT(ConstantForce) }
+	// The [[Renderer]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP Renderer renderer { FAST_COMPONENT_QUERY_COMPONENT(Renderer) }
+	// The [[AudioSource]] attached to this [[GameObject]] (null if there is none attached).
+	CONDITIONAL ENABLE_AUDIO
+	CUSTOM_PROP AudioSource audio { FAST_COMPONENT_QUERY_COMPONENT(AudioSource) }
+	// The [[GUIText]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP GUIText guiText { FAST_COMPONENT_QUERY_COMPONENT(GUIText) }
+	
+	CONDITIONAL ENABLE_NETWORK
+	// The [[NetworkView]] attached to this [[GameObject]] (RO). (null if there is none attached)
+	CUSTOM_PROP NetworkView networkView
+	{
+		#if ENABLE_NETWORK
+		FAST_COMPONENT_QUERY_COMPONENT(NetworkView)
+		#else
+		return SCRIPTING_NULL;
+		#endif
+	}
+
+	FLUSHCONDITIONS
+
+	CSRAW
+#if ENABLE_NETWORK
+	[System.Obsolete ("Please use guiTexture instead")]
+#endif
+	CUSTOM_PROP GUIElement guiElement { FAST_COMPONENT_QUERY_COMPONENT(GUIElement) }
+
+	// The [[GUITexture]] attached to this [[GameObject]] (RO). (null if there is none attached)
+	CUSTOM_PROP GUITexture guiTexture { FAST_COMPONENT_QUERY_COMPONENT(GUITexture) }
+
+	// The [[Collider]] attached to this [[GameObject]] (null if there is none attached).
+	CONDITIONAL ENABLE_PHYSICS
+	CUSTOM_PROP Collider collider { FAST_COMPONENT_QUERY_COMPONENT(Collider) }
+	CUSTOM_PROP Collider2D collider2D { FAST_COMPONENT_QUERY_COMPONENT(Collider2D) }
+
+	// The [[HingeJoint]] attached to this [[GameObject]] (null if there is none attached).
+	CONDITIONAL ENABLE_PHYSICS
+	CUSTOM_PROP HingeJoint hingeJoint { FAST_COMPONENT_QUERY_COMPONENT(HingeJoint) }
+	// The [[ParticleEmitter]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP ParticleEmitter particleEmitter { FAST_COMPONENT_QUERY_COMPONENT(ParticleEmitter) }
+	// The [[ParticleSystem]] attached to this [[GameObject]] (null if there is none attached).
+	CUSTOM_PROP ParticleSystem particleSystem { FAST_COMPONENT_QUERY_COMPONENT(ParticleSystem) }
+
+
+	// The game object this component is attached to. A component is always attached to a game object.
+	
+	CSRAW public GameObject gameObject
+	{
+		get
+		{
+		#if PLATFORM_WINRT
+			return UnityEngineInternal.ScriptingUtils.GCHandleToObject<GameObject>(InternalGetGameObjectHandle()); 
+		#else
+			return InternalGetGameObject();
+		#endif
+		}
+	}
+
+	CUSTOM internal GameObject InternalGetGameObject()
+	{ 
+		return Scripting::ScriptingWrapperFor(self->GetGameObjectPtr()); 
+	}
+	CONDITIONAL PLATFORM_WINRT
+	CUSTOM internal int InternalGetGameObjectHandle()
+	{ 
+		// This will enforce creation of managed object
+		GameObject* go = self->GetGameObjectPtr();
+		if (go->GetGCHandle() == 0) Scripting::ScriptingWrapperFor(go); 
+		return go->GetGCHandle();
+	}
+	// Returns the component of Type /type/ if the game object has one attached, null if it doesn't.
+	
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeReferencedByFirstArgument)]
+	CUSTOM Component GetComponent (Type type)
+	{
+		GameObject* go = self->GetGameObjectPtr();
+		if (go)
+		{
+			return ScriptingGetComponentOfType (*go, type);
+		}
+		else
+		{
+			RaiseMonoException ("The component is not attached to any game object!");
+			return SCRIPTING_NULL;
+		}
+	}
+
+	C++RAW
+
+
+	#if PLATFORM_WINRT
+	GameObject& GetGameObjectThrow (void* com_)
+	{
+		ReadOnlyScriptingObjectOfType<Unity::Component> com(com_);
+	#else
+	GameObject& GetGameObjectThrow (ReadOnlyScriptingObjectOfType<Unity::Component> com)
+	{
+	#endif
+		GameObject* go = com->GetGameObjectPtr();
+		if (go)
+			return *go;
+		{
+			RaiseMonoException ("The component is not attached to any game object!");
+			return *go;
+		}
+	}
+
+	CSRAW
+	#if ENABLE_GENERICS
+	// Generic version. See the [[wiki:Generic Functions|Generic Functions]] page for more details.
+	public T GetComponent<T>() where T : Component { return GetComponent(typeof(T)) as T; }
+	#endif
+
+	// Returns the component with name /type/ if the game object has one attached, null if it doesn't.
+	
+	CSRAW public Component GetComponent (string type) { return gameObject.GetComponent(type); }
+	
+
+	
+	
+	// Returns the component of Type /type/ in the [[GameObject]] or any of its children using depth first search.
+	
+	
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeReferencedByFirstArgument)]
+	CSRAW public Component GetComponentInChildren (Type t) { return gameObject.GetComponentInChildren (t); }
+
+	CSRAW
+	#if ENABLE_GENERICS
+	// Generic version. See the [[wiki:Generic Functions|Generic Functions]] page for more details.
+	public T GetComponentInChildren<T> () where T : Component { return (T) GetComponentInChildren(typeof(T)); }
+	#endif
+
+
+	// Returns all components of Type /type/ in the [[GameObject]] or any of its children.
+	
+	CSRAW public Component[] GetComponentsInChildren (Type t, bool includeInactive = false) { return gameObject.GetComponentsInChildren (t, includeInactive); }
+	
+	CSRAW
+	#if ENABLE_GENERICS
+	// Generic version. See the [[wiki:Generic Functions|Generic Functions]] page for more details.
+	public T[] GetComponentsInChildren<T> (bool includeInactive) where T : Component { return gameObject.GetComponentsInChildren<T>(includeInactive); }
+	#endif
+
+	CSRAW
+	#if ENABLE_GENERICS
+	// adding overload manually because lucas can't figure out how to get the cspreprocess overload generation code to deal with templates right now.
+	// Generic version. See the [[wiki:Generic Functions|Generic Functions]] page for more details.
+	public T[] GetComponentsInChildren<T> () where T : Component { return GetComponentsInChildren<T>(false); }
+	#endif
+
+	
+	
+	// Returns all components of Type /type/ in the [[GameObject]].
+	
+	CUSTOM Component[] GetComponents (Type type)  { return ScriptingGetComponentsOfType (GetGameObjectThrow(self), type, false, false, true); }
+
+	CUSTOM private Component[] GetComponentsWithCorrectReturnType(Type type) { return ScriptingGetComponentsOfType (GetGameObjectThrow(self), type, true, false, true); }
+	
+	CSRAW
+	#if ENABLE_GENERICS
+	// Generic version. See the [[wiki:Generic Functions|Generic Functions]] page for more details.
+	public T[] GetComponents<T>() where T : Component
+	{
+		return (T[]) GetComponentsWithCorrectReturnType(typeof(T));
+	}
+	#endif
+		
+
+	OBSOLETE warning the active property is deprecated on components. Please use gameObject.active instead. If you meant to enable / disable a single component use enabled instead.
+	CUSTOM_PROP bool active { return self->IsActive (); } { GameObject& go = GetGameObjectThrow(self); if (value) go.Activate (); else go.Deactivate (); }
+	
+	// The tag of this game object.
+	CUSTOM_PROP string tag
+	{ 
+		const string& tag = TagToString (GetGameObjectThrow(self).GetTag ());
+		if (!tag.empty ())
+			return CreateScriptingString (tag);
+		else
+		{
+			RaiseMonoException ("GameObject has undefined tag!");
+			return SCRIPTING_NULL;
+		}
+	}
+	{ 
+		GetGameObjectThrow(self).SetTag (ExtractTagThrowing (value));
+	}
+	
+	// Is this game object tagged /tag/?
+	CUSTOM public bool CompareTag (string tag) { return ExtractTagThrowing (tag) == GetGameObjectThrow(self).GetTag (); }
+	
+
+	// Calls the method named /methodName/ on every [[MonoBehaviour]] in this game object and on every ancestor of the behaviour
+	CUSTOM void SendMessageUpwards (string methodName, object value = null, SendMessageOptions options = SendMessageOptions.RequireReceiver)
+	{
+		Scripting::SendScriptingMessageUpwards(GetGameObjectThrow(self), methodName, value, options);
+	}
+	
+	//*undocumented* Function is for convenience and avoid coming mistakes.
+	CSRAW public void SendMessageUpwards (string methodName, SendMessageOptions options)
+	{
+		SendMessageUpwards (methodName, null, options);
+	}
+
+	
+
+	// Calls the method named /methodName/ on every [[MonoBehaviour]] in this game object.
+	CUSTOM void SendMessage (string methodName, object value = null, SendMessageOptions options = SendMessageOptions.RequireReceiver)
+	{
+		Scripting::SendScriptingMessage(GetGameObjectThrow(self), methodName, value, options);
+	}
+
+	//*undocumented* Function is for convenience and avoid coming mistakes.
+	CSRAW public void SendMessage (string methodName, SendMessageOptions options)
+	{
+		SendMessage (methodName, null, options);
+	}
+
+
+	// Calls the method named /methodName/ on every [[MonoBehaviour]] in this game object or any of its children.
+	CUSTOM void BroadcastMessage (string methodName, object parameter = null, SendMessageOptions options = SendMessageOptions.RequireReceiver)
+	{
+		Scripting::BroadcastScriptingMessage (GetGameObjectThrow(self), methodName, parameter, options);
+	}
+	
+	//*undocumented* Function is for convenience and avoid coming mistakes.
+	CSRAW public void BroadcastMessage (string methodName, SendMessageOptions options)
+	{
+		BroadcastMessage (methodName, null, options);
+	}
+END
+
+CSRAW }

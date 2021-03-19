@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="operator +" type="operator" modifiers="public static" />
+      <ParamElement name="a" type="Vector3" hasLink="true" />
+      <ParamElement name="b" type="Vector3" hasLink="true" />
+      <ReturnType hasLink="true">Vector3</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Adds two vectors.]]></Summary>
+    <ParamWithDoc>
+      <name>a</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>b</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[Adds corresponding components together.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	// prints (5.0,7.0,9.0)
+	print (]]><link ref="Vector3">Vector3</link><![CDATA[(1,2,3) + ]]><link ref="Vector3">Vector3</link><![CDATA[(4,5,6));]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Example() {
+        print(new ]]><link ref="Vector3">Vector3</link><![CDATA[(1, 2, 3) + new ]]><link ref="Vector3">Vector3</link><![CDATA[(4, 5, 6));
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

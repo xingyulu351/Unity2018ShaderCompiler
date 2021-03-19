@@ -1,0 +1,22 @@
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Project" type="function" modifiers="static" />
+      <ParamElement name="vector" type="Vector3" />
+      <ParamElement name="onNormal" type="Vector3" />
+      <ReturnType>Vector3</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Projects a vector onto another vector.]]></Summary>
+    <ParamWithDoc>
+      <name>vector</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>onNormal</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[blahblah ]]><varname>onNormal</varname><![CDATA[ blahblah2 ]]><varname>vector</varname><![CDATA[. The
+projection ]]><varname>onNormal</varname><image>Vec3ProjectDiagram.png</image><p /></Description>
+   </Section>
+</Model>

@@ -1,0 +1,267 @@
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			mod=Unity.exe,src=atomicqueue.cpp;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=RunThreadWrapper,mod=Unity.exe,src=thread.cpp,line=44,func_line=21;
+		}
+		{
+			!!!;
+			func=WaitForExit,mod=Unity.exe,src=thread.cpp,line=85,func_line=1;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			mod=Unity.exe,func=delete_object_internal_step2,src=baseobject.cpp,line=1353,func_line=2;
+			mod=Unity.exe,func=BatchDeleteStep2Threaded,src=batchdeleteobjects.cpp,line=105,func_line=18;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			mod=Unity.exe,src=extendedatomicops-x86-64.h;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=SignalQuit,mod=Unity.exe,src=thread.cpp,line=115,func_line=1;
+		}
+		{
+			!!!;
+			func=IsQuitSignaled,mod=Unity.exe,src=thread.h,line=52,func_line=0;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=RunThreadWrapper,mod=Unity.exe,src=thread.cpp,line=44,func_line=21;
+		}
+		{
+			!!!;
+			func=~Thread,mod=Unity.exe,src=thread.cpp,line=68,func_line=1;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=WriteSubmitData,mod=Unity.exe,src=threadedstreambuffer.cpp,line=200,func_line=2;
+		}
+		{
+			!!!;
+			func=HandleReadOverflow,mod=Unity.exe,src=threadedstreambuffer.cpp,line=252,func_line=16;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=SetStatusInternal,mod=Unity.exe,src=asyncreadmanagerthreaded.cpp,line=164,func_line=3;
+		}
+		{
+			!!!;
+			func=LockCacheBlock,mod=Unity.exe,src=filecacherread.cpp;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=SetStatusInternal,mod=Unity.exe,src=asyncreadmanagerthreaded.cpp,line=164,func_line=3;
+		}
+		{
+			!!!;
+			func=RequestBlock,mod=Unity.exe,src=filecacherread.cpp,line=100,func_line=12;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=SetStatusInternal,mod=Unity.exe,src=asyncreadmanagerthreaded.cpp,line=164,func_line=3;
+		}
+		{
+			!!!;
+			func=WaitDone,mod=Unity.exe,src=asyncreadmanagerthreaded.cpp;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			func=BatchDeleteStep2Threaded,mod=Unity.exe,src=batchdeleteobjects.cpp,line=105,func_line=18;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=Exec,mod=Unity.exe,src=jobqueue.cpp,line=291,func_line=33;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			func=Request,mod=Unity.exe,src=filecacherread.cpp,line=152,func_line=6;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=ThreadEntry,mod=Unity.exe,src=asyncreadmanagerthreaded.cpp,line=94,func_line=32;
+		}
+		{
+			!!!;
+			func=Request,mod=Unity.exe,src=filecacherread.cpp;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			func=Shutdown,mod=Unity.exe,src=socketstreams.cpp,line=106,func_line=15;
+		}
+		{
+			!!!;
+			func=WriterLoop,mod=Unity.exe,src=socketstreams.cpp,line=285,func_line=2;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			!!!;
+			mod=Unity.exe,src=asyncreadmanagerthreaded.cpp,func=SetStatusInternal,line=163,func_line=3;
+		}
+		{
+			!!!;
+			mod=Unity.exe,src=filecacherread.cpp,func=Request,line=151,func_line=5;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			mod=Unity.exe,func=CreateBatchDelete,src=batchdeleteobjects.cpp,func_line=10;
+		}
+		{
+			...;
+			mod=Unity.exe,func=BatchDeleteStep2Threaded,src=batchdeleteobjects.cpp,func_line=6;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			mod=Unity.exe,func=AddOneBatchDeleteObject,src=batchdeleteobjects.h,line=36,func_line=7;
+		}
+		{
+			...;
+			mod=Unity.exe,func=BatchDeleteStep2Threaded,src=batchdeleteobjects.cpp,line=107,func_line=20;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			mod=Unity.exe,func=BatchDeleteStep2Threaded,src=batchdeleteobjects.cpp,func_line=20;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			mod=Unity.exe,func=ProduceData,src=threadedstreambuffertests.cpp,func_line=3;
+		}
+		{
+			...;
+			mod=Unity.exe,func=ConsumeData,src=threadedstreambuffertests.cpp,func_line=4;
+		}
+	}
+}
+suppression = {
+	name = "Suppression"
+	type = {datarace}
+	stacks = {
+		{
+			...;
+			mod=Unity.exe,func=RunThreadWrapper,src=thread.cpp,line=44,func_line=21;
+		}
+		{
+			...;
+			mod=Unity.exe,func=WaitForThreads,src=multithreadedtestfixture.cpp,func_line=3;
+		}
+	}
+}

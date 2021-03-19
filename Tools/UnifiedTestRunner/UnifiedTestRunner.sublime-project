@@ -1,0 +1,23 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "."
+		}
+	],
+
+	"settings": {
+		"tabify_tab_size" : 4,
+    	"perltidy_options": [ 
+			"--opening-brace-on-new-line", 
+			"--output-line-ending=unix",
+			"--maximum-line-length=100",
+			"--space-function-paren",
+			"--indent-columns=1",
+			"--tabs", 
+			"--space-keyword-paren",
+			"--entab-leading-whitespace=1"
+    	]
+    }
+}

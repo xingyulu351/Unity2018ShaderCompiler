@@ -1,0 +1,8 @@
+SOURCES  += ../lib/src/MainWindow.cpp \
+						../lib/src/mainwindow.ui \
+						../lib/src/PreviewDialog.cpp \
+						../lib/src/previewdialog.ui \
+						../lib/src/AttachmentsTableModel.cpp \
+						../lib/src/CommonPhrases.cpp
+
+#TRANSLATIONS = ./ts/bugreporter_uk_UA.ts 

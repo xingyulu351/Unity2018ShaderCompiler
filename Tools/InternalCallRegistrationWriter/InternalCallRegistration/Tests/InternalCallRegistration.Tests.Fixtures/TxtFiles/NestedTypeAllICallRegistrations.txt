@@ -1,0 +1,4 @@
+//System.Void UnityEngine.OuterType/InnerType::MethodInInnerType()
+void Register_UnityEngine_OuterType_InnerType_MethodInInnerType();
+Register_UnityEngine_OuterType_InnerType_MethodInInnerType();
+

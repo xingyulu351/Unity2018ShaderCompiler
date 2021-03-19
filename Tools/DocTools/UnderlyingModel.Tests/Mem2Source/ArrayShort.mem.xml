@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+    <member name="Array" type="Class" namespace="">
+        <section doconly="true">
+            <summary>Arrays allow you to store multiple objects in a single variable.</summary>
+            <description>The Array class is only available in Javascript.
+
+__Here is a basic example of what you can do with an array class: __</description>
+            <example>
+                <code lang="js"><![CDATA[
+example
+content
+]]></code>
+            </example>
+        </section>
+    </member>
+</doc>

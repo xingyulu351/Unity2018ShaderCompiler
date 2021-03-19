@@ -1,0 +1,330 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Scripting/DelayedCallUtility.h"
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// MonoBehaviour is the base class every script derives from.
+CSRAW
+NONSEALED_CLASS MonoBehaviour : Behaviour
+
+	//*undocumented*
+	THREAD_AND_SERIALIZATION_SAFE
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+	CUSTOM public MonoBehaviour ()
+	{
+		#if UNITY_EDITOR
+		if (self.GetInstanceID() == 0)
+		{
+			ScriptWarning ("You are trying to create a MonoBehaviour using the 'new' keyword.  This is not allowed.  MonoBehaviours can only be added using AddComponent().  Alternatively, your script can inherit from ScriptableObject or no base class at all", NULL);
+		}
+		#endif
+	}
+	
+	// Update is called every frame, if the MonoBehaviour is enabled.
+	CSNONE void Update ();
+	
+	
+	// LateUpdate is called every frame, if the [[Behaviour]] is enabled.
+	CSNONE void LateUpdate ();
+	
+	
+	// This function is called every fixed framerate frame, if the MonoBehaviour is enabled.
+	CSNONE void FixedUpdate ();
+	
+	
+	// Awake is called when the script instance is being loaded.
+	CSNONE void Awake ();
+	
+	
+	// Start is called just before any of the Update methods is called the first time.
+	CSNONE void Start ();
+	
+	
+	// Reset to default values.
+	CSNONE void Reset ();
+	
+
+	// OnMouseEnter is called when the mouse entered the [[GUIElement]] or [[Collider]].
+	CSNONE void OnMouseEnter ();
+
+
+	// OnMouseOver is called every frame while the mouse is over the [[GUIElement]] or [[Collider]].
+	CSNONE void OnMouseOver ();
+
+
+	// OnMouseExit is called when the mouse is not any longer over the [[GUIElement]] or [[Collider]].
+	CSNONE void OnMouseExit ();
+
+
+	// OnMouseDown is called when the user has pressed the mouse button while over the [[GUIElement]] or [[Collider]].
+	CSNONE void OnMouseDown ();
+	
+	// OnMouseUp is called when the user has released the mouse button.
+	CSNONE void OnMouseUp ();
+	
+	
+	// OnMouseUpAsButton is only called when the mouse is released over the same [[GUIElement]] or [[Collider]] as it was pressed.  
+	CSNONE void OnMouseUpAsButton ();	
+	
+	
+	// OnMouseDrag is called when the user has clicked on a [[GUIElement]] or [[Collider]] and is still holding down the mouse.
+	CSNONE void OnMouseDrag ();
+
+	// OnTriggerEnter is called when the [[Collider]] /other/ enters the [[class-BoxCollider|trigger]].
+	CSNONE void OnTriggerEnter (Collider other);
+
+	// OnTriggerExit is called when the [[Collider]] /other/ has stopped touching the [[class-BoxCollider|trigger]].
+	CSNONE void OnTriggerExit (Collider other);
+
+	// OnTriggerStay is called once per frame for every [[Collider]] /other/ that is touching the [[class-BoxCollider|trigger]].
+	CSNONE void OnTriggerStay (Collider other);
+
+	// OnCollisionEnter is called when this collider/rigidbody has begun touching another rigidbody/collider.
+	CSNONE void OnCollisionEnter (Collision collisionInfo);
+
+	// OnCollisionExit is called when this collider/rigidbody has stopped touching another rigidbody/collider.
+	CSNONE void OnCollisionExit (Collision collisionInfo);
+
+	// OnCollisionStay is called once per frame for every collider/rigidbody that is touching rigidbody/collider.
+	CSNONE void OnCollisionStay (Collision collisionInfo);
+
+	// OnControllerColliderHit is called when the controller hits a collider while performing a Move.
+	CSNONE void OnControllerColliderHit (ControllerColliderHit hit);
+	
+	// Called when a joint attached to the same game object broke.
+	CSNONE void OnJointBreak (float breakForce);
+
+	CSNONE void OnCollision2DEnter (Collision2D info);
+	CSNONE void OnCollision2DExit (Collision2D info);
+	CSNONE void OnCollision2DStay (Collision2D info);
+
+	// OnParticleCollision is called when a particle hits a collider (legacy particle system only).
+	CSNONE void OnParticleCollision (GameObject other);
+
+	// OnBecameVisible is called when the renderer became visible by any camera.
+	CSNONE void OnBecameVisible();
+
+	// OnBecameInvisible is called when the renderer is no longer visible by any camera.
+	CSNONE void OnBecameInvisible();
+	
+	// This function is called after a new level was loaded.
+	CSNONE void OnLevelWasLoaded (int level);
+
+	// This function is called when the object becomes enabled and active.
+	CSNONE void OnEnable ();
+	
+	
+	// This function is called when the behaviour becomes disabled () or inactive.
+	CSNONE void OnDisable();
+
+
+	// This function is called when the script is loaded or a value is changed in the inspector, use it to validate your data.
+	CSNONE void OnValidate ();
+	
+
+	// This function is called when the MonoBehaviour will be destroyed.
+	CSNONE void OnDestroy();
+
+
+	// OnPreCull is called before a camera culls the scene.
+	CSNONE void OnPreCull ();
+
+	// OnPreRender is called before a camera starts rendering the scene.
+	CSNONE void OnPreRender ();
+
+	// OnPostRender is called after a camera finished rendering the scene.
+	CSNONE void OnPostRender ();
+
+
+	// OnRenderObject is called after camera has rendered the scene.
+	CSNONE void OnRenderObject ();
+	
+	
+	// OnWillRenderObject is called once for each camera if the object is visible.
+	CSNONE void OnWillRenderObject ();
+	
+	// OnGUI is called for rendering and handling GUI events.
+	CSNONE void OnGUI ();
+
+	// OnRenderImage is called after all rendering is complete to render image
+	CSNONE void OnRenderImage (RenderTexture source, RenderTexture destination);
+
+
+	// Implement this OnDrawGizmosSelected if you want to draw gizmos only if the object is selected.
+	CSNONE void OnDrawGizmosSelected ();
+
+	// Implement this OnDrawGizmos if you want to draw gizmos that are also pickable and always drawn.
+	CSNONE void OnDrawGizmos ();
+	
+	// Sent to all game objects when the player pauses.
+	CSNONE void OnApplicationPause(bool pause);
+	
+	// Sent to all game objects when the player gets or loses focus.
+	CSNONE void OnApplicationFocus(bool focus);
+	
+	// Sent to all game objects before the application is quit.
+	CSNONE void OnApplicationQuit ();
+	
+	// Called on the server whenever a new player has successfully connected.
+	CSNONE void OnPlayerConnected (NetworkPlayer player);
+
+	// Called on the server whenever a Network.InitializeServer was invoked and has completed.
+	CSNONE void OnServerInitialized ();
+
+	// Called on the client when you have successfully connected to a server
+	CSNONE void OnConnectedToServer ();
+
+	// Called on the server whenever a player disconnected from the server.
+	CSNONE void OnPlayerDisconnected (NetworkPlayer player);
+	
+	// Called on the client when the connection was lost or you disconnected from the server.
+	CSNONE void OnDisconnectedFromServer (NetworkDisconnection mode);
+
+	// Called on the client when a connection attempt fails for some reason.
+	CSNONE void OnFailedToConnect (NetworkConnectionError error);
+	
+	// Called on clients or servers when there is a problem connecting to the MasterServer. 
+	CSNONE void OnFailedToConnectToMasterServer (NetworkConnectionError error);
+	
+	// Called on clients or servers when reporting events from the MasterServer. 
+	CSNONE void OnMasterServerEvent (MasterServerEvent msEvent);
+
+	// Called on objects which have been network instantiated with Network.Instantiate
+	CSNONE void OnNetworkInstantiate (NetworkMessageInfo info);
+
+	// Used to customize synchronization of variables in a script watched by a network view.
+	CSNONE void OnSerializeNetworkView (BitStream stream, NetworkMessageInfo info);
+	
+	// If OnAudioFilterRead is implemented, Unity will insert a custom filter into the audio DSP chain.
+	CSNONE void OnAudioFilterRead ();
+
+	
+	
+	// Callback for processing animation movements for modifying root motion. 
+	CSNONE void OnAnimatorMove ();
+	
+	// Callback for setting up animation IK (inverse kinematics)
+	CSNONE void OnAnimatorIK (int layerIndex); 
+	
+	CUSTOM private void Internal_CancelInvokeAll ()
+	{
+		CancelInvoke (*self);
+	}
+
+	CUSTOM private bool Internal_IsInvokingAll ()
+	{
+		return IsInvoking (*self);
+	}
+
+	// Invokes the method /methodName/ in time seconds.
+	CUSTOM void Invoke (string methodName, float time)
+	{
+		InvokeDelayed (*self, methodName, time, 0.0F);
+	}
+	
+	// Invokes the method /methodName/ in /time/ seconds.
+	CUSTOM void InvokeRepeating (string methodName, float time, float repeatRate) 
+	{ 
+		InvokeDelayed (*self, methodName, time, repeatRate); 
+	}
+
+
+	// Cancels all Invoke calls on this MonoBehaviour.
+	CSRAW public void CancelInvoke ()
+	{
+		Internal_CancelInvokeAll (); 
+	} 
+
+	// Cancels all Invoke calls with name /methodName/ on this behaviour.
+	CUSTOM void CancelInvoke (string methodName) { CancelInvoke (*self, methodName); }
+	
+
+	// Is any invoke on /methodName/ pending?
+	CUSTOM bool IsInvoking (string methodName) { return IsInvoking (*self, methodName); }
+	
+	// Is any invoke pending on this MonoBehaviour?
+	CSRAW public bool IsInvoking ()
+	{ 
+		return Internal_IsInvokingAll (); 
+	}
+		
+	// Starts a coroutine.
+	CSRAW public Coroutine StartCoroutine (IEnumerator routine)
+	{
+		return StartCoroutine_Auto(routine);
+	}
+	//*undocumented*
+
+	CUSTOM Coroutine StartCoroutine_Auto (IEnumerator routine)
+	{
+		MonoRaiseIfNull(routine);
+		return self->StartCoroutineManaged2(routine);
+	}
+
+
+	// Starts a coroutine named /methodName/.
+	CUSTOM Coroutine StartCoroutine (string methodName, object value = null) 
+	{
+		MonoRaiseIfNull((void*)(!methodName.IsNull()));
+		char* cString = ScriptingStringToAllocatedChars (methodName);
+		ScriptingObjectPtr coroutine = self->StartCoroutineManaged (cString, value);
+		ScriptingStringToAllocatedChars_Free (cString);
+		return coroutine;
+	}
+
+	// Stops all coroutines named /methodName/ running on this behaviour.
+	CUSTOM void StopCoroutine (string methodName) { self->StopCoroutine(methodName.ToUTF8().c_str()); }
+	
+
+	// Stops all coroutines running on this behaviour.
+	CUSTOM void StopAllCoroutines () { self->StopAllCoroutines(); }
+	
+	// Logs message to the Unity Console. This function is identical to [[Debug.Log]].
+	CSRAW public static void print (object message)
+	{
+		Debug.Log (message);
+	}
+
+	// Disabling this lets you skip the GUI layout phase.
+	CONDITIONAL !PLATFORM_WEBGL
+	AUTO_PROP bool useGUILayout GetUseGUILayout SetUseGUILayout
+
+	CSRAW #if PLATFORM_WINRT
+	CSRAW private static FastCallExceptionHandler _fastCallExceptionHandler;
+
+    CSRAW internal static void SetupFastCallExceptionHandler(FastCallExceptionHandler handler)
+    {
+        _fastCallExceptionHandler = handler;
+    }
+
+    CSRAW protected static void HandleFastCallException(Exception ex)
+    {
+		if (_fastCallExceptionHandler != null)
+			_fastCallExceptionHandler(ex);
+		else throw ex;
+    }
+	CSRAW #endif
+
+END	
+
+
+
+CSRAW }
+

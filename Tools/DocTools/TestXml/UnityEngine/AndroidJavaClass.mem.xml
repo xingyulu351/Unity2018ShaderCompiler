@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="AndroidJavaClass" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>AndroidJavaClass is the Unity representation of a generic instance of java.lang.Class.</summary>
+    </section>
+    <member name="AndroidJavaClass.ctor" type="Constructor">
+      <section>
+        <signature><![CDATA[ctor(string)]]></signature>
+        <summary>Construct an AndroidJavaClass from the class name.</summary>
+        <param name="className">Specifies the Java class name (e.g. &lt;tt&gt;java.lang.String&lt;/tt&gt;).</param>
+        <description>This essentially means locate the class type and allocate a &lt;tt&gt;java.lang.Class&lt;/tt&gt; object of that particular type.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	// Try to collect some Java garbage..
+	function Start() {
+		var jc = new AndroidJavaClass("java.lang.System");
+		jc.CallStatic("gc");
+	}]]></code>
+        </example>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	// Retrieve the manufacturer of the product/hardware.
+	function Start() {
+		var jc = new AndroidJavaClass("android.os.Build");
+		var manufacturer = jc.Get.<String>("MANUFACTURER");
+	}]]></code>
+        </example>
+      </section>
+      <section undoc="true" />
+    </member>
+  </member>
+</doc>

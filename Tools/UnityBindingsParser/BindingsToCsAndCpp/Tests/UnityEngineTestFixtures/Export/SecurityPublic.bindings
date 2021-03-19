@@ -1,0 +1,25 @@
+CSRAW
+using System;
+using System.Security;
+
+namespace UnityEngine
+{
+CSRAW #if !PLATFORM_WINRT
+	// Webplayer security related class.
+	CLASS Security
+	
+		// Prefetch the webplayer socket security policy from a non-default port number.
+		CSRAW static public bool PrefetchSocketPolicy(string ip, int atPort, int timeout=3000)
+		{
+		#if PLATFORM_ANDROID || PLATFORM_IPHONE
+			return true;
+		#else
+			var method = GetUnityCrossDomainHelperMethod("PrefetchSocketPolicy");
+			var result = method.Invoke(null, new object[] { ip, atPort, timeout});
+			return (bool)result;
+		#endif
+		}		
+		
+	END
+CSRAW #endif
+}

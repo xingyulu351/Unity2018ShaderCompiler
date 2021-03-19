@@ -1,0 +1,4 @@
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CommonTools.JsonWrapper\bin\Debug\Unity.CommonTools.JsonWrapper.dll.mdb
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CommonTools.JsonWrapper\bin\Debug\Unity.CommonTools.JsonWrapper.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CommonTools.JsonWrapper\obj\Debug\Unity.CommonTools.JsonWrapper.dll
+E:\LOL_MOBILE_UNITY\3.8.2021\unity2018\unity2018\Tools\Unity.CommonTools.JsonWrapper\obj\Debug\Unity.CommonTools.JsonWrapper.dll.mdb

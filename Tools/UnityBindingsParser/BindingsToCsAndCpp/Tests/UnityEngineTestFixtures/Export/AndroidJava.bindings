@@ -1,0 +1,114 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+
+CSRAW
+#if UNITY_EDITOR || PLATFORM_ANDROID
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace UnityEngine
+{
+
+// AndroidJavaObject is the Unity representation of a generic instance of java.lang.Object.
+NONSEALED_CLASS AndroidJavaObject : IDisposable
+
+	// Construct an AndroidJavaObject based on the name of the class.
+	CSRAW public AndroidJavaObject(string className, params object[] args) : this()
+	{
+		_AndroidJavaObject(className, args);
+	}
+
+	// IDisposable callback
+	CSRAW public void Dispose()
+	{
+		_Dispose();
+	}
+
+	//===================================================================
+
+	// Calls a Java method on an object (non-static).
+	CSRAW public void Call(string methodName, params object[] args)
+	{
+		_Call(methodName, args);
+	}
+
+	//===================================================================
+
+	// Call a static Java method on a class.
+	CSRAW public void CallStatic(string methodName, params object[] args)
+	{
+		_CallStatic(methodName, args);
+	}
+
+	//===================================================================
+
+	// Get the value of a field in an object (non-static).
+	CSRAW public FieldType Get<FieldType>(string fieldName)
+	{
+		return _Get<FieldType>(fieldName);
+	}
+
+
+	// Set the value of a field in an object (non-static).
+	CSRAW public void Set<FieldType>(string fieldName, FieldType val)
+	{
+		_Set<FieldType>(fieldName, val);
+	}
+
+
+	//===================================================================
+
+	// Get the value of a static field in an object type.
+	CSRAW public FieldType GetStatic<FieldType>(string fieldName)
+	{
+		return _GetStatic<FieldType>(fieldName);
+	}
+
+
+	// Set the value of a static field in an object type.
+	CSRAW public void SetStatic<FieldType>(string fieldName, FieldType val)
+	{
+		_SetStatic<FieldType>(fieldName, val);
+	}
+
+
+	//===================================================================
+
+	// Retrieve the <i>raw</i> jobject pointer to the Java object.
+	CSRAW public IntPtr GetRawObject() { return _GetRawObject(); }
+	// Retrieve the <i>raw</i> jclass pointer to the Java class;
+	CSRAW public IntPtr GetRawClass() { return _GetRawClass(); }
+
+	//===================================================================
+
+	// Call a Java method on an object.
+	CSRAW public ReturnType Call<ReturnType>(string methodName, params object[] args)
+	{
+		return _Call<ReturnType>(methodName, args);
+	}
+
+	// Call a static Java method on a class.
+	CSRAW public ReturnType CallStatic<ReturnType>(string methodName, params object[] args)
+	{
+		return _CallStatic<ReturnType>(methodName, args);
+	}
+END
+
+// AndroidJavaClass is the Unity representation of a generic instance of java.lang.Class
+NONSEALED_CLASS AndroidJavaClass : AndroidJavaObject
+
+	// Construct an AndroidJavaClass from the class name
+	CSRAW public AndroidJavaClass(string className) : base()
+	{
+		_AndroidJavaClass(className);
+	}
+END
+
+CSRAW
+}
+#endif

@@ -1,0 +1,6 @@
+FunctionsCovered=4
+FunctionsTotal=12
+ConditionsDecisionsCovered=61
+ConditionsDecisionsTotal=244
+DecisionsCovered=37
+DecisionsTotal=148

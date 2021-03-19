@@ -1,0 +1,5 @@
+[
+{"names":["scriptingruntimeversion"],"description":"Specifies the scripting runtime version to run the tests with.","valueType":2,"defaultValue":"Latest","allowedValues":["Latest","Legacy","NotSet"]},
+{"names":["scriptingbackend"],"description":"Specifies the scripting backend to run the tests with.","valueType":2,"defaultValue":null,"allowedValues":["DotNet","Il2Cpp","Mono","NotSet"]},
+{"names":["apiprofile"],"description":"Set API Compatibility Profile","valueType":2,"defaultValue":"NotSet","allowedValues":["All","Full","NotSet","Profile2_0","Profile4_6","ProfileNetStandard2_0","Subset"]}
+]

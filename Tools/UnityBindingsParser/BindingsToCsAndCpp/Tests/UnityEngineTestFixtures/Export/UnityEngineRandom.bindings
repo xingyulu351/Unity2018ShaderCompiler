@@ -1,0 +1,70 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Runtime/Math/Random/Random.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include <ctime>
+	
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// Class for generating random data.
+CLASS Random
+
+	C++RAW
+	Rand gScriptingRand = Rand::GetUniqueGenerator();
+	
+	// Sets the seed for the random number generator.
+	CUSTOM_PROP static int seed { return gScriptingRand.GetSeed(); } { gScriptingRand.SetSeed(value); }
+
+	// Returns a random float number between and /min/ [inclusive] and /max/ [inclusive] (RO).
+	CUSTOM static float Range (float min, float max)  { return RangedRandom (gScriptingRand, min, max); }
+
+	// Returns a random integer number between /min/ [inclusive] and /max/ [exclusive] (RO). 
+	CSRAW public static int Range (int min, int max) { return RandomRangeInt (min, max); }
+
+	CUSTOM private static int RandomRangeInt (int min, int max) { return RangedRandom (gScriptingRand, min, max); }
+
+	// Returns a random number between 0.0 [inclusive] and 1.0 [inclusive] (RO).
+	CUSTOM_PROP static float value { return Random01 (gScriptingRand); }
+
+	// Returns a random point inside a sphere with radius 1 (RO).
+	CUSTOM_PROP static Vector3 insideUnitSphere { return RandomPointInsideUnitSphere (gScriptingRand); }
+
+	// Workaround for gcc/msvc where passing small mono structures by value does not work
+	CUSTOM private static void GetRandomUnitCircle (out Vector2 output)
+	{
+		*output = RandomPointInsideUnitCircle (gScriptingRand);
+	}
+
+	// Returns a random point inside a circle with radius 1 (RO).
+	CSRAW public static Vector2 insideUnitCircle { get { Vector2 r; GetRandomUnitCircle(out r); return r; } }
+
+	// Returns a random point on the surface of a sphere with radius 1 (RO).
+	CUSTOM_PROP static Vector3 onUnitSphere { return RandomUnitVector (gScriptingRand); }
+	
+	// Returns a random rotation (RO).
+	CUSTOM_PROP static Quaternion rotation { return RandomQuaternion (gScriptingRand); }
+
+	// Returns a random rotation with uniform distribution(RO).
+	CUSTOM_PROP static Quaternion rotationUniform { return RandomQuaternionUniformDistribution (gScriptingRand); }
+
+
+	OBSOLETE warning Use Random.Range instead
+	CSRAW public static float RandomRange (float min, float max)  { return Range (min, max); }
+	OBSOLETE warning Use Random.Range instead
+	CSRAW public static int RandomRange (int min, int max) { return Range (min, max); }
+END
+
+
+CSRAW }

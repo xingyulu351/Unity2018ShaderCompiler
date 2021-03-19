@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="PlayerSettings.PSVita" type="Class" namespace="UnityEditor">
+    <section>
+      <summary>PS Vita specific player settings.</summary>
+    </section>
+  </member>
+</doc>

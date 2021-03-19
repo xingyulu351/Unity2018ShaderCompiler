@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="sqrMagnitude" type="var" modifiers="public" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Returns the squared length of this vector (Read Only).]]></Summary>
+    <Description><![CDATA[The magnitude of a vector ]]><varname>v</varname><![CDATA[ is calculated as Mathf.Sqrt(Vector3.Dot(v, v)). However, the
+Sqrt calculation is quite complicated and takes longer to execute than the normal arithmetic
+operations. 
+Calculating the squared magnitude instead of using the ]]><link ref="Vector3-magnitude">magnitude</link><![CDATA[ property is much faster -
+the calculation is basically the same only without the slow Sqrt call. If you are using
+magnitudes simply to compare distances, then you can just as well compare squared magnitudes against
+the squares of distances since the comparison will give the same result.]]><br /><br /><![CDATA[See Also: ]]><link ref="Vector3-magnitude">magnitude</link><![CDATA[.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	// detects when the other transform is closer than closeDistance
+	// this is faster than using ]]><link ref="Vector3-magnitude">Vector3.magnitude</link><br /><br /><![CDATA[	var other : ]]><link ref="Transform">Transform</link><![CDATA[;
+	var closeDistance = 5.0;
+	
+	function Update() {
+		if (other) {
+			var offset = other.position - transform.position;
+			var sqrLen = offset.sqrMagnitude;
+			// square the distance we compare with
+			if( sqrLen < closeDistance*closeDistance )
+				print ("The other transform is close to me!");
+		}
+	}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    public ]]><link ref="Transform">Transform</link><![CDATA[ other;
+    public float closeDistance = 5.0F;
+    void Update() {
+        if (other) {
+            ]]><link ref="Vector3">Vector3</link><![CDATA[ offset = other.position - transform.position;
+            float sqrLen = offset.sqrMagnitude;
+            if (sqrLen < closeDistance * closeDistance)
+                print("The other transform is close to me!");
+            
+        }
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

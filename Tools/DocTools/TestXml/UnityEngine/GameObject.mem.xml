@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="GameObject" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>Base class for all entities in Unity scenes.</summary>
+      <description>SA: [[Component]].</description>
+    </section>
+    <member name="GameObject._guiTexture" type="Property">
+      <section>
+        <signature><![CDATA[guiTexture]]></signature>
+        <summary>The [[GUITexture]] attached to this GameObject (RO). (null if there is none attached).</summary>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	guiTexture.color = Color.blue;]]></code>
+        </example>
+      </section>
+    </member>
+  </member>
+</doc>

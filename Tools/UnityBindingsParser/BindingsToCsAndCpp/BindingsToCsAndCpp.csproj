@@ -1,0 +1,322 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1C3E11D7-244A-43D9-89AE-7C19C06791D6}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BindingsToCsAndCpp</RootNamespace>
+    <AssemblyName>BindingsToCsAndCpp</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <BaseIntermediateOutputPath>..\..\..\artifacts\obj\BindingsToCsAndCpp\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <DefineConstants>TRACE;DEBUG;TEST</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <OutputPath>..\..\..\build\bin\Debug</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>True</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <OutputPath>..\..\..\build\bin\Release</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\External\NUnit\framework\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="ICSharpCode.NRefactory">
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.Cecil">
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.CSharp">
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\..\External\Mono\builds\monodistribution\lib\mono\2.0\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConsumerDispatcher.cs" />
+    <Compile Include="CppExports.cs" />
+    <Compile Include="CppGenerator.cs" />
+    <Compile Include="CppMethod.cs" />
+    <Compile Include="CppProperty.cs" />
+    <Compile Include="CppUnit.cs" />
+    <Compile Include="CSBaseMethod.cs" />
+    <Compile Include="CSBaseProperty.cs" />
+    <Compile Include="CSAutoMethod.cs" />
+    <Compile Include="CSAutoProperty.cs" />
+    <Compile Include="CSConstructor.cs" />
+    <Compile Include="CSharpGenerator.cs" />
+    <Compile Include="CSharpSignatureAnalyzer.cs" />
+    <Compile Include="CSMethod.cs" />
+    <Compile Include="CSProperty.cs" />
+    <Compile Include="CSRawMethod.cs" />
+    <Compile Include="CSUnit.cs" />
+    <Compile Include="IndentedWriter.cs" />
+    <Compile Include="CppStrippingExports.cs" />
+    <Compile Include="CppMetroExports.cs" />
+    <Compile Include="CppMonoExports.cs" />
+    <Compile Include="CppScriptingExports.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="Tests\CppGenerationTests.cs" />
+    <Compile Include="Tests\UnityEngineTests.cs" />
+    <Compile Include="Unit.cs" />
+    <Compile Include="GeneratorBase.cs" />
+    <Compile Include="ParsingHelpers.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypeDefs.cs" />
+    <Compile Include="MapBuilder.cs" />
+    <Compile Include="Tests\CSGenerationTests.cs" />
+    <Compile Include="ValidationHelpers.cs" />
+    <Compile Include="Tests\PreProcessRunner.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="ReturnCodes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="00_README_RunningTests.txt" />
+    <Content Include="Tests\typetests.bindings">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AndroidInputBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AndroidJavaBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AndroidJNIBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AnimationsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AnimatorBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AvatarBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\AvatarBuilderBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\BaseClassBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\CrashReporterBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\CursorBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\EventBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GameCenterServicesBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GizmoBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GradientBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GradientUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GraphicsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUIBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUIContentBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUILayoutBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUILayoutUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUISkinBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUIStyleBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\GUIUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\HandheldBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\iPhoneInputBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\LightProbeBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\LODBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\MathBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\MotionBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\NavMeshAgentBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\NavMeshBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\NavMeshObstacleBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\NavMeshPathBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\NetworkingBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\NewDynamicsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\ParticleSystemBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\Physics2DBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\PPtrRemapperBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\PropertyAttributeBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\RuntimeAnimatorControllerBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\ScriptAssetsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\SecurityPublicBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\SerializedStateReaderBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\SerializedStateWriterBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\SpritesBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\SubstanceUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Editor\TerrainsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AndroidInputBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AndroidJavaBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AndroidJNIBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AnimationsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AnimatorBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AvatarBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\AvatarBuilderBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\BaseClassBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\CrashReporterBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\CursorBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\EventBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GameCenterServicesBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GizmoBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GradientBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GradientUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GraphicsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUIBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUIContentBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUILayoutBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUILayoutUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUISkinBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUIStyleBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\GUIUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\HandheldBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\iPhoneInputBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\LightProbeBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\LODBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\MathBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\MotionBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\NavMeshAgentBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\NavMeshBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\NavMeshObstacleBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\NavMeshPathBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\NetworkingBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\NewDynamicsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\ParticleSystemBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\Physics2DBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\PPtrRemapperBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\PropertyAttributeBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\RuntimeAnimatorControllerBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\ScriptAssetsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\SecurityPublicBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\SerializedStateReaderBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\SerializedStateWriterBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\SpritesBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\SubstanceUtilityBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Expected\Metro\TerrainsBindings.gen.cpp" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\AndroidInput.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\AndroidJava.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\AndroidJNI.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Animations.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Animator.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Avatar.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\AvatarBuilder.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\BaseClass.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\CrashReporter.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Cursor.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Event.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GameCenterServices.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Gizmo.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Gradient.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GradientUtility.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Graphics.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUI.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUIContent.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUILayout.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUILayoutUtility.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUISkin.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUIStyle.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\GUIUtility.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Handheld.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\iPhoneInput.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\LightProbe.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\LOD.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Math.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Motion.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\NavMeshAgent.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\NavMesh.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\NavMeshObstacle.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\NavMeshPath.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Networking.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\NewDynamics.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\ParticleSystem.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Physics2D.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\PPtrRemapper.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\PropertyAttribute.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\RuntimeAnimatorController.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\ScriptAssets.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\SecurityPublic.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\SerializedStateReader.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\SerializedStateWriter.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Sprites.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\SubstanceUtility.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Terrains.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineApplication.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineAsyncOperation.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineBehaviour.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineCamera.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineComponent.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineComputeShader.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineDebug.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineDisplay.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineFlash.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineGameObject.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineInput.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineLight.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineMetro.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineMonoBehaviour.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineObject.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineRandom.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineTime.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineTransform.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineWebCamTexture.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\UnityEngineYieldOperation.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\Utils.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\XboxAvatar.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\XboxKeyboard.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\XboxKinect.bindings" />
+    <Content Include="Tests\UnityEngineTestFixtures\Export\XboxServices.bindings" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Unity.CommonTools\Unity.CommonTools.csproj">
+      <Project>{882B3C08-618B-4D66-B45C-88853106F1AF}</Project>
+      <Name>Unity.CommonTools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnityBindingsParser\UnityBindingsParser.csproj">
+      <Project>{629F0D26-CF0E-4419-BAF2-2A2C9F8F9852}</Project>
+      <Name>UnityBindingsParser</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

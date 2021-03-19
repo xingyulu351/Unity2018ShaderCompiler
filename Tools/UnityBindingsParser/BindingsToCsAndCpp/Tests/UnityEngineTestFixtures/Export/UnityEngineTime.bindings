@@ -1,0 +1,65 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Input/TimeManager.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include <ctime>
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// The interface to get time information from Unity.
+CLASS Time
+
+	// The time this frame has started (RO). This is the time in seconds since the start of the game.
+	CUSTOM_PROP static float time { return GetTimeManager ().GetCurTime (); } 
+
+	// The time this frame has started (RO). This is the time in seconds since the last level has been loaded.
+	CUSTOM_PROP static float timeSinceLevelLoad { return GetTimeManager ().GetTimeSinceSceneLoad (); }
+	
+	// The time in seconds it took to complete the last frame (RO).
+	CUSTOM_PROP static float deltaTime { return GetTimeManager ().GetDeltaTime (); }
+	
+	// The time the latest MonoBehaviour::pref::FixedUpdate has started (RO). This is the time in seconds since the start of the game.
+	CUSTOM_PROP static float fixedTime { return GetTimeManager ().GetFixedTime (); } 
+
+	
+	// The interval in seconds at which physics and other fixed frame rate updates (like MonoBehaviour's MonoBehaviour::pref::FixedUpdate) are performed.
+	CUSTOM_PROP static float fixedDeltaTime  { return GetTimeManager ().GetFixedDeltaTime (); }  { GetTimeManager ().SetFixedDeltaTime (value); } 
+
+	// The maximum time a frame can take. Physics and other fixed frame rate updates (like MonoBehaviour's MonoBehaviour::pref::FixedUpdate)
+	CUSTOM_PROP static float maximumDeltaTime  { return GetTimeManager ().GetMaximumDeltaTime (); }  { GetTimeManager ().SetMaximumDeltaTime (value); } 
+	
+	// A smoothed out Time.deltaTime (RO).
+	CUSTOM_PROP static float smoothDeltaTime { return GetTimeManager ().GetSmoothDeltaTime (); } 
+
+	// The scale at which the time is passing. This can be used for slow motion effects.
+	CUSTOM_PROP static float timeScale { return GetTimeManager ().GetTimeScale (); }  { GetTimeManager ().SetTimeScale (value); } 
+	
+	// The total number of frames that have passed (RO).
+	CUSTOM_PROP static int frameCount { return GetTimeManager ().GetFrameCount (); } 
+	
+	//*undocumented*
+	CUSTOM_PROP static int renderedFrameCount { return GetTimeManager ().GetRenderFrameCount (); } 
+
+	// The real time in seconds since the game started (RO).
+	CUSTOM_PROP static float realtimeSinceStartup { return GetTimeManager().GetRealtime (); } 
+
+	// If /captureFramerate/ is set to a value larger than 0, time will advance in
+	CUSTOM_PROP static int captureFramerate	{ return GetTimeManager().GetCaptureFramerate(); } { GetTimeManager().SetCaptureFramerate (value); }
+END
+
+CSRAW }
+

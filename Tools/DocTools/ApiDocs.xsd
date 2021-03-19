@@ -1,0 +1,83 @@
+<xs:schema
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.unity3d.com/2014/06/03/ApiDocs"
+	xmlns="http://www.unity3d.com/2014/06/03/ApiDocs"
+	attributeFormDefault="unqualified" elementFormDefault="qualified">
+	
+	<xs:element type="Doc" name="doc" />
+	
+	<xs:complexType name="Doc">
+		<xs:sequence>
+			<xs:element type="Member" name="member" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute type="xs:int" name="version" use="required" />
+	</xs:complexType>
+
+	<xs:simpleType name="MemberType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Method" />
+			<xs:enumeration value="Property" />
+			<xs:enumeration value="Field" />
+			<xs:enumeration value="Class" />
+			<xs:enumeration value="Struct" />
+			<xs:enumeration value="Interface" />
+			<xs:enumeration value="Constructor" />
+			<xs:enumeration value="Operator" />
+			<xs:enumeration value="ImplOperator" />
+			<xs:enumeration value="Enum" />
+			<xs:enumeration value="EnumValue" />
+			<xs:enumeration value="Delegate" />
+			<xs:enumeration value="Event" />
+			<xs:enumeration value="Unknown" />
+			<xs:enumeration value="Assembly" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:complexType name="Member">
+		<xs:sequence>
+			<xs:element type="Section" name="section" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element type="Member" name="member" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="name" use="required" />
+		<xs:attribute type="MemberType" name="type" use="required" />
+		<xs:attribute type="xs:string" name="namespace" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="Section">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element type="xs:string" name="signature" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element type="xs:string" name="summary" minOccurs="1" maxOccurs="1" />
+			<xs:element type="Param" name="param" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element type="xs:string" name="returns" minOccurs="0" maxOccurs="1" />
+			<xs:element type="xs:string" name="description" minOccurs="0" maxOccurs="1" />
+			<xs:element type="Example" name="example" minOccurs="0" maxOccurs="unbounded" />
+		</xs:choice>
+		<xs:attribute type="xs:boolean" name="undoc" use="optional" />
+		<xs:attribute type="xs:boolean" name="doconly" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="Param">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="name" type="xs:string" use="required" />
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Example">
+		<xs:sequence>
+			<xs:element name="code" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute type="xs:string" name="lang" use="required" />
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute type="xs:boolean" name="convertexample" use="optional" />
+		<xs:attribute type="xs:boolean" name="nocheck" use="optional" />
+	</xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,21 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+
+use RunTests runTests;
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=editor', '--testprojects=Undo', '--testprojects=GUIVerification');
+    is($exitCode, 0);
+    ok(-e canonpath("$artifactsPath/GUIVerification/Unity/log.txt"));
+    ok(-e canonpath("$artifactsPath/GUIVerification/Unity/TestResults.xml"));
+    ok(-e canonpath("$artifactsPath/Undo/Unity/log.txt"));
+    ok(-e canonpath("$artifactsPath/Undo/Unity/TestResults.xml"));
+}
+
+done_testing();

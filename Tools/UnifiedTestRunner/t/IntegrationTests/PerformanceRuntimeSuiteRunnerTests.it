@@ -1,0 +1,31 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use RunTests qw (runTests fetchTrackedRepo createTestPlan getJSONReport);
+use File::Spec::Functions qw (canonpath);
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    fetchTrackedRepo("Tests/PerformanceTestAssets");
+    my ($exitCode, $artifactsPath) = runTests('--suite=performance-runtime', '--testfilter=Shadow');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/Unity.PerformanceTests.RuntimeTestRunner/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/Unity.PerformanceTests.RuntimeTestRunner/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/Unity.PerformanceTests.RuntimeTestRunner/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/TestPlan.txt"));
+}
+
+RunTest_TestList_Works:
+{
+    my @tests = ('DynamicBatchingShadowedCubes', 'ShadowRendering');
+    my $testPlan = createTestPlan(@tests);
+    diag("Test plan written to $testPlan");
+    my ($exitCode, $artifactsPath) = runTests('--suite=performance-runtime', "--testlist=$testPlan");
+    my $report = getJSONReport($artifactsPath);
+    is($report->{summary}{testsCount}, 3);    # +1 for emty scene test
+}
+
+done_testing();

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <Section>
+    <Signature>
+      <Declaration name="YieldInstruction" type="class" />
+      <ReturnType />
+    </Signature>
+    <Signature>
+      <Declaration name="YieldInstruction" type="class" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[Base class for all ]]><varname>yield</varname><![CDATA[ instructions.]]></Summary>
+    <Description><![CDATA[See ]]><link ref="WaitForSeconds">WaitForSeconds</link><![CDATA[, ]]><link ref="WaitForFixedUpdate">WaitForFixedUpdate</link><![CDATA[, ]]><link ref="Coroutine">Coroutine</link><![CDATA[ and MonoBehaviour.StartCoroutine for more information.]]></Description>
+  </Section>
+  <Children>
+    <member id="YieldInstruction.ctor">
+      <name>ctor</name>
+      <summary><![CDATA[]]></summary>
+    </member>
+  </Children>
+</Model>

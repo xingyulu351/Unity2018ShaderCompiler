@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{882B3C08-618B-4D66-B45C-88853106F1AF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Unity.CommonTools</RootNamespace>
+    <AssemblyName>Unity.CommonTools</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>..\..\build\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <Compile Include="ArgumentBuilder.cs" />
+    <Compile Include="DebugViewHelper.cs" />
+    <Compile Include="Ensure.cs" />
+    <Compile Include="Files.cs" />
+    <Compile Include="HashSetExtensions.cs" />
+    <Compile Include="LogMessageFormatExtension.cs" />
+    <Compile Include="MicrosoftCppCompiler.cs" />
+    <Compile Include="MicrosoftCSharpCompiler.cs" />
+    <Compile Include="Paths.cs" />
+    <Compile Include="Platform.cs" />
+    <Compile Include="ScreenshotLinux.cs" />
+    <Compile Include="ScreenshotWin.cs" />
+    <Compile Include="Shell.cs" />
+    <Compile Include="SocketPolicyServer.cs" />
+    <Compile Include="SocketResponder.cs" />
+    <Compile Include="StreamExtensions.cs" />
+    <Compile Include="StopWatch.cs" />
+    <Compile Include="TestResult.cs" />
+    <Compile Include="TestResultWriterExtension.cs" />
+    <Compile Include="Workspace.cs" />
+    <Compile Include="ConsoleLog.cs" />
+    <Compile Include="CSharpCompiler.cs" />
+    <Compile Include="ILog.cs" />
+    <Compile Include="ImageComparer.cs" />
+    <Compile Include="ImageTools.cs" />
+    <Compile Include="ITestResultWriter.cs" />
+    <Compile Include="LoggedScope.cs" />
+    <Compile Include="MonoRuntime.cs" />
+    <Compile Include="TeamCityTestResultWriter.cs" />
+    <Compile Include="TestExecutionResult.cs" />
+    <Compile Include="TestResultCallback.cs" />
+    <Compile Include="WavFileCreator.cs" />
+    <Compile Include="Screenshot.cs" />
+    <Compile Include="ScreenshotMac.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>..\..\External\Mono\builds\monodistribution\lib\mono\2.0\System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>..\..\External\Mono\builds\monodistribution\lib\mono\2.0\System.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <HintPath>..\..\External\Mono\builds\monodistribution\lib\mono\2.0\System.Drawing.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/balloon-css/0.4.0/balloon.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <title>JamSharp Dependency Graph</title>
+  <style type="text/css">
+
+    /* Typography */
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    pre {
+      font-size: 13px;
+      font-family: 'Monaco', 'Consolas', 'Roboto Mono', monospace;
+    }
+
+    /* Layout */
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+
+    .layout > * {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .layout__main {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .layout__main > * {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .layout__panel {
+      max-width: 33%;
+    }
+
+    /* Layout modifiers */
+    .layout--vertical {
+      flex-direction: column;
+    }
+
+    .layout--vertical .layout__panel {
+      border-left: none;
+      max-width: none;
+    }
+
+    /* Flex helpers */
+    .flex-pull-right {
+        margin-left: auto;
+    }
+
+    .icon-button {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      border-radius: 2px;
+      background: none;
+      color: #444;
+      opacity: .8;
+    }
+
+    .icon-button:focus,
+    .icon-button:hover {
+      opacity: 1;
+      outline: none;
+    }
+
+    .icon-button:hover {
+      background: rgba(0,0,0,0.05);
+    }
+
+    /* Icon label */
+    .icon-label {
+      display: flex;
+      align-items: center;
+    }
+
+    .icon-label > *:not(:last-child) {
+      margin-right: 4px;
+    }
+
+    /* Header */
+    .header {
+      min-height: 48px;
+      max-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: #f4f4f4;
+      /* box-shadow: 0 3px 6px rgba(0,0,0,0.04), 0 3px 6px rgba(0,0,0,0.10); */
+    }
+
+    .header__title {
+      padding: 0px 16px 0 0;
+    }
+
+    .header__search {
+      position: relative;
+      flex: 1;
+      max-width: 640px;
+      margin-right: 16px;
+    }
+
+    .header__search__icon {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #444;
+      opacity: .5;
+    }
+
+    .header__search input {
+      padding: 0 42px 0 42px;
+      height: 32px;
+      font-size: 16px;
+      width: 100%;
+      border: 1px solid transparent;
+    }
+
+    .header__search input::-webkit-input-placeholder {
+      color: #444;
+      opacity: .5;
+    }
+
+    .header__search input:focus {
+      border: 1px solid #8ECBEF;
+      outline: none;
+    }
+
+    .header__search__icon-close {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #444;
+      opacity: .5;
+      cursor: pointer;
+    }
+
+    .header__search__icon-close:hover {
+      opacity: 1;
+    }
+
+    .body {
+      padding: 8px 0;
+    }
+
+    /* Icon */
+    .icon {
+      position: relative;
+      width: 24px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .icon--open-folder:before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 3px;
+      width: 8px;
+      background: black;
+      margin-top: -6px;
+      margin-left: -4px;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .icon--open-folder:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 10px;
+      border: 2px solid black;
+      box-sizing: border-box;
+      border-radius: 0 2px 2px 2px;
+    }
+
+    .button {
+
+    }
+
+    .button--action-layout {
+
+    }
+
+    .button--action-layout__icon {
+      display: inline-block;
+    }
+
+    .button--action-layout--is-horizontal .button--action-layout__icon {
+      transform: rotate(90deg);
+    }
+
+    /* Components */
+
+    /* node-list*/
+    .node-list {
+        color: inherit;
+        font-family: 'Monaco', 'Consolas', 'Roboto Mono', monospace;
+        font-size: 13px;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .node-list__item {
+        color: inherit;
+    }
+
+    .node-list__item__anchor {
+        cursor: pointer;
+        display: block;
+        white-space: nowrap;
+    }
+
+    .node-list__item__anchor:hover {
+        background: #f2f2f2;
+    }
+
+    /* node */
+
+    .node__list {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .node__anchor {
+        cursor: pointer;
+        white-space: nowrap;
+        display: block;
+        text-decoration: none;
+        color: #646465;
+    }
+
+    .node__anchor > *:not(last-child) {
+      margin-right: 4px;
+    }
+
+    .node__anchor:focus {
+      outline: none;
+    }
+
+    .node__anchor--secondary {
+      opacity: .6;
+    }
+
+    .node__anchor:hover:not(.node__anchor--is-active),
+    .node__anchor:focus:not(.node__anchor--is-active) {
+      background: rgba(36, 124, 224, 0.16);
+    }
+
+    .node__anchor:before {
+        content: "▹";
+        display: inline-block;
+        margin-right: 4px;
+    }
+
+    .node__anchor--is-empty:before {
+        content: '\00a0';
+    }
+
+    .node__anchor--is-expanded:before {
+        content: '▸';
+        transform: rotate(45deg);
+    }
+
+    .node__anchor--is-selected {
+        background: rgba(36, 124, 224, 0.1);
+    }
+
+    .node__anchor--is-selected.node__anchor--is-active {
+      background: #2479E0;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .node__anchor--is-selected.node__anchor--is-active .graph-node__filename {
+      color: #fff;
+    }
+
+    .node__anchor--is-selected.node__anchor--is-active .node__anchor__ctx {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .node__anchor--is-selected.node__anchor--is-active .node__anchor__action {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .node__anchor__ctx {
+      color: #922e5f;
+    }
+
+    .graph-node__filename {
+        margin-right: 5px;
+        color: blue;
+    }
+
+    .node__anchor__action {
+      color: #F08F53;
+    }
+
+    .label {
+        padding: 0 3px;
+        display: inline-block;
+        background: #f2f2f2;
+        color: #666;
+        border-radius: 3px;
+    }
+
+    /* Inspector*/
+
+    .inspector {
+      width: 100%;
+      height: 100%;
+    }
+
+    .inspector__body > * {
+      flex: 1;
+      overflow: auto;
+    }
+
+    /* Inspector modifiers */
+    .inspector--horizontal .inspector__body {
+      flex-direction: row;
+    }
+
+    /* Dump */
+    .dump {
+      padding: 0 16px;
+    }
+
+    .dump pre {
+      margin: 0;
+    }
+
+    /* Tab List */
+    .tab-list {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+    .tab-list__header {
+      height: 48px;
+      flex-shrink: 0;
+      align-items: center;
+      display: flex;
+      flex-direction: row;
+      background: #f4f4f4;
+    }
+    .tab-list__header__tabs {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    .tab-list__header__tabs__label {
+      display: inline-block;
+      height: 100%;
+    }
+    .tab-list__header__tabs__label a {
+      display: block;
+      padding: 0 16px;
+      height: 100%;
+      line-height: 48px;
+      text-decoration: none;
+      color: grey;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    .tab-list__header__tabs__label--is-active a {
+      color: #666;
+    }
+
+    .tab-list__header__actions {
+      margin-left: auto;
+      padding-right: 16px;
+    }
+    .tab-list__body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      background: #f4f4f4;
+    }
+
+    /* List Group */
+    .list-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-group--horizontal {
+      flex-direction: row;
+    }
+
+    .list-group__item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0px;
+    }
+    .list-group--horizontal .list-group__item:not(:last-of-type) {
+      border-right: 1px solid #ccc;
+    }
+
+    .list-group__item.list-group__item--is-collapsed {
+      flex: none;
+    }
+
+    .list-group__item.list-group__item--is-collapsed .list-group__item__body {
+      display: none;
+    }
+
+    .list-group__item__head {
+      flex-shrink: 0;
+      padding: 4px 8px;
+      background: #DCDCDC;
+      color: #6C6C6C;
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 12px;
+      position: relative;
+    }
+
+    .list-group--horizontal .list-group__item.list-group__item--is-collapsed .list-group__item__head {
+      height: 100%;
+      width: 22px;
+    }
+
+    .list-group--horizontal .list-group__item.list-group__item--is-collapsed .list-group__item__head:after {
+      transform: rotate(90deg);
+      left: 3px;
+      top: -8px;
+      transform-origin: bottom left;
+      white-space: nowrap;
+    }
+
+    .list-group__item__head:after {
+      content: attr(title);
+      position: absolute;
+      left: 18px;
+    }
+
+    .list-group__item__head:before {
+      content: "▹";
+      display: inline-block;
+      line-height: 1;
+      font-size: 13px;
+    }
+
+    .list-group--horizontal .list-group__item__head:before {
+      content: '';
+    }
+
+    .list-group--horizontal .list-group__item__head:after {
+      left: 16px;
+    }
+
+    .list-group:not(.list-group--horizontal) .list-group__item:not(.list-group__item--is-collapsed) .list-group__item__head:before {
+      content: '▸';
+      transform: rotate(45deg);
+    }
+
+    .list-group__item__body {
+      flex: 1;
+      overflow: auto;
+      padding: 8px 0;
+    }
+
+    /* Main node-list */
+    .root-path {
+      padding-left: 16px;
+      font-weight: bold;
+      font-family: 'Monaco', 'Consolas', 'Roboto Mono', monospace;
+      font-size: 13px;
+      color: #646465;
+    }
+
+    .root-path__icon {
+      font-size: 16px;
+      vertical-align: top;
+      margin-right: 4px;
+    }
+
+    /* Helpers */
+    .flex-shrink {
+      flex-shrink: 0;
+    }
+
+
+    /* Theme */
+
+
+    /* Legacy */
+
+    [data-balloon-length="xlarge"]:after {
+      width: 500px;
+    }
+    [data-balloon]:after {
+      text-align: left;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+    }
+
+  </style>
+
+</head>
+<body>
+<div id="container">
+  <!-- This element's contents will be replaced with your component. -->
+</div>
+
+<script>
+var rce = React.createElement;
+
+/* ClassNames
+ * Creates a class name string;
+ *
+ * returns {string}
+*/
+var generateClassString = function(classesObj, classesString) {
+  var classArray = Object.keys(classesObj).filter(function(val) {
+    return classesObj[val];
+  }, this)
+  .map(function(key) {
+    if (classesObj[key]) {
+      return key;
+    }
+  });
+
+
+  var stringArray = classesString ? classesString.trim().split(' ') : [];
+  var classesArray = classesString ? classArray.concat(stringArray) : classArray;
+
+  return classesArray.join(' ');
+}
+
+var testData = {
+  nodes:[
+    {id:0,name:"MapFileParser",boundName:"MapFileParser",deps:[{id:1,callstack:"JamSharpToBeeBridge.DependencyGraphMirror.GetStackTrace()                                       Tools/Build/Unity.BuildSystem/JamSharpToBeeBridge/DependencyGraphMirror.cs:124\\nJamSharpToBeeBridge.DependencyGraphMirror.AddDependenciesOrIncludes(JamList[],Func`2)           Tools/Build/Unity.BuildSystem/JamSharpToBeeBridge/DependencyGraphMirror.cs:159\\nJamSharpToBeeBridge.DependencyGraphMirror.Depends(JamList[])                                    Tools/Build/Unity.BuildSystem/JamSharpToBeeBridge/DependencyGraphMirror.cs:80\\nJamSharp.Runtime.BuiltinRules.Depends(JamList[])                                                Tools/Build/JamSharp/JamSharp.Runtime/BuiltinRules.cs:35\\nExternal.Jamplus.builds.bin.modules.C.C_LinkLibraries(JamList,JamList,JamList,JamList)          External/Jamplus/builds_csharp/bin/modules/C.jam.cs:1249\\nTools.il2cpp.MapFileParser.TopLevel()                                                           Tools/il2cpp/MapFileParser.jam.cs:53\\nJamSharp.Runtime.ConvertedJamFile+<RegisterJamFile>c__AnonStorey0.<>m__0(String[][])            Tools/Build/JamSharp/JamSharp.Runtime/ConvertedJamFile.cs:29\\nJamSharp.Runtime.JamCore.Include(String)\\nJamSharp.Runtime.ConvertedJamFile.ExecuteJamFile(JamList)                                       Tools/Build/JamSharp/JamSharp.Runtime/ConvertedJamFile.cs:208\\nExternal.Jamplus.builds.bin.Jambase.SubInclude(JamList,JamList)                                 External/Jamplus/builds_csharp/bin/Jambase.jam.cs:668\\nJamfile.TopLevel()                                                                              Jamfile.jam.cs:68\\nJamSharp.Runtime.ConvertedJamFile+<RegisterJamFile>c__AnonStorey0.<>m__0(String[][])            Tools/Build/JamSharp/JamSharp.Runtime/ConvertedJamFile.cs:29\\nJamSharp.Runtime.JamCore.Include(String)\\nJamSharp.Runtime.ConvertedJamFile.ExecuteJamFile(JamList)                                       Tools/Build/JamSharp/JamSharp.Runtime/ConvertedJamFile.cs:208\\nExternal.Jamplus.builds.bin.Jambase.TopLevel()                                                  External/Jamplus/builds_csharp/bin/Jambase.jam.cs:220\\nJamSharp.Runtime.ConvertedJamFile+<RegisterJamFile>c__AnonStorey0.<>m__0(String[][])            Tools/Build/JamSharp/JamSharp.Runtime/ConvertedJamFile.cs:29\\n"},{id:104}]},
+    {id:1,name:"UnitTest++",boundName:"UnitTest++",deps:[{id:2}],refby:[{id:0}]},
+    {id:2,name:"<UnitTest++>UnitTest++.a",boundName:"@1@linkeroutput/macosx32_debug_UnitTest++_mono_1/UnitTest++.a",actions:[{name:"C.Archive",secondargument:["@3@/AssertException.o","@3@/Checks.o","@3@/CurrentTest.o","@3@/DeferredSuiteReporter.o","@3@/DeferredSuiteResult.o","@3@/DeferredTestReporter.o","@3@/DeferredTestResult.o","@3@/MemoryOutStream.o","@3@/NunitTestReporter.o","@3@/ReportAssert.o","@3@/Test.o","@3@/TestDetails.o","@3@/TestList.o","@3@/TestReporter.o","@3@/TestReporterFormat.o","@3@/TestReporterDebugLog.o","@3@/TestReporterStdout.o","@3@/TestResults.o","@3@/TestRunner.o","@3@/TimeConstraint.o","@3@/XmlTestReporter.o","@3@/Posix/SignalTranslator.o","@3@/Posix/TimeHelpers.o"]},{name:"C.Ranlib"}],deps:[{id:3},{id:4},{id:10},{id:18},{id:21},{id:36},{id:38},{id:40},{id:42},{id:45},{id:48},{id:51},{id:61},{id:63},{id:66},{id:68},{id:72},{id:75},{id:79},{id:81},{id:91},{id:94},{id:97},{id:101}],refby:[{id:1},{id:104}]},
+    {id:3,name:"<!dir!>/Users/lucas/unity3/artifacts/linkeroutput/macosx32_debug_UnitTest++_mono_1",boundName:"@1@linkeroutput/macosx32_debug_UnitTest++_mono_1",actions:[{name:"MkDir1"}]},{id:4,name:"@3@/AssertException.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/AssertException.o",actions:[{name:"C.C++",secondargument:["@3@/AssertException.cpp"]}],deps:[{id:5},{id:6}]},
+    {id:5,name:"<!dir!>/Users/lucas/unity3/artifacts/macosx32_debug_UnitTest++_mono_1/src",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src",actions:[{name:"MkDir1"}]},
+    {id:6,name:"@3@/AssertException.cpp",boundName:"@2@AssertException.cpp",inc:[{id:7},{id:9}]},{id:7,name:"<UnitTest++>assertexception.h",boundName:"@2@assertexception.h",inc:[{id:8}]},{id:8,name:"<UnitTest++>exception",boundName:"exception"},{id:9,name:"<UnitTest++>cstring",boundName:"cstring"},{id:10,name:"@3@/Checks.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/Checks.o",actions:[{name:"C.C++",secondargument:["@3@/Checks.cpp"]}],deps:[{id:5},{id:11}]},{id:11,name:"@3@/Checks.cpp",boundName:"@2@Checks.cpp",inc:[{id:12},{id:9}]},{id:12,name:"<UnitTest++>checks.h",boundName:"@2@checks.h",inc:[{id:13},{id:14},{id:15}]},{id:13,name:"<UnitTest++>config.h",boundName:"@2@config.h"},{id:14,name:"<UnitTest++>testresults.h",boundName:"@2@testresults.h"},{id:15,name:"<UnitTest++>memoryoutstream.h",boundName:"@2@memoryoutstream.h",inc:[{id:13},{id:16},{id:17}]},{id:16,name:"<UnitTest++>sstream",boundName:"sstream"},{id:17,name:"<UnitTest++>cstddef",boundName:"cstddef"},{id:18,name:"@3@/CurrentTest.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/CurrentTest.o",actions:[{name:"C.C++",secondargument:["@3@/CurrentTest.cpp"]}],deps:[{id:5},{id:19}]},{id:19,name:"@3@/CurrentTest.cpp",boundName:"@2@CurrentTest.cpp",inc:[{id:20},{id:17}]},{id:20,name:"<UnitTest++>currenttest.h",boundName:"@2@currenttest.h"},{id:21,name:"@3@/DeferredSuiteReporter.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/DeferredSuiteReporter.o",actions:[{name:"C.C++",secondargument:["@3@/DeferredSuiteReporter.cpp"]}],deps:[{id:5},{id:22}]},{id:22,name:"@3@/DeferredSuiteReporter.cpp",boundName:"@2@DeferredSuiteReporter.cpp",inc:[{id:23},{id:34},{id:13},{id:35},{id:16},{id:29}]},{id:23,name:"<UnitTest++>deferredsuitereporter.h",boundName:"@2@deferredsuitereporter.h",inc:[{id:24},{id:32},{id:33}]},{id:24,name:"<UnitTest++>deferredtestreporter.h",boundName:"@2@deferredtestreporter.h",inc:[{id:25},{id:26},{id:31}]},{id:25,name:"<UnitTest++>testreporter.h",boundName:"@2@testreporter.h"},
+    {id:26,name:"<UnitTest++>deferredtestresult.h",boundName:"@2@deferredtestresult.h",inc:[{id:27},{id:29},{id:30}]},{id:27,name:"<UnitTest++>testproperty.h",boundName:"@2@testproperty.h",inc:[{id:15},{id:28},{id:29}]},{id:28,name:"<UnitTest++>map",boundName:"map"},{id:29,name:"<UnitTest++>string",boundName:"string"},{id:30,name:"<UnitTest++>list",boundName:"list"},{id:31,name:"<UnitTest++>vector",boundName:"vector"},{id:32,name:"<UnitTest++>deferredsuiteresult.h",boundName:"@2@deferredsuiteresult.h",inc:[{id:26},{id:29},{id:31}]},{id:33,name:"<UnitTest++>iosfwd",boundName:"iosfwd"},{id:34,name:"<UnitTest++>testdetails.h",boundName:"@2@testdetails.h",inc:[{id:27}]},{id:35,name:"<UnitTest++>iostream",boundName:"iostream"},{id:36,name:"@3@/DeferredSuiteResult.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/DeferredSuiteResult.o",actions:[{name:"C.C++",secondargument:["@3@/DeferredSuiteResult.cpp"]}],deps:[{id:5},{id:37}]},{id:37,name:"@3@/DeferredSuiteResult.cpp",boundName:"@2@DeferredSuiteResult.cpp",inc:[{id:32},{id:13}]},{id:38,name:"@3@/DeferredTestReporter.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/DeferredTestReporter.o",actions:[{name:"C.C++",secondargument:["@3@/DeferredTestReporter.cpp"]}],deps:[{id:5},{id:39}]},
+    {id:39,name:"@3@/DeferredTestReporter.cpp",boundName:"@2@DeferredTestReporter.cpp",inc:[{id:24},{id:34},{id:13}]},
+    {id:40,name:"@3@/DeferredTestResult.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/DeferredTestResult.o",actions:[{name:"C.C++",secondargument:["@3@/DeferredTestResult.cpp"]}],deps:[{id:5},{id:41}]},{id:41,name:"@3@/DeferredTestResult.cpp",boundName:"@2@DeferredTestResult.cpp",inc:[{id:26},{id:13}]},{id:42,name:"@3@/MemoryOutStream.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/MemoryOutStream.o",actions:[{name:"C.C++",secondargument:["@3@/MemoryOutStream.cpp"]}],deps:[{id:5},{id:43}]},{id:43,name:"@3@/MemoryOutStream.cpp",boundName:"@2@MemoryOutStream.cpp",inc:[{id:15},{id:9},{id:44}]},{id:44,name:"<UnitTest++>cstdio",boundName:"cstdio"},{id:45,name:"@3@/NunitTestReporter.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/NunitTestReporter.o",actions:[{name:"C.C++",secondargument:["@3@/NunitTestReporter.cpp"]}],deps:[{id:5},{id:46}]},{id:46,name:"@3@/NunitTestReporter.cpp",boundName:"@2@NunitTestReporter.cpp",inc:[{id:47},{id:13},{id:35},{id:16},{id:29}]},{id:47,name:"<UnitTest++>nunittestreporter.h",boundName:"@2@nunittestreporter.h",inc:[{id:23},{id:33}]},{id:48,name:"@3@/ReportAssert.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/ReportAssert.o",actions:[{name:"C.C++",secondargument:["@3@/ReportAssert.cpp"]}],deps:[{id:5},{id:49}]},{id:49,name:"@3@/ReportAssert.cpp",boundName:"@2@ReportAssert.cpp",inc:[{id:7},{id:50},{id:35}]},{id:50,name:"<UnitTest++>stdlib.h",boundName:"stdlib.h"},{id:51,name:"@3@/Test.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/Test.o",actions:[{name:"C.C++",secondargument:["@3@/Test.cpp"]}],deps:[{id:5},{id:52}]},{id:52,name:"@3@/Test.cpp",boundName:"@2@Test.cpp",inc:[{id:13},{id:53},{id:54},{id:14},{id:55},{id:7},{id:15},{id:56},{id:57}]},
+    {id:53,name:"<UnitTest++>test.h",boundName:"@2@test.h",inc:[{id:34},{id:31}]},{id:54,name:"<UnitTest++>testlist.h",boundName:"@2@testlist.h"},{id:55,name:"<UnitTest++>testattribute.h",boundName:"@2@testattribute.h"},{id:56,name:"<UnitTest++>executetest.h",boundName:"@2@executetest.h",inc:[{id:34},{id:15},{id:7},{id:20},{id:57}]},{id:57,name:"<UnitTest++>posix/signaltranslator.h",boundName:"@2@posix/signaltranslator.h",inc:[{id:58},{id:59},{id:60}]},{id:58,name:"<UnitTest++>setjmp.h",boundName:"setjmp.h"},{id:59,name:"<UnitTest++>sys/signal.h",boundName:"sys/signal.h"},{id:60,name:"<UnitTest++>signal.h",boundName:"signal.h"},{id:61,name:"@3@/TestDetails.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestDetails.o",actions:[{name:"C.C++",secondargument:["@3@/TestDetails.cpp"]}],deps:[{id:5},{id:62}]},{id:62,name:"@3@/TestDetails.cpp",boundName:"@2@TestDetails.cpp",inc:[{id:34}]},{id:63,name:"@3@/TestList.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestList.o",actions:[{name:"C.C++",secondargument:["@3@/TestList.cpp"]}],deps:[{id:5},{id:64}]},{id:64,name:"@3@/TestList.cpp",boundName:"@2@TestList.cpp",inc:[{id:54},{id:53},{id:65}]},{id:65,name:"<UnitTest++>cassert",boundName:"cassert"},{id:66,name:"@3@/TestReporter.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestReporter.o",actions:[{name:"C.C++",secondargument:["@3@/TestReporter.cpp"]}],deps:[{id:5},{id:67}]},{id:67,name:"@3@/TestReporter.cpp",boundName:"@2@TestReporter.cpp",inc:[{id:25}]},
+    {id:68,name:"@3@/TestReporterFormat.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestReporterFormat.o",actions:[{name:"C.C++",secondargument:["@3@/TestReporterFormat.cpp"]}],deps:[{id:5},{id:69}]},{id:69,name:"@3@/TestReporterFormat.cpp",boundName:"@2@TestReporterFormat.cpp",inc:[{id:70},{id:44},{id:34}]},{id:70,name:"<UnitTest++>testreporterformat.h",boundName:"@2@testreporterformat.h",inc:[{id:25},{id:44},{id:71}]},{id:71,name:"<UnitTest++>stdarg.h",boundName:"stdarg.h"},
+    {id:72,name:"@3@/TestReporterDebugLog.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestReporterDebugLog.o",actions:[{name:"C.C++",secondargument:["@3@/TestReporterDebugLog.cpp"]}],deps:[{id:5},{id:73}]},{id:73,name:"@3@/TestReporterDebugLog.cpp",boundName:"@2@TestReporterDebugLog.cpp",inc:[{id:74},{id:44}]},{id:74,name:"<UnitTest++>testreporterdebuglog.h",boundName:"@2@testreporterdebuglog.h",inc:[{id:70},{id:44}]},{id:75,name:"@3@/TestReporterStdout.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestReporterStdout.o",actions:[{name:"C.C++",secondargument:["@3@/TestReporterStdout.cpp"]}],deps:[{id:5},{id:76}]},{id:76,name:"@3@/TestReporterStdout.cpp",boundName:"@2@TestReporterStdout.cpp",inc:[{id:77},{id:44},{id:78}]},{id:77,name:"<UnitTest++>testreporterstdout.h",boundName:"@2@testreporterstdout.h",inc:[{id:70},{id:44}]},{id:78,name:"<UnitTest++>android/log.h",boundName:"android/log.h"},
+    {id:79,name:"@3@/TestResults.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestResults.o",actions:[{name:"C.C++",secondargument:["@3@/TestResults.cpp"]}],deps:[{id:5},{id:80}]},{id:80,name:"@3@/TestResults.cpp",boundName:"@2@TestResults.cpp",inc:[{id:14},{id:25},{id:34}]},{id:81,name:"@3@/TestRunner.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TestRunner.o",actions:[{name:"C.C++",secondargument:["@3@/TestRunner.cpp"]}],deps:[{id:5},{id:82}]},{id:82,name:"@3@/TestRunner.cpp",boundName:"@2@TestRunner.cpp",inc:[{id:83},{id:14},{id:25},{id:77},{id:85},{id:15},{id:9}]},{id:83,name:"<UnitTest++>testrunner.h",boundName:"@2@testrunner.h",inc:[{id:53},{id:54},{id:20},{id:84}]},{id:84,name:"<UnitTest++>string.h",boundName:"string.h"},{id:85,name:"<UnitTest++>timehelpers.h",boundName:"@2@timehelpers.h",inc:[{id:13},{id:86},{id:88},{id:90}]},{id:86,name:"<UnitTest++>posix/timehelpers.h",boundName:"@2@posix/timehelpers.h",inc:[{id:87}]},{id:87,name:"<UnitTest++>sys/time.h",boundName:"sys/time.h"},
+    {id:88,name:"<UnitTest++>win32/timehelpers.h",boundName:"@2@win32/timehelpers.h",inc:[{id:89}]},{id:89,name:"<UnitTest++>../config.h",boundName:"@2@config.h"},{id:90,name:"<UnitTest++>timehelpersdefault.h",boundName:"@2@timehelpersdefault.h",inc:[{id:13}]},{id:91,name:"@3@/TimeConstraint.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/TimeConstraint.o",actions:[{name:"C.C++",secondargument:["@3@/TimeConstraint.cpp"]}],deps:[{id:5},{id:92}]},{id:92,name:"@3@/TimeConstraint.cpp",boundName:"@2@TimeConstraint.cpp",inc:[{id:93},{id:14},{id:15},{id:20}]},
+    {id:93,name:"<UnitTest++>timeconstraint.h",boundName:"@2@timeconstraint.h",inc:[{id:85}]},{id:94,name:"@3@/XmlTestReporter.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/XmlTestReporter.o",actions:[{name:"C.C++",secondargument:["@3@/XmlTestReporter.cpp"]}],deps:[{id:5},{id:95}]},{id:95,name:"@3@/XmlTestReporter.cpp",boundName:"@2@XmlTestReporter.cpp",inc:[{id:96},{id:13},{id:35},{id:16},{id:29}]},{id:96,name:"<UnitTest++>xmltestreporter.h",boundName:"@2@xmltestreporter.h",inc:[{id:24},{id:33}]},
+    {id:97,name:"@3@/Posix/SignalTranslator.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/Posix/SignalTranslator.o",actions:[{name:"C.C++",secondargument:["@3@/Posix/SignalTranslator.cpp"]}],deps:[{id:98},{id:99}]},{id:98,name:"<!dir!>/Users/lucas/unity3/artifacts/macosx32_debug_UnitTest++_mono_1/src/Posix",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/Posix",actions:[{name:"MkDir1"}]},{id:99,name:"@3@/Posix/SignalTranslator.cpp",boundName:"@2@Posix/SignalTranslator.cpp",inc:[{id:100}]},{id:100,name:"<UnitTest++>signaltranslator.h",boundName:"@2@Posix/signaltranslator.h",inc:[{id:58},{id:59},{id:60}]},{id:101,name:"@3@/Posix/TimeHelpers.o",boundName:"@1@macosx32_debug_UnitTest++_mono_1/src/Posix/TimeHelpers.o",actions:[{name:"C.C++",secondargument:["@3@/Posix/TimeHelpers.cpp"]}],deps:[{id:98},{id:102}]},{id:102,name:"@3@/Posix/TimeHelpers.cpp",boundName:"@2@Posix/TimeHelpers.cpp",inc:[{id:85},{id:103}]},{id:103,name:"<UnitTest++>unistd.h",boundName:"unistd.h"},
+    {id:104,name:"<MapFileParser>MapFileParser",boundName:"/Users/lucas/unity3/build/MacEditor/Unity.app/Contents/Tools/MapFileParser/MapFileParser",actions:[{name:"C.Link",secondargument:["<MapFileParser>main.o","<MapFileParser>Driver.o","<MapFileParser>SymbolInfoWriter.o","<MapFileParser>Statistics.o","<MapFileParser>Statistics/HighLevelBreakdown.o","<MapFileParser>Statistics/TenLargestSymbols.o","<MapFileParser>Statistics/AllSymbolSizes.o","<MapFileParser>MSVC/MSVCMapFileParser.o","<MapFileParser>MSVC/MSVCSectionParser.o","<MapFileParser>MSVC/MSVCSymbolParser.o","<MapFileParser>Clang/ClangMapFileParser.o","<MapFileParser>Clang/ClangSectionParser.o","<MapFileParser>Clang/ClangSymbolParser.o","<MapFileParser>SNC/SNCMapFileParser.o","<MapFileParser>GCC/GCCMapFileParser.o","<MapFileParser>GCC/GCCSymbolParser.o","<MapFileParser>Tests/MSVC/MSVCMapFileParserTests.o","<MapFileParser>Tests/MSVC/MSVCSectionParserTests.o","<MapFileParser>Tests/MSVC/MSVCSymbolParserTests.o","<MapFileParser>Tests/Clang/ClangMapFileParserTests.o","<MapFileParser>Tests/Clang/ClangSectionParserTests.o","<MapFileParser>Tests/Clang/ClangSymbolParserTests.o","<MapFileParser>Tests/SNC/SNCMapFileParserTests.o","<MapFileParser>Tests/GCC/GCCMapFileParserTests.o","<MapFileParser>Tests/GCC/GCCSymbolParserTests.o","<MapFileParser>Tests/DriverTests.o","<MapFileParser>Tests/SymbolInfoWriterTests.o","<MapFileParser>Tests/Statistics/HighLevelBreakdownTests.o","<MapFileParser>Tests/Statistics/TenLargestSymbolsTests.o","<MapFileParser>Tests/Statistics/AllSymbolSizesTests.o","<MapFileParser>Tests/Asserts.o","<MapFileParser>/Users/lucas/unity3/Runtime/Testing/NativeTestReporter.o","<MapFileParser>/Users/lucas/unity3/Runtime/Testing/ConsoleTestReporter.o","<MapFileParser>/Users/lucas/unity3/Runtime/Testing/Testing.o","<MapFileParser>/Users/lucas/unity3/Runtime/Testing/TestAttributes.o","<MapFileParser>/Users/lucas/unity3/Runtime/Logging/LogAssert.o","<MapFileParser>/Users/lucas/unity3/Runtime/Utilities/Word.o","<MapFileParser>/Users/lucas/unity3/Runtime/Threads/Mutex.o","<MapFileParser>/Users/lucas/unity3/Runtime/Allocator/MemoryManager.o","<MapFileParser>Runtime/Threads/Posix/PlatformMutex.o"]}],deps:[{id:105},{id:185},{id:202},{id:204},{id:210},{id:214},{id:217},{id:220},{id:228},{id:232},{id:235},{id:241},{id:243},{id:245},{id:249},{id:254},{id:256},{id:260},{id:263},{id:266},{id:270},{id:273},{id:276},{id:280},{id:284},{id:287},{id:291},{id:294},{id:299},{id:302},{id:305},{id:308},{id:438},{id:451},{id:953},{id:956},{id:992},{id:1032},{id:1035},{id:1075},{id:1078},{id:2}]},
+    {id:105,name:"<MapFileParser>main.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/main.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>main.cpp"]}],deps:[{id:106},{id:107}]},{id:106,name:"<!dir!>/Users/lucas/unity3/artifacts/macosx32_debug_MapFileParser_mono_1",boundName:"@1@macosx32_debug_MapFileParser_mono_1",actions:[{name:"MkDir1"}]},
+    {id:107,name:"<MapFileParser>main.cpp",boundName:"@4@main.cpp",inc:[{id:108},{id:109},{id:111},{id:184}]},{id:108,name:"<MapFileParser>iostream",boundName:"iostream"},{id:109,name:"<MapFileParser>driver.h",boundName:"@4@driver.h",inc:[{id:110}]},{id:110,name:"<MapFileParser>ostream",boundName:"ostream"},{id:111,name:"@7@testing/testing.h",boundName:"@0@testing/testing.h",inc:[{id:112},{id:117},{id:138},{id:140},{id:141},{id:153}]},{id:112,name:"@7@core/containers/string.h",boundName:"@0@core/containers/string.h",inc:[{id:113},{id:114},{id:113},{id:115},{id:129},{id:132},{id:133}]},{id:113,name:"<MapFileParser>string",boundName:"string"},{id:114,name:"<MapFileParser>iosfwd",boundName:"iosfwd"},{id:115,name:"@7@allocator/stlallocator.h",boundName:"@0@allocator/stlallocator.h",inc:[{id:116},{id:119},{id:128}]},{id:116,name:"@7@allocator/memorymacros.h",boundName:"@0@allocator/memorymacros.h",inc:[{id:117},{id:119},{id:122},{id:123},{id:124},{id:125},{id:126},{id:115},{id:127}]},{id:117,name:"@7@core/coremacros.h",boundName:"@0@core/coremacros.h",inc:[{id:118}]},{id:118,name:"<MapFileParser>stddef.h",boundName:"stddef.h"},{id:119,name:"@7@misc/allocatorlabels.h",boundName:"@0@misc/allocatorlabels.h",inc:[{id:120},{id:121},{id:121},{id:121}]},{id:120,name:"@7@modules/exportmodules.h",boundName:"@0@modules/exportmodules.h"},
+    {id:121,name:"<MapFileParser>allocatorlabelnames.h",boundName:"@0@misc/allocatorlabelnames.h"},{id:122,name:"@7@utilities/noncopyable.h",boundName:"@0@utilities/noncopyable.h",inc:[{id:120}]},{id:123,name:"@7@utilities/annotations.h",boundName:"@0@utilities/annotations.h"},{id:124,name:"<MapFileParser>limits",boundName:"limits"},{id:125,name:"<MapFileParser>new",boundName:"new"},{id:126,name:"<MapFileParser>alloca.h",boundName:"alloca.h"},{id:127,name:"<MapFileParser>allocator/platformmemorymacros.h",boundName:"allocator/platformmemorymacros.h"},{id:128,name:"<MapFileParser>cstddef",boundName:"cstddef"},{id:129,name:"@7@core/containers/stringstoragedefault.h",boundName:"@0@core/containers/stringstoragedefault.h",inc:[{id:116},{id:130},{id:131},{id:136},{id:137}]},{id:130,name:"<MapFileParser>assert.h",boundName:"assert.h"},{id:131,name:"<MapFileParser>string.h",boundName:"@0@core/containers/string.h",inc:[{id:113},{id:114},{id:113},{id:115},{id:129},{id:132},{id:133}]},{id:132,name:"@7@utilities/staticassert.h",boundName:"@0@utilities/staticassert.h",inc:[{id:133},{id:134}]},{id:133,name:"@7@utilities/typeutilities.h",boundName:"@0@utilities/typeutilities.h"},{id:134,name:"@7@utilities/arrayutility.h",boundName:"@0@utilities/arrayutility.h",inc:[{id:135},{id:118}]},{id:135,name:"<MapFileParser>cstdlib",boundName:"cstdlib"},{id:136,name:"<MapFileParser>algorithm",boundName:"algorithm"},{id:137,name:"<MapFileParser>utility",boundName:"utility"},{id:138,name:"<MapFileParser>testattributes.h",boundName:"@0@testing/testattributes.h",inc:[{id:139}]},
+    {id:139,name:"<MapFileParser>external/unittest++/src/testattribute.h",boundName:"@5@unittest++/src/testattribute.h"},{id:140,name:"<MapFileParser>vector",boundName:"vector"},{id:141,name:"@7@logging/logassert.h",boundName:"@0@logging/logassert.h",inc:[{id:142},{id:117},{id:123},{id:143},{id:144},{id:145},{id:146},{id:147},{id:149},{id:120},{id:150},{id:151},{id:152}]},{id:142,name:"@7@baseclasses/instanceid.h",boundName:"@0@baseclasses/instanceid.h"},{id:143,name:"@7@utilities/enumflags.h",boundName:"@0@utilities/enumflags.h"},{id:144,name:"@7@utilities/recursionlimit.h",boundName:"@0@utilities/recursionlimit.h"},{id:145,name:"@7@utilities/stringtraits.h",boundName:"@0@utilities/stringtraits.h",inc:[{id:112},{id:133}]},{id:146,name:"@7@utilities/word.h",boundName:"@0@utilities/word.h",inc:[{id:112},{id:120},{id:123},{id:145},{id:140},{id:147},{id:148}]},{id:147,name:"<MapFileParser>stdarg.h",boundName:"stdarg.h"},{id:148,name:"<MapFileParser>corefoundation/corefoundation.h",boundName:"corefoundation/corefoundation.h"},{id:149,name:"<MapFileParser>stdio.h",boundName:"stdio.h"},{id:150,name:"<MapFileParser>utilities/platformlogassert.h",boundName:"utilities/platformlogassert.h"},{id:151,name:"<MapFileParser>signal.h",boundName:"signal.h"},{id:152,name:"<MapFileParser>libdbg.h",boundName:"libdbg.h"},{id:153,name:"<MapFileParser>external/unittest++/src/unittest++.h",boundName:"@5@unittest++/src/unittest++.h",inc:[{id:154},{id:155},{id:161},{id:162},{id:163},{id:164},{id:165},{id:173},{id:175},{id:176},{id:177}]},{id:154,name:"<MapFileParser>config.h",boundName:"@5@unittest++/src/config.h"},
+    {id:155,name:"<MapFileParser>test.h",boundName:"@5@unittest++/src/test.h",inc:[{id:156},{id:140}]},{id:156,name:"<MapFileParser>testdetails.h",boundName:"@5@unittest++/src/testdetails.h",inc:[{id:157}]},{id:157,name:"<MapFileParser>testproperty.h",boundName:"@5@unittest++/src/testproperty.h",inc:[{id:158},{id:160},{id:113}]},{id:158,name:"<MapFileParser>memoryoutstream.h",boundName:"@5@unittest++/src/memoryoutstream.h",inc:[{id:154},{id:159},{id:128}]},{id:159,name:"<MapFileParser>sstream",boundName:"sstream"},{id:160,name:"<MapFileParser>map",boundName:"map"},{id:161,name:"<MapFileParser>testlist.h",boundName:"@5@unittest++/src/testlist.h"},{id:162,name:"<MapFileParser>testsuite.h",boundName:"@5@unittest++/src/testsuite.h"},{id:163,name:"<MapFileParser>testresults.h",boundName:"@5@unittest++/src/testresults.h"},{id:164,name:"<MapFileParser>testattribute.h",boundName:"@5@unittest++/src/testattribute.h"},{id:165,name:"<MapFileParser>testmacros.h",boundName:"@5@unittest++/src/testmacros.h",inc:[{id:154},{id:166},{id:167},{id:156},{id:158},{id:170}]},{id:166,name:"<MapFileParser>executetest.h",boundName:"@5@unittest++/src/executetest.h",inc:[{id:156},{id:158},{id:167},{id:169},{id:170}]},{id:167,name:"<MapFileParser>assertexception.h",boundName:"@5@unittest++/src/assertexception.h",inc:[{id:168}]},{id:168,name:"<MapFileParser>exception",boundName:"exception"},{id:169,name:"<MapFileParser>currenttest.h",boundName:"@5@unittest++/src/currenttest.h"},{id:170,name:"<MapFileParser>posix/signaltranslator.h",boundName:"@5@unittest++/src/posix/signaltranslator.h",inc:[{id:171},{id:172},{id:151}]},
+    {id:171,name:"<MapFileParser>setjmp.h",boundName:"setjmp.h"},{id:172,name:"<MapFileParser>sys/signal.h",boundName:"sys/signal.h"},
+    {id:173,name:"<MapFileParser>checkmacros.h",boundName:"@5@unittest++/src/checkmacros.h",inc:[{id:174},{id:167},{id:158},{id:156},{id:169}]},{id:174,name:"<MapFileParser>checks.h",boundName:"@5@unittest++/src/checks.h",inc:[{id:154},{id:163},{id:158}]},
+    {id:175,name:"<MapFileParser>reportmacros.h",boundName:"@5@unittest++/src/reportmacros.h",inc:[{id:154},{id:157}]},{id:176,name:"<MapFileParser>testrunner.h",boundName:"@5@unittest++/src/testrunner.h",inc:[{id:155},{id:161},{id:169},{id:131}]},{id:177,name:"<MapFileParser>timeconstraint.h",boundName:"@5@unittest++/src/timeconstraint.h",inc:[{id:178}]},
+    {id:178,name:"<MapFileParser>timehelpers.h",boundName:"@5@unittest++/src/timehelpers.h",inc:[{id:154},{id:179},{id:181},{id:183}]},{id:179,name:"<MapFileParser>posix/timehelpers.h",boundName:"@5@unittest++/src/posix/timehelpers.h",inc:[{id:180}]},{id:180,name:"<MapFileParser>sys/time.h",boundName:"sys/time.h"},{id:181,name:"<MapFileParser>win32/timehelpers.h",boundName:"@5@unittest++/src/win32/timehelpers.h",inc:[{id:182}]},{id:182,name:"<MapFileParser>../config.h",boundName:"@5@unittest++/src/config.h"},{id:183,name:"<MapFileParser>timehelpersdefault.h",boundName:"@5@unittest++/src/timehelpersdefault.h",inc:[{id:154}]},{id:184,name:"<MapFileParser>windows.h",boundName:"windows.h"},{id:185,name:"<MapFileParser>Driver.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Driver.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Driver.cpp"]}],deps:[{id:106},{id:186}]},{id:186,name:"<MapFileParser>Driver.cpp",boundName:"@4@Driver.cpp",inc:[{id:187},{id:188},{id:189},{id:109},{id:190},{id:197},{id:198},{id:199},{id:200},{id:201},{id:184}]},{id:187,name:"<MapFileParser>fstream",boundName:"fstream"},{id:188,name:"<MapFileParser>stdexcept",boundName:"stdexcept"},{id:189,name:"<MapFileParser>cstring",boundName:"cstring"},{id:190,name:"<MapFileParser>msvc/msvcmapfileparser.h",boundName:"@4@msvc/msvcmapfileparser.h",inc:[{id:191},{id:113}]},{id:191,name:"<MapFileParser>../mapfileparser.h",boundName:"@4@mapfileparser.h",inc:[{id:192},{id:113}]},{id:192,name:"<MapFileParser>mapfile.h",boundName:"@4@mapfile.h",inc:[{id:193},{id:196},{id:140}]},
+    {id:193,name:"<MapFileParser>section.h",boundName:"@4@section.h",inc:[{id:194},{id:113},{id:140},{id:195},{id:196}]},{id:194,name:"<MapFileParser>stdint.h",boundName:"stdint.h"},{id:195,name:"<MapFileParser>segment.h",boundName:"@4@segment.h",inc:[{id:194},{id:113},{id:140}]},{id:196,name:"<MapFileParser>symbol.h",boundName:"@4@symbol.h",inc:[{id:194},{id:113},{id:140},{id:195}]},{id:197,name:"<MapFileParser>clang/clangmapfileparser.h",boundName:"@4@clang/clangmapfileparser.h",inc:[{id:191},{id:113}]},{id:198,name:"<MapFileParser>snc/sncmapfileparser.h",boundName:"@4@snc/sncmapfileparser.h",inc:[{id:191},{id:113}]},{id:199,name:"<MapFileParser>gcc/gccmapfileparser.h",boundName:"@4@gcc/gccmapfileparser.h",inc:[{id:191},{id:113}]},{id:200,name:"<MapFileParser>symbolinfowriter.h",boundName:"@4@symbolinfowriter.h",inc:[{id:192},{id:110}]},{id:201,name:"<MapFileParser>statistics.h",boundName:"@4@statistics.h",inc:[{id:113},{id:192}]},{id:202,name:"<MapFileParser>SymbolInfoWriter.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/SymbolInfoWriter.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>SymbolInfoWriter.cpp"]}],deps:[{id:106},{id:203}]},{id:203,name:"<MapFileParser>SymbolInfoWriter.cpp",boundName:"@4@SymbolInfoWriter.cpp",inc:[{id:200}]},{id:204,name:"<MapFileParser>Statistics.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Statistics.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Statistics.cpp"]}],deps:[{id:106},{id:205}]},{id:205,name:"<MapFileParser>Statistics.cpp",boundName:"@4@Statistics.cpp",inc:[{id:110},{id:201},{id:206},{id:208},{id:209}]},{id:206,name:"<MapFileParser>statistics/highlevelbreakdown.h",boundName:"@4@statistics/highlevelbreakdown.h",inc:[{id:113},{id:140},{id:207}]},
+    {id:207,name:"<MapFileParser>../symbol.h",boundName:"@4@symbol.h",inc:[{id:194},{id:113},{id:140},{id:195}]},{id:208,name:"<MapFileParser>statistics/tenlargestsymbols.h",boundName:"@4@statistics/tenlargestsymbols.h",inc:[{id:113},{id:140},{id:207}]},{id:209,name:"<MapFileParser>statistics/allsymbolsizes.h",boundName:"@4@statistics/allsymbolsizes.h",inc:[{id:113},{id:140},{id:207}]},{id:210,name:"<MapFileParser>Statistics/HighLevelBreakdown.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Statistics/HighLevelBreakdown.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Statistics/HighLevelBreakdown.cpp"]}],deps:[{id:211},{id:212}]},{id:211,name:"@6@Statistics",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Statistics",actions:[{name:"MkDir1"}]},{id:212,name:"<MapFileParser>Statistics/HighLevelBreakdown.cpp",boundName:"@4@Statistics/HighLevelBreakdown.cpp",inc:[{id:213},{id:159}]},{id:213,name:"<MapFileParser>highlevelbreakdown.h",boundName:"@4@Statistics/highlevelbreakdown.h",inc:[{id:113},{id:140},{id:207}]},{id:214,name:"<MapFileParser>Statistics/TenLargestSymbols.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Statistics/TenLargestSymbols.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Statistics/TenLargestSymbols.cpp"]}],deps:[{id:211},{id:215}]},{id:215,name:"<MapFileParser>Statistics/TenLargestSymbols.cpp",boundName:"@4@Statistics/TenLargestSymbols.cpp",inc:[{id:216},{id:136},{id:159}]},{id:216,name:"<MapFileParser>tenlargestsymbols.h",boundName:"@4@Statistics/tenlargestsymbols.h",inc:[{id:113},{id:140},{id:207}]},
+    {id:217,name:"<MapFileParser>Statistics/AllSymbolSizes.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Statistics/AllSymbolSizes.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Statistics/AllSymbolSizes.cpp"]}],deps:[{id:211},{id:218}]},{id:218,name:"<MapFileParser>Statistics/AllSymbolSizes.cpp",boundName:"@4@Statistics/AllSymbolSizes.cpp",inc:[{id:219},{id:136},{id:159}]},
+    {id:219,name:"<MapFileParser>allsymbolsizes.h",boundName:"@4@Statistics/allsymbolsizes.h",inc:[{id:113},{id:140},{id:207}]},{id:220,name:"<MapFileParser>MSVC/MSVCMapFileParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/MSVC/MSVCMapFileParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>MSVC/MSVCMapFileParser.cpp"]}],deps:[{id:221},{id:222}]},{id:221,name:"@6@MSVC",boundName:"@1@macosx32_debug_MapFileParser_mono_1/MSVC",actions:[{name:"MkDir1"}]},{id:222,name:"<MapFileParser>MSVC/MSVCMapFileParser.cpp",boundName:"@4@MSVC/MSVCMapFileParser.cpp",inc:[{id:223},{id:224},{id:226},{id:159},{id:136},{id:188},{id:113},{id:189},{id:227}]},{id:223,name:"<MapFileParser>msvcmapfileparser.h",boundName:"@4@MSVC/msvcmapfileparser.h",inc:[{id:191},{id:113}]},
+    {id:224,name:"<MapFileParser>msvcsectionparser.h",boundName:"@4@MSVC/msvcsectionparser.h",inc:[{id:225},{id:113}]},{id:225,name:"<MapFileParser>../section.h",boundName:"@4@section.h",inc:[{id:194},{id:113},{id:140},{id:195},{id:196}]},{id:226,name:"<MapFileParser>msvcsymbolparser.h",boundName:"@4@MSVC/msvcsymbolparser.h",inc:[{id:207},{id:113}]},{id:227,name:"<MapFileParser>cstdio",boundName:"cstdio"},{id:228,name:"<MapFileParser>MSVC/MSVCSectionParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/MSVC/MSVCSectionParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>MSVC/MSVCSectionParser.cpp"]}],deps:[{id:221},{id:229}]},{id:229,name:"<MapFileParser>MSVC/MSVCSectionParser.cpp",boundName:"@4@MSVC/MSVCSectionParser.cpp",inc:[{id:224},{id:230},{id:188},{id:159},{id:189},{id:227}]},{id:230,name:"<MapFileParser>../parsebuffer.h",boundName:"@4@parsebuffer.h",inc:[{id:231},{id:135}]},{id:231,name:"<MapFileParser>stdlib.h",boundName:"stdlib.h"},{id:232,name:"<MapFileParser>MSVC/MSVCSymbolParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/MSVC/MSVCSymbolParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>MSVC/MSVCSymbolParser.cpp"]}],deps:[{id:221},{id:233}]},{id:233,name:"<MapFileParser>MSVC/MSVCSymbolParser.cpp",boundName:"@4@MSVC/MSVCSymbolParser.cpp",inc:[{id:226},{id:230},{id:188},{id:124},{id:234},{id:189},{id:227}]},{id:234,name:"<MapFileParser>cassert",boundName:"cassert"},{id:235,name:"<MapFileParser>Clang/ClangMapFileParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Clang/ClangMapFileParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Clang/ClangMapFileParser.cpp"]}],deps:[{id:236},{id:237}]},{id:236,name:"@6@Clang",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Clang",actions:[{name:"MkDir1"}]},
+    {id:237,name:"<MapFileParser>Clang/ClangMapFileParser.cpp",boundName:"@4@Clang/ClangMapFileParser.cpp",inc:[{id:238},{id:239},{id:240},{id:159},{id:136},{id:227},{id:230}]},{id:238,name:"<MapFileParser>clangmapfileparser.h",boundName:"@4@Clang/clangmapfileparser.h",inc:[{id:191},{id:113}]},{id:239,name:"<MapFileParser>clangsectionparser.h",boundName:"@4@Clang/clangsectionparser.h",inc:[{id:225},{id:113}]},{id:240,name:"<MapFileParser>clangsymbolparser.h",boundName:"@4@Clang/clangsymbolparser.h",inc:[{id:207},{id:113}]},{id:241,name:"<MapFileParser>Clang/ClangSectionParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Clang/ClangSectionParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Clang/ClangSectionParser.cpp"]}],deps:[{id:236},{id:242}]},{id:242,name:"<MapFileParser>Clang/ClangSectionParser.cpp",boundName:"@4@Clang/ClangSectionParser.cpp",inc:[{id:239},{id:230},{id:188},{id:189},{id:227}]},{id:243,name:"<MapFileParser>Clang/ClangSymbolParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Clang/ClangSymbolParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Clang/ClangSymbolParser.cpp"]}],deps:[{id:236},{id:244}]},{id:244,name:"<MapFileParser>Clang/ClangSymbolParser.cpp",boundName:"@4@Clang/ClangSymbolParser.cpp",inc:[{id:240},{id:230},{id:188},{id:227}]},{id:245,name:"<MapFileParser>SNC/SNCMapFileParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/SNC/SNCMapFileParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>SNC/SNCMapFileParser.cpp"]}],deps:[{id:246},{id:247}]},
+    {id:246,name:"@6@SNC",boundName:"@1@macosx32_debug_MapFileParser_mono_1/SNC",actions:[{name:"MkDir1"}]},{id:247,name:"<MapFileParser>SNC/SNCMapFileParser.cpp",boundName:"@4@SNC/SNCMapFileParser.cpp",inc:[{id:248},{id:159},{id:136}]},
+    {id:248,name:"<MapFileParser>sncmapfileparser.h",boundName:"@4@SNC/sncmapfileparser.h",inc:[{id:191},{id:113}]},{id:249,name:"<MapFileParser>GCC/GCCMapFileParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/GCC/GCCMapFileParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>GCC/GCCMapFileParser.cpp"]}],deps:[{id:250},{id:251}]},{id:250,name:"@6@GCC",boundName:"@1@macosx32_debug_MapFileParser_mono_1/GCC",actions:[{name:"MkDir1"}]},{id:251,name:"<MapFileParser>GCC/GCCMapFileParser.cpp",boundName:"@4@GCC/GCCMapFileParser.cpp",inc:[{id:159},{id:252},{id:253}]},{id:252,name:"<MapFileParser>gccmapfileparser.h",boundName:"@4@GCC/gccmapfileparser.h",inc:[{id:191},{id:113}]},{id:253,name:"<MapFileParser>gccsymbolparser.h",boundName:"@4@GCC/gccsymbolparser.h",inc:[{id:207},{id:113}]},{id:254,name:"<MapFileParser>GCC/GCCSymbolParser.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/GCC/GCCSymbolParser.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>GCC/GCCSymbolParser.cpp"]}],deps:[{id:250},{id:255}]},{id:255,name:"<MapFileParser>GCC/GCCSymbolParser.cpp",boundName:"@4@GCC/GCCSymbolParser.cpp",inc:[{id:253},{id:230},{id:188},{id:227},{id:136}]},{id:256,name:"<MapFileParser>Tests/MSVC/MSVCMapFileParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/MSVC/MSVCMapFileParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/MSVC/MSVCMapFileParserTests.cpp"]}],deps:[{id:257},{id:258}]},{id:257,name:"@6@Tests/MSVC",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/MSVC",actions:[{name:"MkDir1"}]},{id:258,name:"<MapFileParser>Tests/MSVC/MSVCMapFileParserTests.cpp",boundName:"@4@Tests/MSVC/MSVCMapFileParserTests.cpp",inc:[{id:159},{id:111},{id:259}]},{id:259,name:"<MapFileParser>../../msvc/msvcmapfileparser.h",boundName:"@4@msvc/msvcmapfileparser.h",inc:[{id:191},{id:113}]},
+    {id:260,name:"<MapFileParser>Tests/MSVC/MSVCSectionParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/MSVC/MSVCSectionParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/MSVC/MSVCSectionParserTests.cpp"]}],deps:[{id:257},{id:261}]},{id:261,name:"<MapFileParser>Tests/MSVC/MSVCSectionParserTests.cpp",boundName:"@4@Tests/MSVC/MSVCSectionParserTests.cpp",inc:[{id:188},{id:111},{id:262}]},{id:262,name:"<MapFileParser>../../msvc/msvcsectionparser.h",boundName:"@4@msvc/msvcsectionparser.h",inc:[{id:225},{id:113}]},{id:263,name:"<MapFileParser>Tests/MSVC/MSVCSymbolParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/MSVC/MSVCSymbolParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/MSVC/MSVCSymbolParserTests.cpp"]}],deps:[{id:257},{id:264}]},{id:264,name:"<MapFileParser>Tests/MSVC/MSVCSymbolParserTests.cpp",boundName:"@4@Tests/MSVC/MSVCSymbolParserTests.cpp",inc:[{id:188},{id:111},{id:265}]},{id:265,name:"<MapFileParser>../../msvc/msvcsymbolparser.h",boundName:"@4@msvc/msvcsymbolparser.h",inc:[{id:207},{id:113}]},{id:266,name:"<MapFileParser>Tests/Clang/ClangMapFileParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Clang/ClangMapFileParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Clang/ClangMapFileParserTests.cpp"]}],deps:[{id:267},{id:268}]},{id:267,name:"@6@Tests/Clang",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Clang",actions:[{name:"MkDir1"}]},{id:268,name:"<MapFileParser>Tests/Clang/ClangMapFileParserTests.cpp",boundName:"@4@Tests/Clang/ClangMapFileParserTests.cpp",inc:[{id:269},{id:159},{id:111}]},
+    {id:269,name:"<MapFileParser>../../clang/clangmapfileparser.h",boundName:"@4@clang/clangmapfileparser.h",inc:[{id:191},{id:113}]},{id:270,name:"<MapFileParser>Tests/Clang/ClangSectionParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Clang/ClangSectionParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Clang/ClangSectionParserTests.cpp"]}],deps:[{id:267},{id:271}]},{id:271,name:"<MapFileParser>Tests/Clang/ClangSectionParserTests.cpp",boundName:"@4@Tests/Clang/ClangSectionParserTests.cpp",inc:[{id:188},{id:111},{id:272}]},{id:272,name:"<MapFileParser>../../clang/clangsectionparser.h",boundName:"@4@clang/clangsectionparser.h",inc:[{id:225},{id:113}]},{id:273,name:"<MapFileParser>Tests/Clang/ClangSymbolParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Clang/ClangSymbolParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Clang/ClangSymbolParserTests.cpp"]}],deps:[{id:267},{id:274}]},{id:274,name:"<MapFileParser>Tests/Clang/ClangSymbolParserTests.cpp",boundName:"@4@Tests/Clang/ClangSymbolParserTests.cpp",inc:[{id:188},{id:111},{id:275}]},{id:275,name:"<MapFileParser>../../clang/clangsymbolparser.h",boundName:"@4@clang/clangsymbolparser.h",inc:[{id:207},{id:113}]},{id:276,name:"<MapFileParser>Tests/SNC/SNCMapFileParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/SNC/SNCMapFileParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/SNC/SNCMapFileParserTests.cpp"]}],deps:[{id:277},{id:278}]},{id:277,name:"@6@Tests/SNC",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/SNC",actions:[{name:"MkDir1"}]},
+    {id:278,name:"<MapFileParser>Tests/SNC/SNCMapFileParserTests.cpp",boundName:"@4@Tests/SNC/SNCMapFileParserTests.cpp",inc:[{id:279},{id:111},{id:159}]},{id:279,name:"<MapFileParser>../../snc/sncmapfileparser.h",boundName:"@4@snc/sncmapfileparser.h",inc:[{id:191},{id:113}]},
+    {id:280,name:"<MapFileParser>Tests/GCC/GCCMapFileParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/GCC/GCCMapFileParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/GCC/GCCMapFileParserTests.cpp"]}],deps:[{id:281},{id:282}]},{id:281,name:"@6@Tests/GCC",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/GCC",actions:[{name:"MkDir1"}]},{id:282,name:"<MapFileParser>Tests/GCC/GCCMapFileParserTests.cpp",boundName:"@4@Tests/GCC/GCCMapFileParserTests.cpp",inc:[{id:159},{id:111},{id:283}]},{id:283,name:"<MapFileParser>../../gcc/gccmapfileparser.h",boundName:"@4@gcc/gccmapfileparser.h",inc:[{id:191},{id:113}]},{id:284,name:"<MapFileParser>Tests/GCC/GCCSymbolParserTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/GCC/GCCSymbolParserTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/GCC/GCCSymbolParserTests.cpp"]}],deps:[{id:281},{id:285}]},{id:285,name:"<MapFileParser>Tests/GCC/GCCSymbolParserTests.cpp",boundName:"@4@Tests/GCC/GCCSymbolParserTests.cpp",inc:[{id:188},{id:113},{id:111},{id:286}]},{id:286,name:"<MapFileParser>../../gcc/gccsymbolparser.h",boundName:"@4@gcc/gccsymbolparser.h",inc:[{id:207},{id:113}]},{id:287,name:"<MapFileParser>Tests/DriverTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/DriverTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/DriverTests.cpp"]}],deps:[{id:288},{id:289}]},{id:288,name:"@6@Tests",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests",actions:[{name:"MkDir1"}]},{id:289,name:"<MapFileParser>Tests/DriverTests.cpp",boundName:"@4@Tests/DriverTests.cpp",inc:[{id:159},{id:113},{id:111},{id:290}]},{id:290,name:"<MapFileParser>../driver.h",boundName:"@4@driver.h",inc:[{id:110}]},{id:291,name:"<MapFileParser>Tests/SymbolInfoWriterTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/SymbolInfoWriterTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/SymbolInfoWriterTests.cpp"]}],deps:[{id:288},{id:292}]},
+    {id:292,name:"<MapFileParser>Tests/SymbolInfoWriterTests.cpp",boundName:"@4@Tests/SymbolInfoWriterTests.cpp",inc:[{id:159},{id:111},{id:293}]},{id:293,name:"<MapFileParser>../symbolinfowriter.h",boundName:"@4@symbolinfowriter.h",inc:[{id:192},{id:110}]},
+    {id:294,name:"<MapFileParser>Tests/Statistics/HighLevelBreakdownTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Statistics/HighLevelBreakdownTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Statistics/HighLevelBreakdownTests.cpp"]}],deps:[{id:295},{id:296}]},{id:295,name:"@6@Tests/Statistics",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Statistics",actions:[{name:"MkDir1"}]},{id:296,name:"<MapFileParser>Tests/Statistics/HighLevelBreakdownTests.cpp",boundName:"@4@Tests/Statistics/HighLevelBreakdownTests.cpp",inc:[{id:111},{id:297},{id:298},{id:140},{id:159}]},{id:297,name:"<MapFileParser>../asserts.h",boundName:"@4@Tests/asserts.h",inc:[{id:113}]},{id:298,name:"<MapFileParser>../../statistics/highlevelbreakdown.h",boundName:"@4@statistics/highlevelbreakdown.h",inc:[{id:113},{id:140},{id:207}]},{id:299,name:"<MapFileParser>Tests/Statistics/TenLargestSymbolsTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Statistics/TenLargestSymbolsTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Statistics/TenLargestSymbolsTests.cpp"]}],deps:[{id:295},{id:300}]},{id:300,name:"<MapFileParser>Tests/Statistics/TenLargestSymbolsTests.cpp",boundName:"@4@Tests/Statistics/TenLargestSymbolsTests.cpp",inc:[{id:111},{id:297},{id:301},{id:140},{id:159}]},{id:301,name:"<MapFileParser>../../statistics/tenlargestsymbols.h",boundName:"@4@statistics/tenlargestsymbols.h",inc:[{id:113},{id:140},{id:207}]},
+    {id:302,name:"<MapFileParser>Tests/Statistics/AllSymbolSizesTests.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Statistics/AllSymbolSizesTests.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Statistics/AllSymbolSizesTests.cpp"]}],deps:[{id:295},{id:303}]},{id:303,name:"<MapFileParser>Tests/Statistics/AllSymbolSizesTests.cpp",boundName:"@4@Tests/Statistics/AllSymbolSizesTests.cpp",inc:[{id:111},{id:297},{id:304},{id:140},{id:159}]},{id:304,name:"<MapFileParser>../../statistics/allsymbolsizes.h",boundName:"@4@statistics/allsymbolsizes.h",inc:[{id:113},{id:140},{id:207}]},{id:305,name:"<MapFileParser>Tests/Asserts.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Tests/Asserts.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Tests/Asserts.cpp"]}],deps:[{id:288},{id:306}]},{id:306,name:"<MapFileParser>Tests/Asserts.cpp",boundName:"@4@Tests/Asserts.cpp",inc:[{id:307},{id:159},{id:111}]},{id:307,name:"<MapFileParser>asserts.h",boundName:"@4@Tests/asserts.h",inc:[{id:113}]},{id:308,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/NativeTestReporter.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/NativeTestReporter.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Testing/NativeTestReporter.cpp"]}],deps:[{id:106},{id:309}]},{id:309,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/NativeTestReporter.cpp",boundName:"@9@Testing/NativeTestReporter.cpp",inc:[{id:310},{id:342},{id:347},{id:352},{id:146},{id:353},{id:432},{id:434},{id:136}]},{id:310,name:"<MapFileParser>unityprefix.h",boundName:"@4@unityprefix.h",inc:[{id:130},{id:113},{id:140},{id:311},{id:160},{id:312},{id:317},{id:322},{id:324},{id:184},{id:328},{id:319},{id:118},{id:131},{id:180},{id:194},{id:116},{id:146},{id:329},{id:141},{id:330},{id:336},{id:340},{id:341}]},
+    {id:311,name:"<MapFileParser>set",boundName:"set"},{id:312,name:"<MapFileParser>projects/precompiledheaders/visualstudioprefix.h",boundName:"/Users/lucas/unity3/projects/precompiledheaders/visualstudioprefix.h",inc:[{id:313},{id:184},{id:314},{id:315},{id:316},{id:128}]},
+    {id:313,name:"<MapFileParser>sdkddkver.h",boundName:"sdkddkver.h"},{id:314,name:"<MapFileParser>wrl.h",boundName:"wrl.h"},{id:315,name:"<MapFileParser>windows.ui.core.h",boundName:"windows.ui.core.h"},{id:316,name:"<MapFileParser>mfmediaengine.h",boundName:"mfmediaengine.h"},{id:317,name:"<MapFileParser>projects/precompiledheaders/linuxprefix.h",boundName:"/Users/lucas/unity3/projects/precompiledheaders/linuxprefix.h",inc:[{id:149},{id:147},{id:118},{id:318},{id:131},{id:319},{id:320},{id:321}]},{id:318,name:"<MapFileParser>float.h",boundName:"float.h"},{id:319,name:"<MapFileParser>limits.h",boundName:"limits.h"},{id:320,name:"<MapFileParser>inttypes.h",boundName:"inttypes.h"},{id:321,name:"<MapFileParser>unistd.h",boundName:"unistd.h"},{id:322,name:"<MapFileParser>projects/precompiledheaders/osxprefix.h",boundName:"/Users/lucas/unity3/projects/precompiledheaders/osxprefix.h",inc:[{id:323}]},{id:323,name:"<MapFileParser>carbon/carbon.h",boundName:"carbon/carbon.h"},{id:324,name:"<MapFileParser>configuration/prefixconfigure.h",boundName:"/Users/lucas/unity3/configuration/prefixconfigure.h",inc:[{id:325},{id:326},{id:194},{id:327}]},
+    {id:325,name:"<MapFileParser>platformprefixconfigure.h",boundName:"@4@platformprefixconfigure.h"},{id:326,name:"<MapFileParser>arm/arch.h",boundName:"arm/arch.h"},{id:327,name:"<MapFileParser>unityconfigure.h",boundName:"/Users/lucas/unity3/configuration/unityconfigure.h"},{id:328,name:"<MapFileParser>sys/syslimits.h",boundName:"sys/syslimits.h"},{id:329,name:"<MapFileParser>configuration/unityconfigure.h",boundName:"/Users/lucas/unity3/configuration/unityconfigure.h"},{id:330,name:"@7@math/floatconversion.h",boundName:"@0@math/floatconversion.h",inc:[{id:136},{id:331},{id:124},{id:332},{id:141},{id:333},{id:334},{id:335}]},{id:331,name:"<MapFileParser>cmath",boundName:"cmath"},{id:332,name:"<MapFileParser>math.h",boundName:"math.h"},{id:333,name:"@7@utilities/uniontuple.h",boundName:"@0@utilities/uniontuple.h",inc:[{id:132}]},{id:334,name:"<MapFileParser>ppc_math.h",boundName:"ppc_math.h"},{id:335,name:"<MapFileParser>ppc_intrinsics.h",boundName:"ppc_intrinsics.h"},
+    {id:336,name:"@7@utilities/vector_map.h",boundName:"@0@utilities/vector_map.h",inc:[{id:337},{id:339}]},{id:337,name:"<MapFileParser>sorted_vector.h",boundName:"@9@Utilities/sorted_vector.h",inc:[{id:140},{id:136},{id:338}]},{id:338,name:"<MapFileParser>remove_duplicates.h",boundName:"@9@Utilities/remove_duplicates.h"},{id:339,name:"<MapFileParser>functional",boundName:"functional"},{id:340,name:"@7@utilities/vector_set.h",boundName:"@0@utilities/vector_set.h",inc:[{id:337},{id:339}]},{id:341,name:"@7@utilities/utility.h",boundName:"@0@utilities/utility.h",inc:[{id:116},{id:140}]},{id:342,name:"<MapFileParser>nativetestreporter.h",boundName:"@9@Testing/nativetestreporter.h",inc:[{id:343},{id:141},{id:344},{id:345},{id:346},{id:140}]},{id:343,name:"<MapFileParser>testing.h",boundName:"@9@Testing/testing.h",inc:[{id:112},{id:117},{id:138},{id:140},{id:141},{id:153}]},{id:344,name:"<MapFileParser>external/unittest++/src/testreporter.h",boundName:"@5@unittest++/src/testreporter.h"},{id:345,name:"<MapFileParser>external/unittest++/src/testdetails.h",boundName:"@5@unittest++/src/testdetails.h",inc:[{id:157}]},{id:346,name:"<MapFileParser>external/unittest++/src/testproperty.h",boundName:"@5@unittest++/src/testproperty.h",inc:[{id:158},{id:160},{id:113}]},{id:347,name:"@7@threads/mutex.h",boundName:"@0@threads/mutex.h",inc:[{id:122},{id:348},{id:349},{id:351}]},{id:348,name:"<MapFileParser>winapi/platformmutex.h",boundName:"@9@Threads/winapi/platformmutex.h",inc:[{id:122}]},{id:349,name:"<MapFileParser>posix/platformmutex.h",boundName:"@9@Threads/posix/platformmutex.h",inc:[{id:350},{id:122}]},{id:350,name:"<MapFileParser>pthread.h",boundName:"pthread.h"},{id:351,name:"<MapFileParser>platformmutex.h",boundName:"platformmutex.h"},
+    {id:352,name:"@7@logging/logsystem.h",boundName:"@0@logging/logsystem.h"},{id:353,name:"@7@baseclasses/baseobject.h",boundName:"@0@baseclasses/baseobject.h",inc:[{id:310},{id:354},{id:116},{id:395},{id:142},{id:396},{id:366},{id:364},{id:400},{id:401},{id:356},{id:407},{id:122},{id:141},{id:408},{id:411},{id:415},{id:391},{id:113},{id:430},{id:431}]},{id:354,name:"@7@baseclasses/typeinfomanager.h",boundName:"@0@baseclasses/typeinfomanager.h",inc:[{id:355},{id:360},{id:356},{id:361},{id:371},{id:391}]},{id:355,name:"<MapFileParser>typeinfo.h",boundName:"@0@baseclasses/typeinfo.h",inc:[{id:141},{id:356},{id:143},{id:123}]},{id:356,name:"@7@utilities/dynamic_array.h",boundName:"@0@utilities/dynamic_array.h",inc:[{id:116},{id:132},{id:357},{id:359},{id:141}]},{id:357,name:"@7@core/constructorutility.h",boundName:"@0@core/constructorutility.h",inc:[{id:358}]},{id:358,name:"<MapFileParser>coremacros.h",boundName:"@0@core/coremacros.h",inc:[{id:118}]},{id:359,name:"@7@core/containers/alignoftype.h",boundName:"@0@core/containers/alignoftype.h"},{id:360,name:"<MapFileParser>classids.h",boundName:"@0@baseclasses/classids.h"},{id:361,name:"@7@utilities/hashstringfunctions.h",boundName:"@0@utilities/hashstringfunctions.h",inc:[{id:362},{id:145}]},
+    {id:362,name:"@7@utilities/hashfunctions.h",boundName:"@0@utilities/hashfunctions.h",inc:[{id:363},{id:368},{id:369},{id:370},{id:137},{id:194}]},{id:363,name:"@7@utilities/hash128.h",boundName:"@0@utilities/hash128.h",inc:[{id:364}]},
+    {id:364,name:"@7@serialize/serializeutility.h",boundName:"@0@serialize/serializeutility.h",inc:[{id:365},{id:366},{id:132}]},{id:365,name:"<MapFileParser>serializationmetaflags.h",boundName:"@0@serialize/serializationmetaflags.h",inc:[{id:143},{id:120},{id:132}]},{id:366,name:"@7@containers/commonstring.h",boundName:"@0@containers/commonstring.h",inc:[{id:367},{id:367}]},{id:367,name:"<MapFileParser>commonstrings.h",boundName:"@0@containers/commonstrings.h"},{id:368,name:"<MapFileParser>external/hashfunctions/city.h",boundName:"@5@hashfunctions/city.h",inc:[{id:231},{id:194},{id:137}]},{id:369,name:"<MapFileParser>external/hashfunctions/spookyv2.h",boundName:"@5@hashfunctions/spookyv2.h",inc:[{id:118}]},{id:370,name:"<MapFileParser>external/hashfunctions/xxhash.h",boundName:"@5@hashfunctions/xxhash.h",inc:[{id:118}]},{id:371,name:"@7@threads/readwritelock.h",boundName:"@0@threads/readwritelock.h",inc:[{id:372},{id:373},{id:383},{id:122},{id:132}]},{id:372,name:"<MapFileParser>autoreadwritelock.h",boundName:"@9@Threads/autoreadwritelock.h",inc:[{id:122}]},{id:373,name:"<MapFileParser>extendedatomicops.h",boundName:"@9@Threads/extendedatomicops.h",inc:[{id:374},{id:376},{id:377},{id:379},{id:380},{id:381},{id:382}]},
+    {id:374,name:"@7@threads/extendedatomictypes.h",boundName:"@0@threads/extendedatomictypes.h",inc:[{id:375},{id:194}]},{id:375,name:"<MapFileParser>emmintrin.h",boundName:"emmintrin.h"},{id:376,name:"@7@threads/extendedatomicops-clang-gcc.h",boundName:"@0@threads/extendedatomicops-clang-gcc.h"},{id:377,name:"@7@threads/extendedatomicops-x86-64.h",boundName:"@0@threads/extendedatomicops-x86-64.h",inc:[{id:184},{id:378},{id:375}]},{id:378,name:"<MapFileParser>intrin.h",boundName:"intrin.h"},{id:379,name:"@7@threads/extendedatomicops-x86.h",boundName:"@0@threads/extendedatomicops-x86.h",inc:[{id:184},{id:378},{id:375}]},
+    {id:380,name:"@7@threads/extendedatomicops-arm64.h",boundName:"@0@threads/extendedatomicops-arm64.h"},{id:381,name:"@7@threads/extendedatomicops-arm.h",boundName:"@0@threads/extendedatomicops-arm.h",inc:[{id:184},{id:378}]},{id:382,name:"<MapFileParser>platformextendedatomicops.h",boundName:"platformextendedatomicops.h"},
+    {id:383,name:"<MapFileParser>semaphore.h",boundName:"@9@Threads/semaphore.h",inc:[{id:384},{id:386},{id:388},{id:390},{id:122}]},{id:384,name:"<MapFileParser>winapi/platformsemaphore.h",boundName:"@9@Threads/winapi/platformsemaphore.h",inc:[{id:122},{id:141},{id:385}]},{id:385,name:"<MapFileParser>platformdependent/metroplayer/win32threads.h",boundName:"@8@metroplayer/win32threads.h"},{id:386,name:"<MapFileParser>posix/platformsemaphore.h",boundName:"@9@Threads/posix/platformsemaphore.h",inc:[{id:383},{id:387},{id:146},{id:122}]},{id:387,name:"<MapFileParser>errno.h",boundName:"errno.h"},{id:388,name:"<MapFileParser>platformdependent/commonapple/platformsemaphore.h",boundName:"@8@commonapple/platformsemaphore.h",inc:[{id:310},{id:122},{id:389}]},{id:389,name:"<MapFileParser>dispatch/dispatch.h",boundName:"dispatch/dispatch.h"},{id:390,name:"<MapFileParser>platformsemaphore.h",boundName:"/Users/lucas/unity3/PlatformDependent/CommonApple/platformsemaphore.h",inc:[{id:310},{id:122},{id:389}]},{id:391,name:"<MapFileParser>external/google/sparsehash/dense_hash_map.h",boundName:"@5@google/sparsehash/dense_hash_map.h",inc:[{id:149},{id:136},{id:339},{id:392},{id:137},{id:393}]},{id:392,name:"<MapFileParser>memory",boundName:"memory"},{id:393,name:"<MapFileParser>densehashtable.h",boundName:"@5@google/sparsehash/densehashtable.h",inc:[{id:141},{id:392},{id:394}]},{id:394,name:"<MapFileParser>type_traits.h",boundName:"@5@google/sparsehash/type_traits.h",inc:[{id:137}]},
+    {id:395,name:"@7@baseclasses/classids.h",boundName:"@0@baseclasses/classids.h"},{id:396,name:"@7@baseclasses/objectdefines.h",boundName:"@0@baseclasses/objectdefines.h",inc:[{id:397},{id:329},{id:116},{id:395},{id:398},{id:117},{id:120},{id:399}]},{id:397,name:"@7@allocator/baseallocator.h",boundName:"@0@allocator/baseallocator.h",inc:[{id:119},{id:122},{id:118}]},{id:398,name:"@7@baseclasses/typeinfo.h",boundName:"@0@baseclasses/typeinfo.h",inc:[{id:141},{id:356},{id:143},{id:123}]},{id:399,name:"@7@utilities/registerruntimeinitializeandcleanup.h",boundName:"@0@utilities/registerruntimeinitializeandcleanup.h"},{id:400,name:"@7@serialize/serializationmetaflags.h",boundName:"@0@serialize/serializationmetaflags.h",inc:[{id:143},{id:120},{id:132}]},{id:401,name:"@7@scriptingbackend/scriptingtypes.h",boundName:"@0@scriptingbackend/scriptingtypes.h",inc:[{id:310},{id:113},{id:110},{id:118},{id:194},{id:112},{id:402},{id:403},{id:404},{id:405},{id:406}]},{id:402,name:"@7@mono/monotypesignatures.h",boundName:"@0@mono/monotypesignatures.h"},{id:403,name:"<MapFileParser>dotnet/scriptingtypes_dotnet.h",boundName:"@0@scriptingbackend/dotnet/scriptingtypes_dotnet.h"},{id:404,name:"<MapFileParser>tools/il2cpp/il2cpp/libil2cpp/blob.h",boundName:"/Users/lucas/unity3/tools/il2cpp/il2cpp/libil2cpp/blob.h"},{id:405,name:"<MapFileParser>tools/il2cpp/il2cpp/libil2cpp/il2cpp-api-types.h",boundName:"/Users/lucas/unity3/tools/il2cpp/il2cpp/libil2cpp/il2cpp-api-types.h",inc:[{id:194}]},{id:406,name:"<MapFileParser>scriptingtraits.h",boundName:"@0@scriptingbackend/scriptingtraits.h"},{id:407,name:"@7@utilities/hashinstanceid.h",boundName:"@0@utilities/hashinstanceid.h",inc:[{id:362},{id:391}]},
+    {id:408,name:"@7@utilities/prefetch.h",boundName:"@0@utilities/prefetch.h",inc:[{id:378},{id:409},{id:410}]},{id:409,name:"<MapFileParser>xmmintrin.h",boundName:"xmmintrin.h"},
+    {id:410,name:"<MapFileParser>platformprefetch.h",boundName:"platformprefetch.h"},{id:411,name:"@7@threads/threadspecificvalue.h",boundName:"@0@threads/threadspecificvalue.h",inc:[{id:329},{id:412},{id:413},{id:414}]},
+    {id:412,name:"<MapFileParser>winapi/platformthreadspecificvalue.h",boundName:"@9@Threads/winapi/platformthreadspecificvalue.h",inc:[{id:385}]},{id:413,name:"<MapFileParser>posix/platformthreadspecificvalue.h",boundName:"@9@Threads/posix/platformthreadspecificvalue.h",inc:[{id:350},{id:141},{id:341}]},{id:414,name:"<MapFileParser>platformthreadspecificvalue.h",boundName:"platformthreadspecificvalue.h"},{id:415,name:"@7@threads/profilermutex.h",boundName:"@0@threads/profilermutex.h",inc:[{id:416},{id:417},{id:422},{id:426},{id:429}]},{id:416,name:"<MapFileParser>mutex.h",boundName:"@9@Threads/mutex.h",inc:[{id:122},{id:348},{id:349},{id:351}]},{id:417,name:"<MapFileParser>thread.h",boundName:"@9@Threads/thread.h",inc:[{id:329},{id:418},{id:419},{id:421},{id:122}]},{id:418,name:"<MapFileParser>winapi/platformthread.h",boundName:"@9@Threads/winapi/platformthread.h",inc:[{id:122}]},{id:419,name:"<MapFileParser>posix/platformthread.h",boundName:"@9@Threads/posix/platformthread.h",inc:[{id:350},{id:122},{id:420}]},{id:420,name:"<MapFileParser>sys/types.h",boundName:"sys/types.h"},{id:421,name:"<MapFileParser>platformthread.h",boundName:"platformthread.h"},
+    {id:422,name:"@7@profiler/profiler.h",boundName:"@0@profiler/profiler.h",inc:[{id:329},{id:423},{id:143},{id:401},{id:424}]},{id:423,name:"@7@profiler/internal/sampler.h",boundName:"@0@profiler/internal/sampler.h",inc:[{id:112},{id:143}]},
+    {id:424,name:"@7@profiler/serializationutility.h",boundName:"@0@profiler/serializationutility.h",inc:[{id:356},{id:425}]},{id:425,name:"@7@serialize/swapendianbytes.h",boundName:"@0@serialize/swapendianbytes.h",inc:[{id:333}]},{id:426,name:"@7@profiler/timehelper.h",boundName:"@0@profiler/timehelper.h",inc:[{id:141},{id:180},{id:427},{id:428}]},{id:427,name:"<MapFileParser>emscripten.h",boundName:"emscripten.h"},{id:428,name:"<MapFileParser>profiler/platformtimehelper.h",boundName:"profiler/platformtimehelper.h"},{id:429,name:"<MapFileParser>threads/platformprofilermutex.h",boundName:"threads/platformprofilermutex.h"},{id:430,name:"<MapFileParser>typeinfo",boundName:"typeinfo"},{id:431,name:"<MapFileParser>pptr.h",boundName:"@0@baseclasses/pptr.h",inc:[{id:353}]},{id:432,name:"@7@baseclasses/baseobjectutilities.h",boundName:"@0@baseclasses/baseobjectutilities.h",inc:[{id:433}]},{id:433,name:"<MapFileParser>baseobject.h",boundName:"@0@baseclasses/baseobject.h",inc:[{id:310},{id:354},{id:116},{id:395},{id:142},{id:396},{id:366},{id:364},{id:400},{id:401},{id:356},{id:407},{id:122},{id:141},{id:408},{id:411},{id:415},{id:391},{id:113},{id:430},{id:431}]},
+    {id:434,name:"@7@baseclasses/namedobject.h",boundName:"@0@baseclasses/namedobject.h",inc:[{id:435},{id:436}]},{id:435,name:"<MapFileParser>editorextension.h",boundName:"@0@baseclasses/editorextension.h",inc:[{id:433}]},{id:436,name:"@7@containers/constantstring.h",boundName:"@0@containers/constantstring.h",inc:[{id:437},{id:189},{id:364}]},{id:437,name:"<MapFileParser>commonstring.h",boundName:"@0@containers/commonstring.h",inc:[{id:367},{id:367}]},{id:438,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/ConsoleTestReporter.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/ConsoleTestReporter.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Testing/ConsoleTestReporter.cpp"]}],deps:[{id:106},{id:439}]},
+    {id:439,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/ConsoleTestReporter.cpp",boundName:"@9@Testing/ConsoleTestReporter.cpp",inc:[{id:310},{id:440},{id:136},{id:149},{id:347},{id:442},{id:352}]},{id:440,name:"@7@testing/consoletestreporter.h",boundName:"@0@testing/consoletestreporter.h",inc:[{id:441}]},{id:441,name:"@7@testing/nativetestreporter.h",boundName:"@0@testing/nativetestreporter.h",inc:[{id:343},{id:141},{id:344},{id:345},{id:346},{id:140}]},{id:442,name:"@7@utilities/file.h",boundName:"@0@utilities/file.h",inc:[{id:443},{id:122},{id:444},{id:311},{id:143},{id:356},{id:446}]},{id:443,name:"<MapFileParser>fcntl.h",boundName:"fcntl.h"},{id:444,name:"@7@utilities/pathnameutility.h",boundName:"@0@utilities/pathnameutility.h",inc:[{id:113},{id:140},{id:339},{id:445},{id:145},{id:146}]},{id:445,name:"<MapFileParser>cctype",boundName:"cctype"},{id:446,name:"@7@virtualfilesystem/virtualfilesystem.h",boundName:"@0@virtualfilesystem/virtualfilesystem.h",inc:[{id:447},{id:112},{id:371},{id:141},{id:356},{id:448},{id:450},{id:363},{id:347},{id:140}]},
+    {id:447,name:"<MapFileParser>virtualfilesystemtypes.h",boundName:"@0@virtualfilesystem/virtualfilesystemtypes.h",inc:[{id:310},{id:448},{id:356},{id:450},{id:363},{id:122}]},{id:448,name:"@7@utilities/datetime.h",boundName:"@0@utilities/datetime.h",inc:[{id:364},{id:449}]},{id:449,name:"<MapFileParser>time.h",boundName:"time.h"},{id:450,name:"@7@utilities/guid.h",boundName:"@0@utilities/guid.h",inc:[{id:364},{id:113}]},{id:451,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/Testing.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Testing.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Testing/Testing.cpp"]}],deps:[{id:106},{id:452}]},{id:452,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/Testing.cpp",boundName:"@9@Testing/Testing.cpp",inc:[{id:310},{id:111},{id:453},{id:454},{id:456},{id:146},{id:446},{id:457},{id:709},{id:711},{id:712},{id:713},{id:714},{id:715},{id:458},{id:716},{id:728},{id:472},{id:670},{id:729},{id:735},{id:712},{id:654},{id:764},{id:772},{id:775},{id:785},{id:787},{id:935},{id:936},{id:939},{id:544},{id:426},{id:941},{id:440},{id:942},{id:943},{id:944},{id:950},{id:952},{id:187}]},{id:453,name:"@7@threads/thread.h",boundName:"@0@threads/thread.h",inc:[{id:329},{id:418},{id:419},{id:421},{id:122}]},
+    {id:454,name:"@7@allocator/linearallocator.h",boundName:"@0@allocator/linearallocator.h",inc:[{id:128},{id:455},{id:130},{id:329},{id:194},{id:453},{id:116}]},{id:455,name:"<MapFileParser>list",boundName:"list"},{id:456,name:"@7@utilities/argv.h",boundName:"@0@utilities/argv.h",inc:[{id:140}]},
+    {id:457,name:"@7@misc/player.h",boundName:"@0@misc/player.h",inc:[{id:113},{id:442},{id:458},{id:444},{id:462},{id:708},{id:552}]},{id:458,name:"@7@utilities/fileutilities.h",boundName:"@0@utilities/fileutilities.h",inc:[{id:113},{id:311},{id:459},{id:460},{id:461}]},{id:459,name:"<MapFileParser>pathnameutility.h",boundName:"@9@Utilities/pathnameutility.h",inc:[{id:113},{id:140},{id:339},{id:445},{id:145},{id:146}]},{id:460,name:"<MapFileParser>datetime.h",boundName:"@9@Utilities/datetime.h",inc:[{id:364},{id:449}]},{id:461,name:"<MapFileParser>file.h",boundName:"@9@Utilities/file.h",inc:[{id:443},{id:122},{id:444},{id:311},{id:143},{id:356},{id:446}]},{id:462,name:"@7@misc/playersettings.h",boundName:"@0@misc/playersettings.h",inc:[{id:463},{id:472},{id:473},{id:476},{id:479},{id:356},{id:480},{id:450},{id:481},{id:352},{id:542},{id:674}]},{id:463,name:"@7@gamecode/behaviour.h",boundName:"@0@gamecode/behaviour.h",inc:[{id:464},{id:472},{id:470},{id:120}]},{id:464,name:"@7@baseclasses/gameobject.h",boundName:"@0@baseclasses/gameobject.h",inc:[{id:435},{id:141},{id:465},{id:466},{id:468},{id:469},{id:398},{id:470},{id:436},{id:356},{id:471}]},
+    {id:465,name:"<MapFileParser>messageidentifier.h",boundName:"@0@baseclasses/messageidentifier.h",inc:[{id:356},{id:143},{id:122}]},{id:466,name:"<MapFileParser>messagedata.h",boundName:"@0@baseclasses/messagedata.h",inc:[{id:194},{id:467},{id:398},{id:141},{id:401}]},{id:467,name:"<MapFileParser>external/google/sparsehash/type_traits.h",boundName:"@5@google/sparsehash/type_traits.h",inc:[{id:137}]},{id:468,name:"<MapFileParser>immediateptr.h",boundName:"@0@baseclasses/immediateptr.h",inc:[{id:433}]},{id:469,name:"<MapFileParser>bitfield.h",boundName:"@0@baseclasses/bitfield.h",inc:[{id:364}]},{id:470,name:"@7@utilities/linkedlist.h",boundName:"@0@utilities/linkedlist.h",inc:[{id:141}]},{id:471,name:"<MapFileParser>editor/src/utility/staticeditorflags.h",boundName:"@10@utility/staticeditorflags.h",inc:[{id:143}]},{id:472,name:"@7@baseclasses/gamemanager.h",boundName:"@0@baseclasses/gamemanager.h",inc:[{id:435}]},{id:473,name:"@7@math/colorspaceconversion.h",boundName:"@0@math/colorspaceconversion.h",inc:[{id:474}]},{id:474,name:"<MapFileParser>color.h",boundName:"@9@Math/color.h",inc:[{id:364},{id:400},{id:136},{id:341},{id:475},{id:425}]},
+    {id:475,name:"<MapFileParser>floatconversion.h",boundName:"@9@Math/floatconversion.h",inc:[{id:136},{id:331},{id:124},{id:332},{id:141},{id:333},{id:334},{id:335}]},
+    {id:476,name:"@7@math/rect.h",boundName:"@0@math/rect.h",inc:[{id:477},{id:120}]},{id:477,name:"<MapFileParser>vector2.h",boundName:"@9@Math/vector2.h",inc:[{id:136},{id:475},{id:364},{id:400},{id:141},{id:120},{id:478}]},{id:478,name:"<MapFileParser>wiiuvector2ficall.h",boundName:"wiiuvector2ficall.h"},
+    {id:479,name:"@7@camera/renderloops/renderloopenums.h",boundName:"@0@camera/renderloops/renderloopenums.h"},{id:480,name:"@7@math/vector2.h",boundName:"@0@math/vector2.h",inc:[{id:136},{id:475},{id:364},{id:400},{id:141},{id:120},{id:478}]},{id:481,name:"@7@vr/vrsettings.h",boundName:"@0@vr/vrsettings.h",inc:[{id:482}]},{id:482,name:"@7@serialize/transferfunctions/serializetransfer.h",boundName:"@0@serialize/transferfunctions/serializetransfer.h",inc:[{id:483},{id:499},{id:501},{id:502},{id:504},{id:505},{id:506},{id:508},{id:536}]},{id:483,name:"<MapFileParser>yamlread.h",boundName:"@0@serialize/transferfunctions/yamlread.h",inc:[{id:484},{id:495},{id:496},{id:497},{id:498},{id:133}]},{id:484,name:"@7@serialize/transferfunctions/textdomtransferreadbase.h",boundName:"@0@serialize/transferfunctions/textdomtransferreadbase.h",inc:[{id:485},{id:493}]},{id:485,name:"@7@serialize/transferfunctions/transferbase.h",boundName:"@0@serialize/transferfunctions/transferbase.h",inc:[{id:486},{id:400}]},
+    {id:486,name:"@7@serialize/serializetraits.h",boundName:"@0@serialize/serializetraits.h",inc:[{id:354},{id:487},{id:488},{id:365},{id:489},{id:490},{id:141},{id:491},{id:336},{id:340},{id:356},{id:436},{id:492},{id:391},{id:160},{id:311},{id:455}]},{id:487,name:"<MapFileParser>typetree.h",boundName:"@0@serialize/typetree.h",inc:[{id:189},{id:365},{id:366},{id:356},{id:363}]},{id:488,name:"<MapFileParser>serializeutility.h",boundName:"@0@serialize/serializeutility.h",inc:[{id:365},{id:366},{id:132}]},{id:489,name:"<MapFileParser>serializetraitsbase.h",boundName:"@0@serialize/serializetraitsbase.h"},{id:490,name:"<MapFileParser>serializationcaching/streaminginfo.h",boundName:"@0@serialize/serializationcaching/streaminginfo.h"},{id:491,name:"@7@utilities/vector_utility.h",boundName:"@0@utilities/vector_utility.h"},{id:492,name:"@7@misc/utf8.h",boundName:"@0@misc/utf8.h",inc:[{id:356},{id:145}]},{id:493,name:"<MapFileParser>transfernameconversions.h",boundName:"@0@serialize/transferfunctions/transfernameconversions.h",inc:[{id:120},{id:494}]},{id:494,name:"@7@utilities/stringcomparison.h",boundName:"@0@utilities/stringcomparison.h",inc:[{id:339}]},{id:495,name:"<MapFileParser>textserializetraits.h",boundName:"@0@serialize/transferfunctions/textserializetraits.h"},{id:496,name:"<MapFileParser>editor/src/utility/yamlnode.h",boundName:"@10@utility/yamlnode.h",inc:[{id:450},{id:146},{id:353},{id:455}]},{id:497,name:"<MapFileParser>external/yaml/include/yaml.h",boundName:"@5@yaml/include/yaml.h",inc:[{id:231},{id:149},{id:131}]},
+    {id:498,name:"@7@serialize/floatstringconversion.h",boundName:"@0@serialize/floatstringconversion.h"},{id:499,name:"<MapFileParser>yamlwrite.h",boundName:"@0@serialize/transferfunctions/yamlwrite.h",inc:[{id:500},{id:495},{id:496},{id:497},{id:498}]},{id:500,name:"@7@serialize/transferfunctions/textdomtransferwritebase.h",boundName:"@0@serialize/transferfunctions/textdomtransferwritebase.h",inc:[{id:485},{id:493}]},{id:501,name:"<MapFileParser>remappptrtransfer.h",boundName:"@0@serialize/transferfunctions/remappptrtransfer.h",inc:[{id:485},{id:400},{id:116}]},{id:502,name:"<MapFileParser>streamedbinaryread.h",boundName:"@0@serialize/transferfunctions/streamedbinaryread.h",inc:[{id:486},{id:503},{id:425},{id:485}]},{id:503,name:"@7@serialize/serializationcaching/cachedreader.h",boundName:"@0@serialize/serializationcaching/cachedreader.h",inc:[{id:400}]},{id:504,name:"<MapFileParser>generatetypetreetransfer.h",boundName:"@0@serialize/transferfunctions/generatetypetreetransfer.h",inc:[{id:401},{id:485}]},{id:505,name:"<MapFileParser>safebinaryread.h",boundName:"@0@serialize/transferfunctions/safebinaryread.h",inc:[{id:503},{id:486},{id:425},{id:485}]},{id:506,name:"<MapFileParser>streamedbinarywrite.h",boundName:"@0@serialize/transferfunctions/streamedbinarywrite.h",inc:[{id:485},{id:507},{id:425}]},{id:507,name:"@7@serialize/serializationcaching/cachedwriter.h",boundName:"@0@serialize/serializationcaching/cachedwriter.h",inc:[{id:400}]},{id:508,name:"@7@jsonserialize/jsonread.h",boundName:"@0@jsonserialize/jsonread.h",inc:[{id:484},{id:509},{id:510},{id:513},{id:523},{id:498},{id:133},{id:535},{id:146}]},{id:509,name:"@7@serialize/transferfunctions/transfernameconversions.h",boundName:"@0@serialize/transferfunctions/transfernameconversions.h",inc:[{id:120},{id:494}]},
+    {id:510,name:"<MapFileParser>jsonserializetraits.h",boundName:"@0@jsonserialize/jsonserializetraits.h",inc:[{id:511},{id:353},{id:512}]},{id:511,name:"@7@serialize/transferfunctions/textserializetraits.h",boundName:"@0@serialize/transferfunctions/textserializetraits.h"},{id:512,name:"@7@math/color.h",boundName:"@0@math/color.h",inc:[{id:364},{id:400},{id:136},{id:341},{id:475},{id:425}]},{id:513,name:"@7@utilities/rapidjsonconfig.h",boundName:"@0@utilities/rapidjsonconfig.h",inc:[{id:514}]},{id:514,name:"<MapFileParser>external/rapidjson/rapidjson.h",boundName:"@5@rapidjson/rapidjson.h",inc:[{id:135},{id:189},{id:515},{id:516},{id:518},{id:194},{id:320},{id:519},{id:515},{id:234},{id:520},{id:522}]},{id:515,name:"<MapFileParser>rapidjson/somefile",boundName:"rapidjson/somefile"},{id:516,name:"<MapFileParser>msinttypes/stdint.h",boundName:"@5@rapidjson/msinttypes/stdint.h",inc:[{id:194},{id:319},{id:517}]},{id:517,name:"<MapFileParser>wchar.h",boundName:"wchar.h"},{id:518,name:"<MapFileParser>msinttypes/inttypes.h",boundName:"@5@rapidjson/msinttypes/inttypes.h",inc:[{id:194}]},{id:519,name:"<MapFileParser>endian.h",boundName:"endian.h"},{id:520,name:"<MapFileParser>allocators.h",boundName:"@5@rapidjson/allocators.h",inc:[{id:521}]},{id:521,name:"<MapFileParser>rapidjson.h",boundName:"@5@rapidjson/rapidjson.h",inc:[{id:135},{id:189},{id:515},{id:516},{id:518},{id:194},{id:320},{id:519},{id:515},{id:234},{id:520},{id:522}]},{id:522,name:"<MapFileParser>encodings.h",boundName:"@5@rapidjson/encodings.h",inc:[{id:521}]},
+    {id:523,name:"<MapFileParser>external/rapidjson/document.h",boundName:"@5@rapidjson/document.h",inc:[{id:524},{id:525},{id:533},{id:125},{id:113},{id:534},{id:137}]},{id:524,name:"<MapFileParser>reader.h",boundName:"@5@rapidjson/reader.h",inc:[{id:521},{id:522},{id:525},{id:527},{id:528},{id:378},{id:529},{id:375},{id:188},{id:530},{id:531},{id:532}]},{id:525,name:"<MapFileParser>internal/meta.h",boundName:"@5@rapidjson/internal/meta.h",inc:[{id:526}]},{id:526,name:"<MapFileParser>type_traits",boundName:"type_traits"},{id:527,name:"<MapFileParser>internal/pow10.h",boundName:"@5@rapidjson/internal/pow10.h"},{id:528,name:"<MapFileParser>internal/stack.h",boundName:"@5@rapidjson/internal/stack.h"},{id:529,name:"<MapFileParser>nmmintrin.h",boundName:"nmmintrin.h"},{id:530,name:"<MapFileParser>rapidjson/error/error.h",boundName:"/Users/lucas/unity3/External/rapidjson/error/error.h"},{id:531,name:"<MapFileParser>rapidjson/reader.h",boundName:"/Users/lucas/unity3/External/rapidjson/reader.h",inc:[{id:521},{id:522},{id:525},{id:527},{id:528},{id:378},{id:529},{id:375},{id:188},{id:530},{id:531},{id:532}]},
+    {id:532,name:"<MapFileParser>error/error.h",boundName:"@5@rapidjson/error/error.h"},{id:533,name:"<MapFileParser>internal/strfunc.h",boundName:"@5@rapidjson/internal/strfunc.h"},{id:534,name:"<MapFileParser>iterator",boundName:"iterator"},
+    {id:535,name:"<MapFileParser>jsonallocator.h",boundName:"@0@jsonserialize/jsonallocator.h",inc:[{id:310}]},{id:536,name:"@7@jsonserialize/jsonwrite.h",boundName:"@0@jsonserialize/jsonwrite.h",inc:[{id:500},{id:510},{id:513},{id:523},{id:537},{id:498},{id:535},{id:356}]},{id:537,name:"<MapFileParser>external/rapidjson/writer.h",boundName:"@5@rapidjson/writer.h",inc:[{id:521},{id:528},{id:533},{id:538},{id:540},{id:541},{id:125}]},{id:538,name:"<MapFileParser>internal/dtoa.h",boundName:"@5@rapidjson/internal/dtoa.h",inc:[{id:378},{id:539}]},{id:539,name:"<MapFileParser>itoa.h",boundName:"@5@rapidjson/internal/itoa.h"},{id:540,name:"<MapFileParser>internal/itoa.h",boundName:"@5@rapidjson/internal/itoa.h"},{id:541,name:"<MapFileParser>stringbuffer.h",boundName:"@5@rapidjson/stringbuffer.h",inc:[{id:521},{id:528}]},{id:542,name:"<MapFileParser>playersettingssplashscreen.h",boundName:"@0@misc/playersettingssplashscreen.h",inc:[{id:543},{id:544},{id:670},{id:671}]},{id:543,name:"@7@graphics/spriteframe.h",boundName:"@0@graphics/spriteframe.h",inc:[{id:329},{id:434},{id:476},{id:482},{id:544},{id:642},{id:643},{id:657},{id:470},{id:668},{id:669}]},{id:544,name:"@7@graphics/texture2d.h",boundName:"@0@graphics/texture2d.h",inc:[{id:545},{id:329},{id:120},{id:547},{id:638},{id:639},{id:194}]},{id:545,name:"<MapFileParser>texture.h",boundName:"@0@graphics/texture.h",inc:[{id:434},{id:546},{id:551},{id:552},{id:547},{id:356},{id:473},{id:120},{id:619},{id:363},{id:629},{id:637}]},
+    {id:546,name:"<MapFileParser>textureformat.h",boundName:"@0@graphics/textureformat.h",inc:[{id:547},{id:473}]},{id:547,name:"@7@gfxdevice/gfxdevicetypes.h",boundName:"@0@gfxdevice/gfxdevicetypes.h",inc:[{id:548},{id:549}]},{id:548,name:"<MapFileParser>gfxdeviceconfigure.h",boundName:"@0@gfxdevice/gfxdeviceconfigure.h",inc:[{id:329}]},{id:549,name:"<MapFileParser>gfxdeviceresources.h",boundName:"@0@gfxdevice/gfxdeviceresources.h",inc:[{id:550}]},{id:550,name:"<MapFileParser>gfxdevicetypes.h",boundName:"@0@gfxdevice/gfxdevicetypes.h",inc:[{id:548},{id:549}]},{id:551,name:"<MapFileParser>texturesettings.h",boundName:"@0@graphics/texturesettings.h",inc:[{id:482},{id:547}]},
+    {id:552,name:"@7@gfxdevice/gfxdevice.h",boundName:"@0@gfxdevice/gfxdevice.h",inc:[{id:329},{id:548},{id:550},{id:553},{id:559},{id:569},{id:571},{id:575},{id:561},{id:512},{id:476},{id:576},{id:453},{id:589},{id:120},{id:593},{id:141},{id:132},{id:133},{id:356},{id:595},{id:596},{id:598},{id:599},{id:606},{id:613},{id:614}]},{id:553,name:"<MapFileParser>gfxdeviceasynccommand.h",boundName:"@0@gfxdevice/gfxdeviceasynccommand.h",inc:[{id:548},{id:554}]},{id:554,name:"@7@threads/threadsharedobject.h",boundName:"@0@threads/threadsharedobject.h",inc:[{id:555}]},{id:555,name:"@7@threads/atomicops.h",boundName:"@0@threads/atomicops.h",inc:[{id:116},{id:132},{id:556},{id:341},{id:378},{id:557},{id:558}]},{id:556,name:"<MapFileParser>platformatomicops.h",boundName:"platformatomicops.h"},{id:557,name:"<MapFileParser>libkern/osatomic.h",boundName:"libkern/osatomic.h"},
+    {id:558,name:"<MapFileParser>emscripten/threading.h",boundName:"emscripten/threading.h"},{id:559,name:"<MapFileParser>gfxdeviceobjects.h",boundName:"@0@gfxdevice/gfxdeviceobjects.h",inc:[{id:560},{id:561},{id:567},{id:512},{id:550},{id:341}]},{id:560,name:"@7@camera/lighting.h",boundName:"@0@camera/lighting.h",inc:[{id:143}]},{id:561,name:"@7@math/matrix4x4.h",boundName:"@0@math/matrix4x4.h",inc:[{id:562},{id:563},{id:564},{id:408},{id:565},{id:120},{id:566},{id:568}]},
+    {id:562,name:"<MapFileParser>vector3.h",boundName:"@9@Math/vector3.h",inc:[{id:136},{id:475},{id:364},{id:400},{id:141},{id:120}]},{id:563,name:"<MapFileParser>vector4.h",boundName:"@9@Math/vector4.h",inc:[{id:562}]},{id:564,name:"<MapFileParser>transformtype.h",boundName:"@9@Math/transformtype.h",inc:[{id:143}]},{id:565,name:"@7@misc/cpuinfo.h",boundName:"@0@misc/cpuinfo.h"},{id:566,name:"<MapFileParser>simd/simdmath.h",boundName:"@9@Math/simd/simdmath.h",inc:[{id:123},{id:378},{id:409},{id:567}]},{id:567,name:"@7@math/vector4.h",boundName:"@0@math/vector4.h",inc:[{id:562}]},{id:568,name:"<MapFileParser>simd/matrix4x4simd.h",boundName:"@9@Math/simd/matrix4x4simd.h"},{id:569,name:"<MapFileParser>gfxdevicestats.h",boundName:"@0@gfxdevice/gfxdevicestats.h",inc:[{id:550},{id:426},{id:570}]},
+    {id:570,name:"@7@profiler/profilerstatsbase.h",boundName:"@0@profiler/profilerstatsbase.h",inc:[{id:113}]},{id:571,name:"@7@graphics/mesh/vertexdata.h",boundName:"@0@graphics/mesh/vertexdata.h",inc:[{id:572},{id:356},{id:396},{id:364},{id:573},{id:574}]},{id:572,name:"@7@utilities/strideiterator.h",boundName:"@0@utilities/strideiterator.h",inc:[{id:534},{id:194}]},{id:573,name:"@7@serialize/transferfunctionfwd.h",boundName:"@0@serialize/transferfunctionfwd.h"},{id:574,name:"<MapFileParser>shaderchannels.h",boundName:"@0@graphics/mesh/shaderchannels.h",inc:[{id:547}]},{id:575,name:"@7@graphics/rendersurface.h",boundName:"@0@graphics/rendersurface.h",inc:[{id:547},{id:131}]},{id:576,name:"@7@shaders/graphicscaps.h",boundName:"@0@shaders/graphicscaps.h",inc:[{id:113},{id:547},{id:577},{id:578},{id:583},{id:588}]},{id:577,name:"<MapFileParser>platformdependent/win/windriverutils.h",boundName:"@8@win/windriverutils.h",inc:[{id:184},{id:112}]},{id:578,name:"@7@gfxdevice/d3d/d3d9includes.h",boundName:"@0@gfxdevice/d3d/d3d9includes.h",inc:[{id:579}]},{id:579,name:"<MapFileParser>external/directx/include9/d3d9.h",boundName:"@5@directx/include9/d3d9.h",inc:[{id:231},{id:580},{id:184},{id:581},{id:582}]},{id:580,name:"<MapFileParser>objbase.h",boundName:"objbase.h"},{id:581,name:"<MapFileParser>d3d9types.h",boundName:"@5@directx/include9/d3d9types.h",inc:[{id:318}]},
+    {id:582,name:"<MapFileParser>d3d9caps.h",boundName:"@5@directx/include9/d3d9caps.h"},
+    {id:583,name:"@7@gfxdevice/opengles/graphicscapsgles.h",boundName:"@0@gfxdevice/opengles/graphicscapsgles.h",inc:[{id:584},{id:141},{id:585},{id:586}]},{id:584,name:"@7@utilities/fixed_array.h",boundName:"@0@utilities/fixed_array.h",inc:[{id:141},{id:132},{id:128},{id:136},{id:534}]},{id:585,name:"<MapFileParser>apienumgles.h",boundName:"@0@gfxdevice/opengles/apienumgles.h",inc:[{id:547}]},{id:586,name:"<MapFileParser>apitypegles.h",boundName:"@0@gfxdevice/opengles/apitypegles.h",inc:[{id:587}]},{id:587,name:"<MapFileParser>khr/khrplatform.h",boundName:"khr/khrplatform.h"},{id:588,name:"@7@gfxdevice/vulkan/graphicscapsvk.h",boundName:"@0@gfxdevice/vulkan/graphicscapsvk.h"},{id:589,name:"<MapFileParser>builtinshaderparams.h",boundName:"@0@gfxdevice/builtinshaderparams.h",inc:[{id:559},{id:590},{id:122},{id:567},{id:561},{id:591}]},{id:590,name:"<MapFileParser>builtinshaderparamsnames.h",boundName:"@0@gfxdevice/builtinshaderparamsnames.h"},{id:591,name:"@7@shaders/shaderimpl/shadertextureproperty.h",boundName:"@0@shaders/shaderimpl/shadertextureproperty.h",inc:[{id:592},{id:547},{id:132}]},{id:592,name:"<MapFileParser>fastpropertyname.h",boundName:"@0@shaders/shaderimpl/fastpropertyname.h",inc:[{id:113},{id:364},{id:141},{id:482},{id:145},{id:511}]},{id:593,name:"@7@core/callbacks/callbackarray.h",boundName:"@0@core/callbacks/callbackarray.h",inc:[{id:120},{id:594},{id:141}]},{id:594,name:"@7@utilities/deconstructfunctiontype.h",boundName:"@0@utilities/deconstructfunctiontype.h"},
+    {id:595,name:"@7@utilities/algorithm_utility.h",boundName:"@0@utilities/algorithm_utility.h",inc:[{id:136},{id:339},{id:141}]},{id:596,name:"@7@plugininterface/headers/iunitygraphics.h",boundName:"@0@plugininterface/headers/iunitygraphics.h",inc:[{id:597}]},{id:597,name:"<MapFileParser>iunityinterface.h",boundName:"@0@plugininterface/headers/iunityinterface.h"},{id:598,name:"<MapFileParser>transformstate.h",boundName:"@0@gfxdevice/transformstate.h",inc:[{id:550},{id:561},{id:589}]},{id:599,name:"<MapFileParser>geometryjob.h",boundName:"@0@gfxdevice/geometryjob.h",inc:[{id:600},{id:601},{id:602},{id:604}]},{id:600,name:"@7@graphics/mesh/dynamicvbo.h",boundName:"@0@graphics/mesh/dynamicvbo.h",inc:[{id:547},{id:356}]},{id:601,name:"@7@utilities/uniqueidgenerator.h",boundName:"@0@utilities/uniqueidgenerator.h",inc:[{id:356}]},
+    {id:602,name:"@7@jobs/jobtypes.h",boundName:"@0@jobs/jobtypes.h",inc:[{id:603}]},{id:603,name:"<MapFileParser>internal/jobgroupid.h",boundName:"@0@jobs/internal/jobgroupid.h"},{id:604,name:"@7@jobs/jobs.h",boundName:"@0@jobs/jobs.h",inc:[{id:143},{id:605}]},{id:605,name:"<MapFileParser>jobtypes.h",boundName:"@0@jobs/jobtypes.h",inc:[{id:603}]},{id:606,name:"<MapFileParser>platformspecificgfxdeviceobjectsext.h",boundName:"@0@gfxdevice/platformspecificgfxdeviceobjectsext.h",inc:[{id:607}]},{id:607,name:"<MapFileParser>platformdependent/ps4/source/gfxdevice/gfxdeviceobjectsext.h",boundName:"@8@ps4/source/gfxdevice/gfxdeviceobjectsext.h",inc:[{id:608},{id:609}]},{id:608,name:"@7@math/vector3.h",boundName:"@0@math/vector3.h",inc:[{id:136},{id:475},{id:364},{id:400},{id:141},{id:120}]},{id:609,name:"@7@math/quaternion.h",boundName:"@0@math/quaternion.h",inc:[{id:610},{id:611},{id:562},{id:475},{id:120},{id:612}]},{id:610,name:"<MapFileParser>matrix3x3.h",boundName:"@9@Math/matrix3x3.h",inc:[{id:562},{id:120}]},{id:611,name:"<MapFileParser>matrix4x4.h",boundName:"@9@Math/matrix4x4.h",inc:[{id:562},{id:563},{id:564},{id:408},{id:565},{id:120},{id:566},{id:568}]},
+    {id:612,name:"@7@math/simd/rotationorder.h",boundName:"@0@math/simd/rotationorder.h"},{id:613,name:"<MapFileParser>gfxdevicewindow.h",boundName:"@0@gfxdevice/gfxdevicewindow.h",inc:[{id:550},{id:559}]},{id:614,name:"@7@gfxdevice/platformspecificgfxdeviceext.h",boundName:"@0@gfxdevice/platformspecificgfxdeviceext.h",inc:[{id:615},{id:616},{id:617},{id:618}]},{id:615,name:"<MapFileParser>platformdependent/xboxone/source/gfxdevice/gfxdeviceext.h",boundName:"@8@xboxone/source/gfxdevice/gfxdeviceext.h"},{id:616,name:"<MapFileParser>platformdependent/psp2player/source/gfxdevice/gfxdeviceext.h",boundName:"@8@psp2player/source/gfxdevice/gfxdeviceext.h"},{id:617,name:"<MapFileParser>platformdependent/ps4/source/gfxdevice/gfxdeviceext.h",boundName:"@8@ps4/source/gfxdevice/gfxdeviceext.h"},{id:618,name:"<MapFileParser>platformdependent/wiiu/source/gfxdevice/gfxdeviceext.h",boundName:"@8@wiiu/source/gfxdevice/gfxdeviceext.h"},{id:619,name:"<MapFileParser>sharedtexturedata.h",boundName:"@0@graphics/sharedtexturedata.h",inc:[{id:356},{id:554},{id:620},{id:621},{id:623},{id:624}]},{id:620,name:"@7@graphics/crunchcompression.h",boundName:"@0@graphics/crunchcompression.h",inc:[{id:547}]},
+    {id:621,name:"<MapFileParser>image.h",boundName:"@0@graphics/image.h",inc:[{id:546},{id:116},{id:622},{id:364}]},{id:622,name:"@7@math/rgbmranges.h",boundName:"@0@math/rgbmranges.h"},
+    {id:623,name:"<MapFileParser>texturedecompression.h",boundName:"@0@graphics/texturedecompression.h",inc:[{id:546},{id:347}]},{id:624,name:"@7@gfxdevice/textureuploadutils.h",boundName:"@0@gfxdevice/textureuploadutils.h",inc:[{id:625},{id:626},{id:627},{id:576},{id:628}]},{id:625,name:"@7@graphics/image.h",boundName:"@0@graphics/image.h",inc:[{id:546},{id:116},{id:622},{id:364}]},{id:626,name:"@7@graphics/texturedecompression.h",boundName:"@0@graphics/texturedecompression.h",inc:[{id:546},{id:347}]},{id:627,name:"@7@graphics/vramhelpers.h",boundName:"@0@graphics/vramhelpers.h"},{id:628,name:"<MapFileParser>gfxdevice.h",boundName:"@0@gfxdevice/gfxdevice.h",inc:[{id:329},{id:548},{id:550},{id:553},{id:559},{id:569},{id:571},{id:575},{id:561},{id:512},{id:476},{id:576},{id:453},{id:589},{id:120},{id:593},{id:141},{id:132},{id:133},{id:356},{id:595},{id:596},{id:598},{id:599},{id:606},{id:613},{id:614}]},{id:629,name:"@7@shaders/shaderpasscontext.h",boundName:"@0@shaders/shaderpasscontext.h",inc:[{id:630},{id:634},{id:453},{id:636},{id:122},{id:473}]},{id:630,name:"<MapFileParser>shaderkeywordset.h",boundName:"@0@shaders/shaderkeywordset.h",inc:[{id:631},{id:633},{id:364}]},{id:631,name:"@7@utilities/bitutility.h",boundName:"@0@utilities/bitutility.h",inc:[{id:319},{id:632}]},{id:632,name:"<MapFileParser>ppc.h",boundName:"ppc.h"},
+    {id:633,name:"@7@containers/fixed_bitset.h",boundName:"@0@containers/fixed_bitset.h",inc:[{id:132}]},{id:634,name:"<MapFileParser>shaderpropertysheet.h",boundName:"@0@shaders/shaderpropertysheet.h",inc:[{id:480},{id:567},{id:561},{id:547},{id:635},{id:591},{id:554},{id:356}]},{id:635,name:"@7@shaders/shaderimpl/fastpropertyname.h",boundName:"@0@shaders/shaderimpl/fastpropertyname.h",inc:[{id:113},{id:364},{id:141},{id:482},{id:145},{id:511}]},{id:636,name:"@7@utilities/runtimestatic.h",boundName:"@0@utilities/runtimestatic.h",inc:[{id:116},{id:122},{id:399}]},{id:637,name:"@7@graphics/emulatedjobs.h",boundName:"@0@graphics/emulatedjobs.h",inc:[{id:329},{id:411}]},{id:638,name:"@7@gfxdevice/gfxdeviceobjects.h",boundName:"@0@gfxdevice/gfxdeviceobjects.h",inc:[{id:560},{id:561},{id:567},{id:512},{id:550},{id:341}]},{id:639,name:"@7@graphics/textureuploadinstruction.h",boundName:"@0@graphics/textureuploadinstruction.h",inc:[{id:640},{id:604},{id:641},{id:621}]},{id:640,name:"@7@graphics/texturesettings.h",boundName:"@0@graphics/texturesettings.h",inc:[{id:482},{id:547}]},
+    {id:641,name:"@7@threads/atomicnode.h",boundName:"@0@threads/atomicnode.h",inc:[{id:374}]},
+    {id:642,name:"@7@geometry/polygon2d.h",boundName:"@0@geometry/polygon2d.h",inc:[{id:329},{id:480},{id:356},{id:364}]},
+    {id:643,name:"@7@shaders/material.h",boundName:"@0@shaders/material.h",inc:[{id:434},{id:480},{id:567},{id:512},{id:644},{id:648},{id:356},{id:120},{id:649},{id:654}]},{id:644,name:"<MapFileParser>unitypropertysheet.h",boundName:"@0@shaders/unitypropertysheet.h",inc:[{id:353},{id:645},{id:646},{id:480},{id:512},{id:647}]},{id:645,name:"@7@shaders/shaderimpl/fastpropertynameserialization.h",boundName:"@0@shaders/shaderimpl/fastpropertynameserialization.h",inc:[{id:592}]},{id:646,name:"@7@shaders/shaderimpl/deprecatedfastpropertynameserialization.h",boundName:"@0@shaders/shaderimpl/deprecatedfastpropertynameserialization.h",inc:[{id:592}]},{id:647,name:"@7@graphics/texture.h",boundName:"@0@graphics/texture.h",inc:[{id:434},{id:546},{id:551},{id:552},{id:547},{id:356},{id:473},{id:120},{id:619},{id:363},{id:629},{id:637}]},{id:648,name:"@7@shaders/shaderkeywords.h",boundName:"@0@shaders/shaderkeywords.h",inc:[{id:113},{id:630}]},{id:649,name:"@7@shaders/sharedmaterialdata.h",boundName:"@0@shaders/sharedmaterialdata.h",inc:[{id:634},{id:630},{id:554},{id:336},{id:650}]},
+    {id:650,name:"@7@shaders/materialdisplaylistcache.h",boundName:"@0@shaders/materialdisplaylistcache.h",inc:[{id:651},{id:547},{id:652},{id:653},{id:356}]},{id:651,name:"@7@gfxdevice/gfxdeviceconfigure.h",boundName:"@0@gfxdevice/gfxdeviceconfigure.h",inc:[{id:329}]},{id:652,name:"@7@shaders/shaderkeywordset.h",boundName:"@0@shaders/shaderkeywordset.h",inc:[{id:631},{id:633},{id:364}]},{id:653,name:"@7@shaders/subprograms.h",boundName:"@0@shaders/subprograms.h",inc:[{id:584}]},{id:654,name:"@7@shaders/shader.h",boundName:"@0@shaders/shader.h",inc:[{id:655},{id:113},{id:512},{id:482},{id:656},{id:629},{id:651},{id:347}]},{id:655,name:"@7@scripting/textasset.h",boundName:"@0@scripting/textasset.h",inc:[{id:434},{id:329}]},{id:656,name:"@7@shaders/shaderimpl/shadererrors.h",boundName:"@0@shaders/shaderimpl/shadererrors.h",inc:[{id:113},{id:364}]},{id:657,name:"@7@2d/common/spriterenderdata.h",boundName:"@0@2d/common/spriterenderdata.h",inc:[{id:329},{id:658},{id:396},{id:659},{id:544},{id:476},{id:480},{id:608},{id:482},{id:664},{id:666}]},
+    {id:658,name:"<MapFileParser>spritetypes.h",boundName:"@0@2d/common/spritetypes.h",inc:[{id:480},{id:608},{id:482}]},{id:659,name:"@7@graphics/mesh/sharedmeshdata.h",boundName:"@0@graphics/mesh/sharedmeshdata.h",inc:[{id:660},{id:661},{id:554},{id:661},{id:662}]},{id:660,name:"<MapFileParser>vertexdata.h",boundName:"@0@graphics/mesh/vertexdata.h",inc:[{id:572},{id:356},{id:396},{id:364},{id:573},{id:574}]},{id:661,name:"<MapFileParser>meshtypes.h",boundName:"@0@graphics/mesh/meshtypes.h",inc:[{id:364},{id:561},{id:356},{id:140}]},{id:662,name:"<MapFileParser>submesh.h",boundName:"@0@graphics/mesh/submesh.h",inc:[{id:663},{id:547}]},{id:663,name:"@7@geometry/aabb.h",boundName:"@0@geometry/aabb.h",inc:[{id:608},{id:561}]},{id:664,name:"@7@serialize/swapendianarray.h",boundName:"@0@serialize/swapendianarray.h",inc:[{id:665}]},{id:665,name:"<MapFileParser>swapendianbytes.h",boundName:"@0@serialize/swapendianbytes.h",inc:[{id:333}]},{id:666,name:"@7@graphics/mesh/sharedmeshrenderingdata.h",boundName:"@0@graphics/mesh/sharedmeshrenderingdata.h",inc:[{id:547},{id:661},{id:667},{id:554}]},{id:667,name:"<MapFileParser>vbo.h",boundName:"@0@graphics/mesh/vbo.h",inc:[{id:547},{id:364},{id:571}]},{id:668,name:"@7@baseclasses/messageidentifier.h",boundName:"@0@baseclasses/messageidentifier.h",inc:[{id:356},{id:143},{id:122}]},{id:669,name:"<MapFileParser>editor/src/2d/spriteeditorextension.h",boundName:"@10@2d/spriteeditorextension.h",inc:[{id:657},{id:434}]},
+    {id:670,name:"@7@misc/buildsettings.h",boundName:"@0@misc/buildsettings.h",inc:[{id:472},{id:336},{id:363}]},{id:671,name:"<MapFileParser>editor/src/graphics/splashscreengenerator.h",boundName:"@10@graphics/splashscreengenerator.h",inc:[{id:329},{id:672},{id:544}]},{id:672,name:"<MapFileParser>editor/src/filecache/objectfilecache.h",boundName:"@10@filecache/objectfilecache.h",inc:[{id:329},{id:673},{id:356},{id:353}]},{id:673,name:"<MapFileParser>editor/src/filecache/localfilecache.h",boundName:"@10@filecache/localfilecache.h",inc:[{id:329},{id:448}]},{id:674,name:"<MapFileParser>editor/src/editoronlyplayersettings.h",boundName:"@10@editoronlyplayersettings.h",inc:[{id:353},{id:675},{id:543},{id:512},{id:450},{id:473},{id:482},{id:676},{id:704},{id:706},{id:707}]},
+    {id:675,name:"@7@baseclasses/bitfield.h",boundName:"@0@baseclasses/bitfield.h",inc:[{id:364}]},{id:676,name:"<MapFileParser>editor/src/buildpipeline/buildtargetplatformspecific.h",boundName:"@10@buildpipeline/buildtargetplatformspecific.h",inc:[{id:677},{id:398},{id:678},{id:400},{id:356}]},{id:677,name:"<MapFileParser>editor/src/assetpipeline/compatibilitylevel.h",boundName:"@10@assetpipeline/compatibilitylevel.h"},{id:678,name:"@7@network/playercommunicator/playerconnection.h",boundName:"@0@network/playercommunicator/playerconnection.h",inc:[{id:679},{id:425},{id:683},{id:684},{id:702},{id:420},{id:687},{id:690},{id:689},{id:443},{id:387},{id:426},{id:347},{id:703}]},{id:679,name:"<MapFileParser>generalconnection.h",boundName:"@0@network/playercommunicator/generalconnection.h",inc:[{id:425},{id:680},{id:692},{id:693},{id:683},{id:684},{id:702},{id:420},{id:687},{id:690},{id:689},{id:443},{id:387},{id:426},{id:347},{id:160},{id:140}]},{id:680,name:"@7@network/multicastsocket.h",boundName:"@0@network/multicastsocket.h",inc:[{id:681}]},{id:681,name:"<MapFileParser>sockets.h",boundName:"@0@network/sockets.h",inc:[{id:682},{id:122},{id:194}]},{id:682,name:"<MapFileParser>socketconsts.h",boundName:"@0@network/socketconsts.h",inc:[{id:310},{id:683},{id:684},{id:685},{id:686},{id:685},{id:420},{id:687},{id:688},{id:689},{id:690},{id:443},{id:387},{id:691}]},{id:683,name:"<MapFileParser>winsock2.h",boundName:"winsock2.h"},
+    {id:684,name:"<MapFileParser>ws2tcpip.h",boundName:"ws2tcpip.h"},{id:685,name:"<MapFileParser>network/platformsocketconsts.h",boundName:"network/platformsocketconsts.h"},{id:686,name:"<MapFileParser>network/select.h",boundName:"network/select.h"},{id:687,name:"<MapFileParser>sys/socket.h",boundName:"sys/socket.h"},{id:688,name:"<MapFileParser>sys/select.h",boundName:"sys/select.h"},{id:689,name:"<MapFileParser>netinet/in.h",boundName:"netinet/in.h"},{id:690,name:"<MapFileParser>arpa/inet.h",boundName:"arpa/inet.h"},{id:691,name:"<MapFileParser>netdb.h",boundName:"netdb.h"},{id:692,name:"@7@network/serversocket.h",boundName:"@0@network/serversocket.h",inc:[{id:681},{id:682}]},{id:693,name:"@7@network/socketstreams.h",boundName:"@0@network/socketstreams.h",inc:[{id:682},{id:681},{id:694},{id:347},{id:453}]},{id:694,name:"@7@containers/extendedringbuffer.h",boundName:"@0@containers/extendedringbuffer.h",inc:[{id:695},{id:699},{id:700},{id:701},{id:122}]},{id:695,name:"<MapFileParser>ringbuffer.h",boundName:"@0@containers/ringbuffer.h",inc:[{id:116},{id:696},{id:555}]},
+    {id:696,name:"@7@allocator/tlsf/tlsfbits.h",boundName:"@0@allocator/tlsf/tlsfbits.h",inc:[{id:378},{id:697},{id:698}]},{id:697,name:"<MapFileParser>ppcintrinsics.h",boundName:"ppcintrinsics.h"},
+    {id:698,name:"<MapFileParser>ppc_ghs.h",boundName:"ppc_ghs.h"},{id:699,name:"<MapFileParser>growingringbuffer.h",boundName:"@0@containers/growingringbuffer.h",inc:[{id:695},{id:116},{id:555}]},{id:700,name:"<MapFileParser>transactionalringbuffer.h",boundName:"@0@containers/transactionalringbuffer.h",inc:[{id:695}]},{id:701,name:"@7@threads/semaphore.h",boundName:"@0@threads/semaphore.h",inc:[{id:384},{id:386},{id:388},{id:390},{id:122}]},{id:702,name:"<MapFileParser>cafe/network.h",boundName:"cafe/network.h"},{id:703,name:"<MapFileParser>sys/un.h",boundName:"sys/un.h"},{id:704,name:"<MapFileParser>editor/src/buildpipeline/perplatformsettingshelper.h",boundName:"@10@buildpipeline/perplatformsettingshelper.h",inc:[{id:705}]},
+    {id:705,name:"<MapFileParser>buildtargetplatformspecific.h",boundName:"@10@buildpipeline/buildtargetplatformspecific.h",inc:[{id:677},{id:398},{id:678},{id:400},{id:356}]},{id:706,name:"<MapFileParser>editor/src/vr/vreditorsettings.h",boundName:"@10@vr/vreditorsettings.h",inc:[{id:482}]},{id:707,name:"<MapFileParser>editor/src/universalpropertyutility.h",boundName:"@10@universalpropertyutility.h"},{id:708,name:"@7@misc/playerstate.h",boundName:"@0@misc/playerstate.h"},{id:709,name:"@7@allocator/memorymanager.h",boundName:"@0@allocator/memorymanager.h",inc:[{id:710},{id:593},{id:119},{id:570},{id:347}]},{id:710,name:"<MapFileParser>baseallocator.h",boundName:"@0@allocator/baseallocator.h",inc:[{id:119},{id:122},{id:118}]},{id:711,name:"<MapFileParser>platformdependent/win/winutils.h",boundName:"@8@win/winutils.h",inc:[{id:113},{id:123}]},{id:712,name:"@7@gfxdevice/gfxdevicesetup.h",boundName:"@0@gfxdevice/gfxdevicesetup.h",inc:[{id:550},{id:113},{id:140}]},{id:713,name:"@7@utilities/playerprefs.h",boundName:"@0@utilities/playerprefs.h",inc:[{id:113},{id:140}]},{id:714,name:"<MapFileParser>platformdependent/webgl/source/nativetests.h",boundName:"@8@webgl/source/nativetests.h"},{id:715,name:"<MapFileParser>platformdependent/win/monoloader.h",boundName:"@8@win/monoloader.h",inc:[{id:113}]},{id:716,name:"@7@serialize/pathnamepersistentmanager.h",boundName:"@0@serialize/pathnamepersistentmanager.h",inc:[{id:717},{id:724}]},
+    {id:717,name:"<MapFileParser>persistentmanager.h",boundName:"@0@serialize/persistentmanager.h",inc:[{id:160},{id:113},{id:140},{id:311},{id:336},{id:329},{id:453},{id:347},{id:718},{id:722},{id:407},{id:143},{id:494},{id:353},{id:723}]},{id:718,name:"<MapFileParser>writedata.h",boundName:"@0@serialize/writedata.h",inc:[{id:365},{id:719}]},{id:719,name:"<MapFileParser>buildusagetags.h",boundName:"@0@serialize/buildusagetags.h",inc:[{id:648},{id:720},{id:547},{id:340},{id:721}]},{id:720,name:"@7@graphics/mesh/meshusageflags.h",boundName:"@0@graphics/mesh/meshusageflags.h",inc:[{id:143}]},{id:721,name:"@7@file/streamedresource.h",boundName:"@0@file/streamedresource.h",inc:[{id:356},{id:364},{id:146},{id:398}]},{id:722,name:"@7@utilities/memorypool.h",boundName:"@0@utilities/memorypool.h",inc:[{id:116},{id:356},{id:141},{id:120},{id:453}]},
+    {id:723,name:"@7@serialize/serializedfileloaderror.h",boundName:"@0@serialize/serializedfileloaderror.h"},{id:724,name:"<MapFileParser>serializedfile.h",boundName:"@0@serialize/serializedfile.h",inc:[{id:160},{id:113},{id:487},{id:723},{id:482},{id:353},{id:336},{id:725},{id:356},{id:726},{id:450}]},{id:725,name:"@7@utilities/dynamic_block_vector.h",boundName:"@0@utilities/dynamic_block_vector.h",inc:[{id:116},{id:356},{id:357}]},{id:726,name:"@7@threads/atomicrefcounter.h",boundName:"@0@threads/atomicrefcounter.h",inc:[{id:727}]},{id:727,name:"<MapFileParser>atomicops.h",boundName:"@9@Threads/atomicops.h",inc:[{id:116},{id:132},{id:556},{id:341},{id:378},{id:557},{id:558}]},{id:728,name:"@7@baseclasses/managercontext.h",boundName:"@0@baseclasses/managercontext.h",inc:[{id:398}]},{id:729,name:"@7@misc/saveandloadhelper.h",boundName:"@0@misc/saveandloadhelper.h",inc:[{id:160},{id:113},{id:353},{id:450},{id:730},{id:732}]},
+    {id:730,name:"@7@misc/garbagecollectsharedassets.h",boundName:"@0@misc/garbagecollectsharedassets.h",inc:[{id:731},{id:356},{id:407}]},{id:731,name:"@7@serialize/transferfunctions/remappptrtransfer.h",boundName:"@0@serialize/transferfunctions/remappptrtransfer.h",inc:[{id:485},{id:400},{id:116}]},{id:732,name:"@7@preloadmanager/loadsceneoperation.h",boundName:"@0@preloadmanager/loadsceneoperation.h",inc:[{id:733},{id:757},{id:758}]},{id:733,name:"<MapFileParser>loadoperation.h",boundName:"@0@preloadmanager/loadoperation.h",inc:[{id:734},{id:745}]},{id:734,name:"<MapFileParser>preloadmanager.h",boundName:"@0@preloadmanager/preloadmanager.h",inc:[{id:329},{id:434},{id:453},{id:347},{id:735},{id:701},{id:736},{id:739},{id:742},{id:426},{id:401},{id:593},{id:743}]},
+    {id:735,name:"@7@misc/resourcemanager.h",boundName:"@0@misc/resourcemanager.h",inc:[{id:353},{id:472},{id:340},{id:113},{id:329}]},{id:736,name:"@7@threads/event.h",boundName:"@0@threads/event.h",inc:[{id:737},{id:738},{id:383}]},
+    {id:737,name:"<MapFileParser>winapi/platformevent.h",boundName:"@9@Threads/winapi/platformevent.h",inc:[{id:122},{id:385}]},{id:738,name:"<MapFileParser>platformevent.h",boundName:"platformevent.h"},{id:739,name:"@7@misc/asyncoperation.h",boundName:"@0@misc/asyncoperation.h",inc:[{id:740},{id:554},{id:353}]},{id:740,name:"@7@gamecode/calldelayed.h",boundName:"@0@gamecode/calldelayed.h",inc:[{id:472},{id:741},{id:722},{id:311}]},{id:741,name:"@7@utilities/callobjectstate.h",boundName:"@0@utilities/callobjectstate.h"},{id:742,name:"@7@threads/threadedstreambuffer.h",boundName:"@0@threads/threadedstreambuffer.h",inc:[{id:122},{id:341},{id:125},{id:453}]},{id:743,name:"@7@scenemanager/unityscene.h",boundName:"@0@scenemanager/unityscene.h",inc:[{id:120},{id:728},{id:353},{id:554},{id:356},{id:470},{id:450},{id:744}]},{id:744,name:"<MapFileParser>unityscenehandle.h",boundName:"@0@scenemanager/unityscenehandle.h"},{id:745,name:"@7@serialize/timesliceawakefromloadqueue.h",boundName:"@0@serialize/timesliceawakefromloadqueue.h",inc:[{id:746},{id:694},{id:426},{id:717},{id:747}]},
+    {id:746,name:"@7@containers/growingringbuffer.h",boundName:"@0@containers/growingringbuffer.h",inc:[{id:695},{id:116},{id:555}]},{id:747,name:"@7@graphics/asyncuploadmanager.h",boundName:"@0@graphics/asyncuploadmanager.h",inc:[{id:436},{id:446},{id:624},{id:748},{id:749},{id:639},{id:750},{id:604},{id:751},{id:756}]},{id:748,name:"@7@containers/wrappingringbuffer.h",boundName:"@0@containers/wrappingringbuffer.h",inc:[{id:116},{id:555},{id:631}]},{id:749,name:"@7@file/asyncreadmanager.h",boundName:"@0@file/asyncreadmanager.h",inc:[{id:149},{id:736}]},{id:750,name:"@7@jobs/jobsystem.h",boundName:"@0@jobs/jobsystem.h"},{id:751,name:"@7@utilities/concurrentfreelist.h",boundName:"@0@utilities/concurrentfreelist.h",inc:[{id:752}]},{id:752,name:"@7@threads/concurrentcontainers.h",boundName:"@0@threads/concurrentcontainers.h",inc:[{id:753},{id:754},{id:755}]},{id:753,name:"@7@threads/atomicqueue.h",boundName:"@0@threads/atomicqueue.h",inc:[{id:374},{id:641}]},{id:754,name:"@7@threads/mutexlockedqueue.h",boundName:"@0@threads/mutexlockedqueue.h",inc:[{id:641},{id:347}]},{id:755,name:"@7@threads/mutexlockedstack.h",boundName:"@0@threads/mutexlockedstack.h",inc:[{id:641},{id:347}]},{id:756,name:"@7@serialize/serializationcaching/streaminginfo.h",boundName:"@0@serialize/serializationcaching/streaminginfo.h"},
+    {id:757,name:"@7@serialize/awakefromloadqueue.h",boundName:"@0@serialize/awakefromloadqueue.h",inc:[{id:353},{id:356}]},{id:758,name:"@7@scenemanager/scenemanager.h",boundName:"@0@scenemanager/scenemanager.h",inc:[{id:743},{id:356},{id:353},{id:464},{id:759},{id:593},{id:760}]},{id:759,name:"@7@preloadmanager/unloadsceneoperation.h",boundName:"@0@preloadmanager/unloadsceneoperation.h",inc:[{id:734},{id:743}]},{id:760,name:"<MapFileParser>editor/src/scenemanager/editorscenemanager.h",boundName:"@10@scenemanager/editorscenemanager.h",inc:[{id:761},{id:758},{id:115}]},{id:761,name:"<MapFileParser>editor/src/assetpipeline/assetdatabasestructs.h",boundName:"@10@assetpipeline/assetdatabasestructs.h",inc:[{id:762},{id:763},{id:625},{id:450},{id:363},{id:448},{id:340},{id:336}]},{id:762,name:"@7@baseclasses/editorextension.h",boundName:"@0@baseclasses/editorextension.h",inc:[{id:433}]},{id:763,name:"<MapFileParser>assetlabels.h",boundName:"@10@assetpipeline/assetlabels.h",inc:[{id:444},{id:364}]},
+    {id:764,name:"@7@shaders/shadernameregistry.h",boundName:"@0@shaders/shadernameregistry.h",inc:[{id:472},{id:113},{id:160},{id:765},{id:120}]},
+    {id:765,name:"@7@shaders/nametoobjectmap.h",boundName:"@0@shaders/nametoobjectmap.h",inc:[{id:113},{id:160},{id:353},{id:766}]},
+    {id:766,name:"<MapFileParser>editor/src/buildpipeline/buildserialization.h",boundName:"@10@buildpipeline/buildserialization.h",inc:[{id:329},{id:400},{id:767},{id:353},{id:450},{id:731},{id:761},{id:768},{id:771},{id:593}]},{id:767,name:"@7@serialize/persistentmanager.h",boundName:"@0@serialize/persistentmanager.h",inc:[{id:160},{id:113},{id:140},{id:311},{id:336},{id:329},{id:453},{id:347},{id:718},{id:722},{id:407},{id:143},{id:494},{id:353},{id:723}]},{id:768,name:"<MapFileParser>editor/src/buildpipeline/assetbundlebuilddata.h",boundName:"@10@buildpipeline/assetbundlebuilddata.h",inc:[{id:353},{id:769},{id:450}]},{id:769,name:"@7@mono/monoscript.h",boundName:"@0@mono/monoscript.h",inc:[{id:401},{id:655},{id:363},{id:770}]},{id:770,name:"<MapFileParser>monoscripttype.h",boundName:"@0@mono/monoscripttype.h"},{id:771,name:"<MapFileParser>editor/src/buildpipeline/resourcefilebuilder.h",boundName:"@10@buildpipeline/resourcefilebuilder.h",inc:[{id:112},{id:446},{id:721}]},{id:772,name:"@7@camera/graphicssettings.h",boundName:"@0@camera/graphicssettings.h",inc:[{id:472},{id:479},{id:576},{id:654},{id:773},{id:140},{id:364},{id:676}]},{id:773,name:"@7@shaders/gpuprograms/shadervariantcollection.h",boundName:"@0@shaders/gpuprograms/shadervariantcollection.h",inc:[{id:434},{id:160},{id:340},{id:401},{id:654},{id:648},{id:774}]},{id:774,name:"@7@shaders/shadertags.h",boundName:"@0@shaders/shadertags.h"},
+    {id:775,name:"@7@input/getinput.h",boundName:"@0@input/getinput.h",inc:[{id:480},{id:608},{id:609},{id:512},{id:776},{id:113},{id:777},{id:784}]},{id:776,name:"<MapFileParser>platformdependent/iphoneplayer/notifications.h",boundName:"@8@iphoneplayer/notifications.h",inc:[{id:113},{id:140},{id:401}]},{id:777,name:"@7@input/inputmanager.h",boundName:"@0@input/inputmanager.h",inc:[{id:472},{id:778},{id:779},{id:480},{id:608},{id:567},{id:329},{id:114},{id:780},{id:783}]},{id:778,name:"@7@input/inputaxis.h",boundName:"@0@input/inputaxis.h",inc:[{id:364},{id:486},{id:400},{id:361},{id:113}]},{id:779,name:"@7@utilities/dynamic_bitset.h",boundName:"@0@utilities/dynamic_bitset.h",inc:[{id:234},{id:113},{id:189},{id:136},{id:392},{id:231},{id:141}]},{id:780,name:"@7@serialize/statesynchronizedefines.h",boundName:"@0@serialize/statesynchronizedefines.h",inc:[{id:781},{id:782}]},
+    {id:781,name:"@7@serialize/transferfunctions/streamedbinaryread.h",boundName:"@0@serialize/transferfunctions/streamedbinaryread.h",inc:[{id:486},{id:503},{id:425},{id:485}]},{id:782,name:"@7@serialize/transferfunctions/streamedbinarywrite.h",boundName:"@0@serialize/transferfunctions/streamedbinarywrite.h",inc:[{id:485},{id:507},{id:425}]},
+    {id:783,name:"<MapFileParser>sdl_keysym.h",boundName:"sdl_keysym.h"},{id:784,name:"<MapFileParser>platforminput.h",boundName:"platforminput.h"},{id:785,name:"@7@baseclasses/tagmanager.h",boundName:"@0@baseclasses/tagmanager.h",inc:[{id:160},{id:347},{id:786}]},{id:786,name:"<MapFileParser>gamemanager.h",boundName:"@0@baseclasses/gamemanager.h",inc:[{id:435}]},{id:787,name:"@7@ui/canvas.h",boundName:"@0@ui/canvas.h",inc:[{id:463},{id:356},{id:788},{id:819},{id:820},{id:934}]},{id:788,name:"@7@camera/camera.h",boundName:"@0@camera/camera.h",inc:[{id:789},{id:463},{id:140},{id:476},{id:512},{id:790},{id:791},{id:792},{id:120},{id:794},{id:576},{id:629},{id:638},{id:815},{id:356},{id:817}]},
+    {id:789,name:"<MapFileParser>cameratypes.h",boundName:"@0@camera/cameratypes.h",inc:[{id:561}]},{id:790,name:"@7@geometry/ray.h",boundName:"@0@geometry/ray.h",inc:[{id:330},{id:608}]},{id:791,name:"@7@graphics/commandbuffer/renderingevents.h",boundName:"@0@graphics/commandbuffer/renderingevents.h",inc:[{id:356}]},{id:792,name:"@7@camera/renderloops/renderloop.h",boundName:"@0@camera/renderloops/renderloop.h",inc:[{id:793},{id:547}]},{id:793,name:"<MapFileParser>renderloopenums.h",boundName:"@0@camera/renderloops/renderloopenums.h"},{id:794,name:"@7@camera/cullingparameters.h",boundName:"@0@camera/cullingparameters.h",inc:[{id:795},{id:785},{id:561},{id:356},{id:796},{id:143},{id:798}]},{id:795,name:"@7@geometry/plane.h",boundName:"@0@geometry/plane.h",inc:[{id:608},{id:567},{id:364}]},{id:796,name:"@7@utilities/align.h",boundName:"@0@utilities/align.h",inc:[{id:797}]},{id:797,name:"<MapFileParser>bitutility.h",boundName:"@9@Utilities/bitutility.h",inc:[{id:319},{id:632}]},{id:798,name:"@7@math/simd/vec-types.h",boundName:"@0@math/simd/vec-types.h",inc:[{id:116},{id:154},{id:799},{id:807},{id:809},{id:811},{id:812},{id:813},{id:807},{id:814},{id:807}]},{id:799,name:"<MapFileParser>vec-intrin.h",boundName:"@0@math/simd/vec-intrin.h",inc:[{id:154},{id:800},{id:801},{id:802},{id:803},{id:529},{id:804},{id:805},{id:806},{id:375},{id:409}]},{id:800,name:"<MapFileParser>arm_neon.h",boundName:"arm_neon.h"},
+    {id:801,name:"<MapFileParser>vec-intrin-gekko.h",boundName:"@0@math/simd/vec-intrin-gekko.h"},{id:802,name:"<MapFileParser>ppc_ps.h",boundName:"ppc_ps.h"},{id:803,name:"<MapFileParser>immintrin.h",boundName:"immintrin.h"},{id:804,name:"<MapFileParser>smmintrin.h",boundName:"smmintrin.h"},{id:805,name:"<MapFileParser>tmmintrin.h",boundName:"tmmintrin.h"},{id:806,name:"<MapFileParser>pmmintrin.h",boundName:"pmmintrin.h"},{id:807,name:"<MapFileParser>vec-oper.h",boundName:"@0@math/simd/vec-oper.h",inc:[{id:808}]},{id:808,name:"<MapFileParser>vec-scalar.h",boundName:"@0@math/simd/vec-scalar.h",inc:[{id:154}]},{id:809,name:"<MapFileParser>vec-simd.h",boundName:"@0@math/simd/vec-simd.h",inc:[{id:154},{id:810}]},{id:810,name:"<MapFileParser>vec-swz.h",boundName:"@0@math/simd/vec-swz.h"},{id:811,name:"<MapFileParser>vec-neon.h",boundName:"@0@math/simd/vec-neon.h"},{id:812,name:"<MapFileParser>vec-gekko.h",boundName:"@0@math/simd/vec-gekko.h"},{id:813,name:"<MapFileParser>vec-sse.h",boundName:"@0@math/simd/vec-sse.h",inc:[{id:808}]},{id:814,name:"<MapFileParser>vec-generic.h",boundName:"@0@math/simd/vec-generic.h",inc:[{id:154}]},{id:815,name:"<MapFileParser>cameracullingparameters.h",boundName:"@0@camera/cameracullingparameters.h",inc:[{id:310},{id:143},{id:816}]},{id:816,name:"@7@camera/shaderreplacedata.h",boundName:"@0@camera/shaderreplacedata.h"},
+    {id:817,name:"@7@graphics/qualitysettings.h",boundName:"@0@graphics/qualitysettings.h",inc:[{id:472},{id:560},{id:356},{id:608},{id:818}]},{id:818,name:"<MapFileParser>shadowprojection.h",boundName:"@0@graphics/shadowprojection.h"},{id:819,name:"<MapFileParser>batchgenerator.h",boundName:"@0@ui/batchgenerator.h",inc:[{id:512}]},{id:820,name:"<MapFileParser>canvasdata.h",boundName:"@0@ui/canvasdata.h",inc:[{id:356},{id:821}]},{id:821,name:"<MapFileParser>uistructs.h",boundName:"@0@ui/uistructs.h",inc:[{id:663},{id:822},{id:823},{id:647},{id:602},{id:512},{id:561},{id:476},{id:931},{id:480},{id:608},{id:643},{id:356}]},{id:822,name:"@7@gfxdevice/geometryjob.h",boundName:"@0@gfxdevice/geometryjob.h",inc:[{id:600},{id:601},{id:602},{id:604}]},{id:823,name:"@7@graphics/mesh/mesh.h",boundName:"@0@graphics/mesh/mesh.h",inc:[{id:434},{id:663},{id:476},{id:480},{id:567},{id:661},{id:512},{id:668},{id:667},{id:824},{id:846},{id:847},{id:848},{id:662},{id:929},{id:363},{id:930},{id:554},{id:113},{id:140}]},
+    {id:824,name:"<MapFileParser>compressedmesh.h",boundName:"@0@graphics/mesh/compressedmesh.h",inc:[{id:364},{id:825}]},{id:825,name:"@7@animation/animationclip.h",boundName:"@0@animation/animationclip.h",inc:[{id:434},{id:486},{id:470},{id:609},{id:480},{id:663},{id:826},{id:828},{id:769},{id:830},{id:839},{id:841},{id:842},{id:843},{id:845}]},{id:826,name:"@7@math/animationcurve.h",boundName:"@0@math/animationcurve.h",inc:[{id:356},{id:364},{id:330},{id:608},{id:609},{id:827},{id:612},{id:120}]},{id:827,name:"@7@math/animationmodes.h",boundName:"@0@math/animationmodes.h"},{id:828,name:"<MapFileParser>animationevent.h",boundName:"@0@animation/animationevent.h",inc:[{id:464},{id:829}]},{id:829,name:"@7@animation/animatorinfo.h",boundName:"@0@animation/animatorinfo.h",inc:[{id:464}]},{id:830,name:"@7@mecanim/memory.h",boundName:"@0@mecanim/memory.h",inc:[{id:831},{id:832},{id:356},{id:836},{id:458},{id:709},{id:130},{id:125},{id:187},{id:837},{id:131},{id:231},{id:838}]},{id:831,name:"@7@mecanim/defs.h",boundName:"@0@mecanim/defs.h",inc:[{id:128},{id:128},{id:128}]},{id:832,name:"@7@mecanim/types.h",boundName:"@0@mecanim/types.h",inc:[{id:831},{id:833},{id:834},{id:833},{id:834},{id:835}]},{id:833,name:"<MapFileParser>cfloat",boundName:"cfloat"},{id:834,name:"<MapFileParser>climits",boundName:"climits"},{id:835,name:"<MapFileParser>cstdint.h",boundName:"cstdint.h"},{id:836,name:"@7@utilities/remove_const.h",boundName:"@0@utilities/remove_const.h"},{id:837,name:"<MapFileParser>stack",boundName:"stack"},{id:838,name:"<MapFileParser>ctime",boundName:"ctime"},{id:839,name:"<MapFileParser>animationclipbindings.h",boundName:"@0@animation/animationclipbindings.h",inc:[{id:353},{id:840}]},{id:840,name:"@7@animation/boundcurve.h",boundName:"@0@animation/boundcurve.h"},
+    {id:841,name:"<MapFileParser>pptrkeyframes.h",boundName:"@0@animation/pptrkeyframes.h",inc:[{id:353}]},{id:842,name:"@7@mecanim/statemachine/statemachinemessage.h",boundName:"@0@mecanim/statemachine/statemachinemessage.h",inc:[{id:143}]},{id:843,name:"<MapFileParser>motion.h",boundName:"@0@animation/motion.h",inc:[{id:434},{id:844},{id:608}]},{id:844,name:"@7@misc/userlist.h",boundName:"@0@misc/userlist.h",inc:[{id:356},{id:122},{id:120}]},{id:845,name:"<MapFileParser>animationclipsettings.h",boundName:"@0@animation/animationclipsettings.h",inc:[{id:670}]},{id:846,name:"<MapFileParser>sharedmeshdata.h",boundName:"@0@graphics/mesh/sharedmeshdata.h",inc:[{id:660},{id:661},{id:554},{id:661},{id:662}]},{id:847,name:"<MapFileParser>sharedmeshrenderingdata.h",boundName:"@0@graphics/mesh/sharedmeshrenderingdata.h",inc:[{id:547},{id:661},{id:667},{id:554}]},{id:848,name:"@7@dynamics/collisionmeshdata.h",boundName:"@0@dynamics/collisionmeshdata.h",inc:[{id:353},{id:849},{id:561},{id:720},{id:356},{id:928}]},{id:849,name:"@7@interfaces/iphysics.h",boundName:"@0@interfaces/iphysics.h",inc:[{id:850},{id:608},{id:609},{id:122},{id:356},{id:854}]},{id:850,name:"<MapFileParser>iraycast.h",boundName:"@0@interfaces/iraycast.h",inc:[{id:851},{id:480},{id:663},{id:120},{id:401},{id:122},{id:356}]},{id:851,name:"@7@math/simd/vec-soa-types.h",boundName:"@0@math/simd/vec-soa-types.h",inc:[{id:852}]},{id:852,name:"<MapFileParser>vec-pix-types.h",boundName:"@0@math/simd/vec-pix-types.h",inc:[{id:154},{id:799},{id:853}]},
+    {id:853,name:"<MapFileParser>vec-types.h",boundName:"@0@math/simd/vec-types.h",inc:[{id:116},{id:154},{id:799},{id:807},{id:809},{id:811},{id:812},{id:813},{id:807},{id:814},{id:807}]},{id:854,name:"@7@scripting/scriptingutility.h",boundName:"@0@scripting/scriptingutility.h",inc:[{id:401},{id:353},{id:855},{id:856},{id:858},{id:859},{id:864},{id:868},{id:910},{id:918},{id:919},{id:909},{id:908},{id:924}]},{id:855,name:"@7@scripting/scriptingarguments.h",boundName:"@0@scripting/scriptingarguments.h",inc:[{id:401},{id:113},{id:120}]},{id:856,name:"@7@scripting/scriptinginvocation.h",boundName:"@0@scripting/scriptinginvocation.h",inc:[{id:857}]},{id:857,name:"<MapFileParser>scriptingarguments.h",boundName:"@0@scripting/scriptingarguments.h",inc:[{id:401},{id:113},{id:120}]},{id:858,name:"@7@scripting/scriptingthreadandserializationsafecheck.h",boundName:"@0@scripting/scriptingthreadandserializationsafecheck.h",inc:[{id:143},{id:411}]},{id:859,name:"<MapFileParser>platformdependent/win/etw/etwentry.h",boundName:"@8@win/etw/etwentry.h",inc:[{id:860}]},
+    {id:860,name:"<MapFileParser>platformdependent/win/etw/unityprovider/unityprovidergenerated.h",boundName:"@8@win/etw/unityprovider/unityprovidergenerated.h",inc:[{id:861},{id:862},{id:863}]},{id:861,name:"<MapFileParser>wmistr.h",boundName:"wmistr.h"},{id:862,name:"<MapFileParser>evntrace.h",boundName:"evntrace.h"},{id:863,name:"<MapFileParser>evntprov.h",boundName:"evntprov.h"},{id:864,name:"@7@mono/monoincludes.h",boundName:"@0@mono/monoincludes.h",inc:[{id:329},{id:865},{id:866},{id:401},{id:867},{id:867},{id:867},{id:867},{id:867}]},{id:865,name:"<MapFileParser>monotypes.h",boundName:"@0@mono/monotypes.h"},{id:866,name:"<MapFileParser>monotypesignatures.h",boundName:"@0@mono/monotypesignatures.h"},
+    {id:867,name:"<MapFileParser>monofunctions.h",boundName:"@0@mono/monofunctions.h"},{id:868,name:"@7@mono/monoutility.h",boundName:"@0@mono/monoutility.h",inc:[{id:329},{id:353},{id:869},{id:422},{id:401},{id:356},{id:899},{id:902},{id:890},{id:908}]},{id:869,name:"@7@mono/monomanager.h",boundName:"@0@mono/monomanager.h",inc:[{id:870},{id:329},{id:120},{id:871},{id:897},{id:472},{id:448},{id:779},{id:411},{id:854},{id:401},{id:872},{id:890},{id:453},{id:898}]},{id:870,name:"<MapFileParser>monoincludes.h",boundName:"@0@mono/monoincludes.h",inc:[{id:329},{id:865},{id:866},{id:401},{id:867},{id:867},{id:867},{id:867},{id:867}]},
+    {id:871,name:"@7@scripting/dotnet/monomanager_winrt.h",boundName:"@0@scripting/dotnet/monomanager_winrt.h",inc:[{id:472},{id:872},{id:873},{id:890}]},{id:872,name:"@7@mono/monoscriptmanager.h",boundName:"@0@mono/monoscriptmanager.h",inc:[{id:356}]},{id:873,name:"@7@scripting/commonscriptingclasses.h",boundName:"@0@scripting/commonscriptingclasses.h",inc:[{id:874},{id:401},{id:875},{id:876},{id:877},{id:878},{id:879},{id:880},{id:881},{id:882},{id:883},{id:884},{id:885},{id:886},{id:887},{id:888},{id:889}]},
+    {id:874,name:"@7@mono/monotypes.h",boundName:"@0@mono/monotypes.h"},{id:875,name:"<MapFileParser>aiscriptingclasses.h",boundName:"aiscriptingclasses.h"},{id:876,name:"<MapFileParser>animationscriptingclasses.h",boundName:"animationscriptingclasses.h"},{id:877,name:"<MapFileParser>audioscriptingclasses.h",boundName:"audioscriptingclasses.h"},{id:878,name:"<MapFileParser>clothscriptingclasses.h",boundName:"clothscriptingclasses.h"},{id:879,name:"<MapFileParser>corescriptingclasses.h",boundName:"corescriptingclasses.h"},{id:880,name:"<MapFileParser>videoscriptingclasses.h",boundName:"videoscriptingclasses.h"},{id:881,name:"<MapFileParser>editorscriptingclasses.h",boundName:"editorscriptingclasses.h"},{id:882,name:"<MapFileParser>imguiscriptingclasses.h",boundName:"imguiscriptingclasses.h"},{id:883,name:"<MapFileParser>particlesystemscriptingclasses.h",boundName:"particlesystemscriptingclasses.h"},{id:884,name:"<MapFileParser>physicsscriptingclasses.h",boundName:"physicsscriptingclasses.h"},{id:885,name:"<MapFileParser>physics2dscriptingclasses.h",boundName:"physics2dscriptingclasses.h"},{id:886,name:"<MapFileParser>terrainscriptingclasses.h",boundName:"terrainscriptingclasses.h"},{id:887,name:"<MapFileParser>textrenderingscriptingclasses.h",boundName:"textrenderingscriptingclasses.h"},{id:888,name:"<MapFileParser>vrscriptingclasses.h",boundName:"vrscriptingclasses.h"},{id:889,name:"<MapFileParser>uiscriptingclasses.h",boundName:"uiscriptingclasses.h"},{id:890,name:"@7@scripting/scriptingmanager.h",boundName:"@0@scripting/scriptingmanager.h",inc:[{id:472},{id:891},{id:872},{id:873},{id:336},{id:120},{id:356}]},{id:891,name:"@7@mono/monoscriptcache.h",boundName:"@0@mono/monoscriptcache.h",inc:[{id:892},{id:401},{id:726},{id:356},{id:770}]},
+    {id:892,name:"@7@core/callbacks/globalcallbacks.h",boundName:"@0@core/callbacks/globalcallbacks.h",inc:[{id:893},{id:894},{id:120},{id:732},{id:895},{id:596}]},{id:893,name:"<MapFileParser>callbackarray.h",boundName:"@0@core/callbacks/callbackarray.h",inc:[{id:120},{id:594},{id:141}]},{id:894,name:"@7@graphics/renderertype.h",boundName:"@0@graphics/renderertype.h"},{id:895,name:"@7@plugininterface/plugininterface.h",boundName:"@0@plugininterface/plugininterface.h",inc:[{id:896},{id:593}]},{id:896,name:"<MapFileParser>headers/iunityinterface.h",boundName:"@0@plugininterface/headers/iunityinterface.h"},{id:897,name:"@7@scripting/monomanager_il2cpp.h",boundName:"@0@scripting/monomanager_il2cpp.h",inc:[{id:472},{id:872},{id:873},{id:890}]},{id:898,name:"<MapFileParser>editor/mono/monoeditorutility.h",boundName:"/Users/lucas/unity3/editor/mono/monoeditorutility.h",inc:[{id:311},{id:160},{id:353},{id:761}]},{id:899,name:"@7@scriptingbackend/scriptingapi.h",boundName:"@0@scriptingbackend/scriptingapi.h",inc:[{id:113},{id:900},{id:901},{id:145}]},{id:900,name:"<MapFileParser>scriptingtypes.h",boundName:"@0@scriptingbackend/scriptingtypes.h",inc:[{id:310},{id:113},{id:110},{id:118},{id:194},{id:112},{id:402},{id:403},{id:404},{id:405},{id:406}]},{id:901,name:"@7@scripting/scriptingmethodfiltering.h",boundName:"@0@scripting/scriptingmethodfiltering.h"},{id:902,name:"@7@scripting/scripting.h",boundName:"@0@scripting/scripting.h",inc:[{id:310},{id:120},{id:401},{id:899},{id:901},{id:464},{id:903},{id:907}]},{id:903,name:"@7@transform/transform.h",boundName:"@0@transform/transform.h",inc:[{id:609},{id:464},{id:904},{id:356},{id:143},{id:120},{id:905},{id:906},{id:798},{id:470}]},{id:904,name:"@7@baseclasses/immediateptr.h",boundName:"@0@baseclasses/immediateptr.h",inc:[{id:433}]},
+    {id:905,name:"@7@misc/garbagecollectsharedassetsmarking.h",boundName:"@0@misc/garbagecollectsharedassetsmarking.h"},{id:906,name:"<MapFileParser>transformaccess.h",boundName:"@0@transform/transformaccess.h"},{id:907,name:"<MapFileParser>scripting_mono.h",boundName:"@0@scripting/scripting_mono.h"},{id:908,name:"@7@scripting/scriptingobjectoftype.h",boundName:"@0@scripting/scriptingobjectoftype.h",inc:[{id:401},{id:909}]},{id:909,name:"<MapFileParser>scripting.h",boundName:"@0@scripting/scripting.h",inc:[{id:310},{id:120},{id:401},{id:899},{id:901},{id:464},{id:903},{id:907}]},
+    {id:910,name:"@7@scripting/dotnet/winrtutility.h",boundName:"@0@scripting/dotnet/winrtutility.h",inc:[{id:401},{id:899},{id:890},{id:911},{id:913},{id:909},{id:917}]},
+    {id:911,name:"<MapFileParser>platformdependent/metroplayer/metroutils.h",boundName:"@8@metroplayer/metroutils.h",inc:[{id:912},{id:913},{id:914},{id:916}]},{id:912,name:"<MapFileParser>hstring.h",boundName:"hstring.h"},{id:913,name:"<MapFileParser>wrl/wrappers/corewrappers.h",boundName:"wrl/wrappers/corewrappers.h"},{id:914,name:"<MapFileParser>metrodebug.h",boundName:"@8@metroplayer/metrodebug.h",inc:[{id:915}]},{id:915,name:"<MapFileParser>platformdependent/winrt/debuggingtools/dbgtools.h",boundName:"@8@winrt/debuggingtools/dbgtools.h",inc:[{id:113}]},{id:916,name:"<MapFileParser>appcallbackitem.h",boundName:"@8@metroplayer/appcallbackitem.h"},{id:917,name:"<MapFileParser>winrtmarshalers.h",boundName:"@0@scripting/dotnet/winrtmarshalers.h"},{id:918,name:"<MapFileParser>il2cpputility.h",boundName:"@0@scripting/il2cpputility.h",inc:[{id:401},{id:899},{id:919},{id:902}]},{id:919,name:"@7@scriptingbackend/il2cpp/scriptingincludes_il2cpp.h",boundName:"@0@scriptingbackend/il2cpp/scriptingincludes_il2cpp.h",inc:[{id:329},{id:920},{id:194},{id:923}]},{id:920,name:"<MapFileParser>../scriptingtypes.h",boundName:"/Users/lucas/scriptingtypes.h",inc:[{id:402},{id:921},{id:922},{id:404},{id:405}]},
+    {id:921,name:"<MapFileParser>scriptingmethod.h",boundName:"scriptingmethod.h"},{id:922,name:"@7@scripting/backend/dotnet/scriptingtypes_dotnet.h",boundName:"runtime/scripting/backend/dotnet/scriptingtypes_dotnet.h"},{id:923,name:"<MapFileParser>tools/il2cpp/il2cpp/libil2cpp/il2cpp-api-functions.h",boundName:"/Users/lucas/unity3/tools/il2cpp/il2cpp/libil2cpp/il2cpp-api-functions.h"},{id:924,name:"@7@scripting/readonlyscriptingobjectoftype.h",boundName:"@0@scripting/readonlyscriptingobjectoftype.h",inc:[{id:908},{id:925}]},{id:925,name:"@7@scripting/scriptingexportutility.h",boundName:"@0@scripting/scriptingexportutility.h",inc:[{id:401},{id:890},{id:854},{id:902},{id:132},{id:926},{id:927}]},{id:926,name:"@7@scripting/dotnet/scriptingexportutilitydotnet.h",boundName:"@0@scripting/dotnet/scriptingexportutilitydotnet.h",inc:[{id:871}]},{id:927,name:"@7@scripting/scriptingexportutilitycommon.h",boundName:"@0@scripting/scriptingexportutilitycommon.h"},{id:928,name:"<MapFileParser>editor/interfaces/iphysicseditor.h",boundName:"/Users/lucas/unity3/editor/interfaces/iphysicseditor.h",inc:[{id:122},{id:356}]},{id:929,name:"<MapFileParser>meshblendshape.h",boundName:"@0@graphics/mesh/meshblendshape.h",inc:[{id:663},{id:608},{id:364},{id:356},{id:436}]},
+    {id:930,name:"@7@camera/assetusers.h",boundName:"@0@camera/assetusers.h",inc:[{id:453},{id:470}]},{id:931,name:"@7@math/simd/vec-math.h",boundName:"@0@math/simd/vec-math.h",inc:[{id:799},{id:808},{id:135},{id:331},{id:932},{id:853},{id:933}]},
+    {id:932,name:"<MapFileParser>platformdependent/androidplayer/source/platformfloatmath.h",boundName:"@8@androidplayer/source/platformfloatmath.h"},{id:933,name:"<MapFileParser>vec-const.h",boundName:"@0@math/simd/vec-const.h"},{id:934,name:"<MapFileParser>canvasmanager.h",boundName:"@0@ui/canvasmanager.h",inc:[{id:470},{id:480},{id:602}]},{id:935,name:"<MapFileParser>editor/src/guidpersistentmanager.h",boundName:"@10@guidpersistentmanager.h",inc:[{id:767},{id:450},{id:146},{id:340},{id:761}]},{id:936,name:"<MapFileParser>editor/src/sceneinspector.h",boundName:"@10@sceneinspector.h",inc:[{id:937},{id:464},{id:938},{id:476},{id:347},{id:453}]},{id:937,name:"<MapFileParser>editor/src/selection.h",boundName:"@10@selection.h",inc:[{id:464}]},{id:938,name:"@7@scenemanager/unityscenehandle.h",boundName:"@0@scenemanager/unityscenehandle.h"},{id:939,name:"<MapFileParser>editor/src/editorresources.h",boundName:"@10@editorresources.h",inc:[{id:940}]},{id:940,name:"@7@assetbundles/assetbundle.h",boundName:"@0@assetbundles/assetbundle.h",inc:[{id:434},{id:137}]},{id:941,name:"@7@testing/run_this_test.h",boundName:"@0@testing/run_this_test.h"},{id:942,name:"@7@testing/automationtestreporter.h",boundName:"@0@testing/automationtestreporter.h",inc:[{id:441}]},{id:943,name:"@7@testing/parametrictest.h",boundName:"@0@testing/parametrictest.h",inc:[{id:159},{id:455},{id:111}]},
+    {id:944,name:"<MapFileParser>external/unittest++/src/nunittestreporter.h",boundName:"@5@unittest++/src/nunittestreporter.h",inc:[{id:945},{id:114}]},{id:945,name:"<MapFileParser>deferredsuitereporter.h",boundName:"@5@unittest++/src/deferredsuitereporter.h",inc:[{id:946},{id:949},{id:114}]},{id:946,name:"<MapFileParser>deferredtestreporter.h",boundName:"@5@unittest++/src/deferredtestreporter.h",inc:[{id:947},{id:948},{id:140}]},{id:947,name:"<MapFileParser>testreporter.h",boundName:"@5@unittest++/src/testreporter.h"},{id:948,name:"<MapFileParser>deferredtestresult.h",boundName:"@5@unittest++/src/deferredtestresult.h",inc:[{id:157},{id:113},{id:455}]},{id:949,name:"<MapFileParser>deferredsuiteresult.h",boundName:"@5@unittest++/src/deferredsuiteresult.h",inc:[{id:948},{id:113},{id:140}]},{id:950,name:"<MapFileParser>external/unittest++/src/testreporterstdout.h",boundName:"@5@unittest++/src/testreporterstdout.h",inc:[{id:951},{id:227}]},
+    {id:951,name:"<MapFileParser>testreporterformat.h",boundName:"@5@unittest++/src/testreporterformat.h",inc:[{id:947},{id:227},{id:147}]},{id:952,name:"<MapFileParser>external/unittest++/src/testlist.h",boundName:"@5@unittest++/src/testlist.h"},{id:953,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/TestAttributes.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/TestAttributes.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Testing/TestAttributes.cpp"]}],deps:[{id:106},{id:954}]},
+    {id:954,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Testing/TestAttributes.cpp",boundName:"@9@Testing/TestAttributes.cpp",inc:[{id:310},{id:138},{id:955}]},{id:955,name:"<MapFileParser>external/unittest++/src/test.h",boundName:"@5@unittest++/src/test.h",inc:[{id:156},{id:140}]},{id:956,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Logging/LogAssert.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/LogAssert.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Logging/LogAssert.cpp"]}],deps:[{id:106},{id:957}]},{id:957,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Logging/LogAssert.cpp",boundName:"@9@Logging/LogAssert.cpp",inc:[{id:310},{id:958},{id:959},{id:147},{id:444},{id:960},{id:961},{id:455},{id:329},{id:555},{id:453},{id:347},{id:411},{id:462},{id:962},{id:457},{id:963},{id:456},{id:636},{id:422},{id:146},{id:965},{id:966},{id:321},{id:967},{id:968},{id:458},{id:711},{id:972},{id:860},{id:442},{id:973},{id:981},{id:982},{id:353},{id:854},{id:892},{id:442},{id:983},{id:984},{id:985},{id:986},{id:987},{id:988},{id:989},{id:990},{id:387},{id:991},{id:968}]},{id:958,name:"<MapFileParser>logassert.h",boundName:"@9@Logging/logassert.h",inc:[{id:142},{id:117},{id:123},{id:143},{id:144},{id:145},{id:146},{id:147},{id:149},{id:120},{id:150},{id:151},{id:152}]},{id:959,name:"<MapFileParser>logsystem.h",boundName:"@9@Logging/logsystem.h"},{id:960,name:"<MapFileParser>kernel/iofilemgr_stat.h",boundName:"kernel/iofilemgr_stat.h"},
+    {id:961,name:"<MapFileParser>sys/stat.h",boundName:"sys/stat.h"},{id:962,name:"@7@input/timemanager.h",boundName:"@0@input/timemanager.h",inc:[{id:472},{id:329},{id:780}]},{id:963,name:"@7@diagnostics/stacktrace.h",boundName:"@0@diagnostics/stacktrace.h",inc:[{id:115},{id:356},{id:964}]},{id:964,name:"@7@scripting/managedstacktrace.h",boundName:"@0@scripting/managedstacktrace.h",inc:[{id:115},{id:356}]},{id:965,name:"<MapFileParser>syslog.h",boundName:"syslog.h"},{id:966,name:"<MapFileParser>sys/fcntl.h",boundName:"sys/fcntl.h"},{id:967,name:"<MapFileParser>shlobj.h",boundName:"shlobj.h"},{id:968,name:"<MapFileParser>platformdependent/win/pathunicodeconversion.h",boundName:"@8@win/pathunicodeconversion.h",inc:[{id:112},{id:145},{id:969},{id:136}]},{id:969,name:"<MapFileParser>winunicode.h",boundName:"@8@win/winunicode.h",inc:[{id:970},{id:971},{id:112}]},{id:970,name:"<MapFileParser>../../projects/precompiledheaders/visualstudioprefix.h",boundName:"/Users/lucas/unity3/projects/precompiledheaders/visualstudioprefix.h",inc:[{id:313},{id:184},{id:314},{id:315},{id:316},{id:128}]},
+    {id:971,name:"<MapFileParser>oleauto.h",boundName:"oleauto.h"},{id:972,name:"<MapFileParser>io.h",boundName:"io.h"},
+    {id:973,name:"<MapFileParser>editor/src/utility/usabilityanalytics.h",boundName:"@10@utility/usabilityanalytics.h",inc:[{id:113},{id:974}]},{id:974,name:"@7@math/random/rand.h",boundName:"@0@math/random/rand.h",inc:[{id:364},{id:975}]},{id:975,name:"@7@math/simd/vec-soa.h",boundName:"@0@math/simd/vec-soa.h",inc:[{id:976},{id:977},{id:979},{id:608},{id:480}]},{id:976,name:"<MapFileParser>vec-soa-types.h",boundName:"@0@math/simd/vec-soa-types.h",inc:[{id:852}]},{id:977,name:"<MapFileParser>vec-pix.h",boundName:"@0@math/simd/vec-pix.h",inc:[{id:852},{id:978}]},{id:978,name:"<MapFileParser>vec-math.h",boundName:"@0@math/simd/vec-math.h",inc:[{id:799},{id:808},{id:135},{id:331},{id:932},{id:853},{id:933}]},{id:979,name:"<MapFileParser>vec-trig.h",boundName:"@0@math/simd/vec-trig.h",inc:[{id:799},{id:808},{id:135},{id:331},{id:853},{id:933},{id:978},{id:980},{id:980}]},{id:980,name:"<MapFileParser>vec-trig-internal.h",boundName:"@0@math/simd/vec-trig-internal.h"},{id:981,name:"<MapFileParser>editor/src/editormonoconsole.h",boundName:"@10@editormonoconsole.h",inc:[{id:347},{id:725},{id:401}]},
+    {id:982,name:"<MapFileParser>platformdependent/webgl/source/jsbridge.h",boundName:"@8@webgl/source/jsbridge.h"},{id:983,name:"<MapFileParser>dlog/dlog.h",boundName:"dlog/dlog.h"},{id:984,name:"<MapFileParser>android/log.h",boundName:"android/log.h"},{id:985,name:"<MapFileParser>execinfo.h",boundName:"execinfo.h"},{id:986,name:"<MapFileParser>corkscrew/backtrace.h",boundName:"corkscrew/backtrace.h"},{id:987,name:"<MapFileParser>sys/sysctl.h",boundName:"sys/sysctl.h"},{id:988,name:"<MapFileParser>sys/ptrace.h",boundName:"sys/ptrace.h"},{id:989,name:"<MapFileParser>sys/prctl.h",boundName:"sys/prctl.h"},{id:990,name:"<MapFileParser>sys/wait.h",boundName:"sys/wait.h"},{id:991,name:"<MapFileParser>shellapi.h",boundName:"shellapi.h"},{id:992,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Utilities/Word.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Word.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Utilities/Word.cpp"]}],deps:[{id:106},{id:993}]},{id:993,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Utilities/Word.cpp",boundName:"@9@Utilities/Word.cpp",inc:[{id:994},{id:310},{id:329},{id:1030},{id:149},{id:131},{id:1031},{id:330}]},
+    {id:994,name:"<MapFileParser>/Users/lucas/unity3/Projects/PrecompiledHeaders/UnityPrefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/UnityPrefix.h",inc:[{id:995},{id:996},{id:997},{id:324},{id:112},{id:140},{id:455},{id:160},{id:311},{id:319},{id:339},{id:998},{id:128},{id:231},{id:194},{id:331},{id:131},{id:194},{id:118},{id:999},{id:1002},{id:1025},{id:141},{id:146},{id:123},{id:330},{id:341},{id:356},{id:336},{id:340},{id:391},{id:1026},{id:324},{id:136},{id:331},{id:140},{id:1028},{id:160},{id:311},{id:837},{id:124},{id:455},{id:534},{id:108},{id:339},{id:1029},{id:112},{id:141},{id:330},{id:146},{id:341},{id:356},{id:336},{id:340},{id:391}]},{id:995,name:"<MapFileParser>visualstudioprefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/visualstudioprefix.h",inc:[{id:313},{id:184},{id:314},{id:315},{id:316},{id:128}]},{id:996,name:"<MapFileParser>linuxprefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/linuxprefix.h",inc:[{id:149},{id:147},{id:118},{id:318},{id:131},{id:319},{id:320},{id:321}]},{id:997,name:"<MapFileParser>osxprefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/osxprefix.h",inc:[{id:323}]},
+    {id:998,name:"<MapFileParser>malloc.h",boundName:"malloc.h"},{id:999,name:"<MapFileParser>platformdependent/win/etw/etw.h",boundName:"@8@win/etw/etw.h",inc:[{id:1000},{id:1001}]},{id:1000,name:"<MapFileParser>unityprovider/unityprovidergenerated.h",boundName:"@8@win/etw/unityprovider/unityprovidergenerated.h",inc:[{id:861},{id:862},{id:863}]},{id:1001,name:"<MapFileParser>etwentry.h",boundName:"@8@win/etw/etwentry.h",inc:[{id:860}]},{id:1002,name:"<MapFileParser>visualstudiopostprefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/visualstudiopostprefix.h",inc:[{id:184},{id:1003},{id:1014},{id:1015},{id:1016},{id:1017},{id:1018},{id:1019},{id:1020},{id:1021},{id:1022},{id:1023},{id:1024},{id:113}]},{id:1003,name:"<MapFileParser>external/directx/include/dxgi.h",boundName:"@5@directx/include/dxgi.h",inc:[{id:1004},{id:1005},{id:184},{id:1006},{id:1007},{id:1008},{id:1009},{id:1010},{id:1012}]},{id:1004,name:"<MapFileParser>rpc.h",boundName:"rpc.h"},{id:1005,name:"<MapFileParser>rpcndr.h",boundName:"rpcndr.h"},{id:1006,name:"<MapFileParser>ole2.h",boundName:"ole2.h"},{id:1007,name:"<MapFileParser>no_sal2.h",boundName:"@5@directx/include/no_sal2.h"},{id:1008,name:"<MapFileParser>oaidl.h",boundName:"oaidl.h"},{id:1009,name:"<MapFileParser>ocidl.h",boundName:"ocidl.h"},{id:1010,name:"<MapFileParser>dxgitype.h",boundName:"@5@directx/include/dxgitype.h",inc:[{id:1011}]},
+    {id:1011,name:"<MapFileParser>dxgiformat.h",boundName:"@5@directx/include/dxgiformat.h"},
+    {id:1012,name:"<MapFileParser>winapifamily.h",boundName:"@5@directx/include/winapifamily.h",inc:[{id:1013}]},
+    {id:1013,name:"<MapFileParser>winpackagefamily.h",boundName:"@5@directx/include/winpackagefamily.h"},
+    {id:1014,name:"<MapFileParser>windows.devices.enumeration.h",boundName:"windows.devices.enumeration.h"},{id:1015,name:"<MapFileParser>windows.devices.sensors.h",boundName:"windows.devices.sensors.h"},{id:1016,name:"<MapFileParser>windows.foundation.h",boundName:"windows.foundation.h"},{id:1017,name:"<MapFileParser>windows.media.capture.h",boundName:"windows.media.capture.h"},{id:1018,name:"<MapFileParser>windows.networking.h",boundName:"windows.networking.h"},{id:1019,name:"<MapFileParser>windows.security.exchangeactivesyncprovisioning.h",boundName:"windows.security.exchangeactivesyncprovisioning.h"},{id:1020,name:"<MapFileParser>windows.system.h",boundName:"windows.system.h"},{id:1021,name:"<MapFileParser>windows.ui.xaml.h",boundName:"windows.ui.xaml.h"},{id:1022,name:"<MapFileParser>windows.ui.xaml.controls.h",boundName:"windows.ui.xaml.controls.h"},{id:1023,name:"<MapFileParser>windows.ui.xaml.media.dxinterop.h",boundName:"windows.ui.xaml.media.dxinterop.h"},{id:1024,name:"<MapFileParser>allocators",boundName:"allocators"},{id:1025,name:"<MapFileParser>iphonepostprefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/iphonepostprefix.h",inc:[{id:148}]},{id:1026,name:"<MapFileParser>psp2prefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/psp2prefix.h",inc:[{id:149},{id:231},{id:1027},{id:194},{id:128},{id:126}]},{id:1027,name:"<MapFileParser>scetypes.h",boundName:"scetypes.h"},{id:1028,name:"<MapFileParser>deque",boundName:"deque"},
+    {id:1029,name:"<MapFileParser>psp2postprefix.h",boundName:"/Users/lucas/unity3/Projects/PrecompiledHeaders/psp2postprefix.h"},{id:1030,name:"<MapFileParser>word.h",boundName:"@9@Utilities/word.h",inc:[{id:112},{id:120},{id:123},{id:145},{id:140},{id:147},{id:148}]},{id:1031,name:"<MapFileParser>ctype.h",boundName:"ctype.h"},{id:1032,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Threads/Mutex.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Mutex.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Threads/Mutex.cpp"]}],deps:[{id:106},{id:1033}]},{id:1033,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Threads/Mutex.cpp",boundName:"@9@Threads/Mutex.cpp",inc:[{id:310},{id:416},{id:1034}]},{id:1034,name:"<MapFileParser>threadspecificvalue.h",boundName:"@9@Threads/threadspecificvalue.h",inc:[{id:329},{id:412},{id:413},{id:414}]},{id:1035,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Allocator/MemoryManager.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/MemoryManager.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>/Users/lucas/unity3/Runtime/Allocator/MemoryManager.cpp"]}],deps:[{id:106},{id:1036}]},
+    {id:1036,name:"<MapFileParser>/Users/lucas/unity3/Runtime/Allocator/MemoryManager.cpp",boundName:"@9@Allocator/MemoryManager.cpp",inc:[{id:994},{id:310},{id:709},{id:1037},{id:1040},{id:1038},{id:422},{id:555},{id:456},{id:1041},{id:1043},{id:124},{id:998},{id:1044},{id:1048},{id:1056},{id:1060},{id:1061},{id:1057},{id:1063},{id:1058},{id:1064},{id:1065},{id:1066},{id:1068},{id:1069},{id:453},{id:411},{id:146},{id:1070},{id:160},{id:1072},{id:1071},{id:1073},{id:1074}]},{id:1037,name:"@7@allocator/allocationheader.h",boundName:"@0@allocator/allocationheader.h",inc:[{id:631},{id:132},{id:133},{id:1038}]},{id:1038,name:"@7@profiler/memoryprofiler.h",boundName:"@0@profiler/memoryprofiler.h",inc:[{id:116},{id:1039},{id:411},{id:726},{id:160},{id:854},{id:722},{id:725}]},{id:1039,name:"@7@threads/readwritespinlock.h",boundName:"@0@threads/readwritespinlock.h",inc:[{id:372},{id:373},{id:122},{id:141}]},{id:1040,name:"@7@misc/systeminfo.h",boundName:"@0@misc/systeminfo.h",inc:[{id:120},{id:141},{id:113}]},{id:1041,name:"@7@utilities/diagnosticswitch.h",boundName:"@0@utilities/diagnosticswitch.h",inc:[{id:140},{id:143},{id:1042},{id:112},{id:902},{id:873},{id:854}]},
+    {id:1042,name:"@7@utilities/enumtraits.h",boundName:"@0@utilities/enumtraits.h",inc:[{id:445}]},{id:1043,name:"@7@utilities/memoryutilities.h",boundName:"@0@utilities/memoryutilities.h"},{id:1044,name:"<MapFileParser>platformdependent/ps4/source/allocator/ps4memory.h",boundName:"@8@ps4/source/allocator/ps4memory.h",inc:[{id:397},{id:1045},{id:1046},{id:347},{id:1047}]},{id:1045,name:"<MapFileParser>kernel.h",boundName:"kernel.h"},{id:1046,name:"<MapFileParser>mspace.h",boundName:"mspace.h"},{id:1047,name:"<MapFileParser>mat.h",boundName:"mat.h"},{id:1048,name:"<MapFileParser>platformdependent/psp2player/source/allocator/psp2memory.h",boundName:"@8@psp2player/source/allocator/psp2memory.h",inc:[{id:119},{id:1049},{id:1053}]},{id:1049,name:"<MapFileParser>platformdependent/psp2player/source/allocator/psp2delayedreleaseallocator.h",boundName:"@8@psp2player/source/allocator/psp2delayedreleaseallocator.h",inc:[{id:397},{id:709},{id:1050}]},{id:1050,name:"<MapFileParser>gxmallocator.h",boundName:"@8@psp2player/source/allocator/gxmallocator.h",inc:[{id:140},{id:455},{id:1051},{id:1052}]},{id:1051,name:"@7@threads/simplelock.h",boundName:"@0@threads/simplelock.h",inc:[{id:373},{id:383}]},
+    {id:1052,name:"<MapFileParser>kernelallocator.h",boundName:"@8@psp2player/source/allocator/kernelallocator.h",inc:[{id:140},{id:455},{id:1051}]},
+    {id:1053,name:"<MapFileParser>lowlevelheap.h",boundName:"@8@psp2player/source/allocator/lowlevelheap.h",inc:[{id:1054}]},{id:1054,name:"<MapFileParser>scelibheap.h",boundName:"@8@psp2player/source/allocator/scelibheap.h",inc:[{id:1055}]},{id:1055,name:"<MapFileParser>alloctracker.h",boundName:"@8@psp2player/source/allocator/alloctracker.h",inc:[{id:1045},{id:118},{id:131},{id:137},{id:160},{id:140}]},{id:1056,name:"<MapFileParser>platformdependent/xboxone/source/allocator/xboxonegpuallocator.h",boundName:"@8@xboxone/source/allocator/xboxonegpuallocator.h",inc:[{id:1057},{id:1059}]},{id:1057,name:"@7@allocator/dynamicheapallocator.h",boundName:"@0@allocator/dynamicheapallocator.h",inc:[{id:710},{id:347},{id:1058},{id:470}]},{id:1058,name:"@7@allocator/lowleveldefaultallocator.h",boundName:"@0@allocator/lowleveldefaultallocator.h"},{id:1059,name:"<MapFileParser>xboxonelowlevelgpuallocator.h",boundName:"@8@xboxone/source/allocator/xboxonelowlevelgpuallocator.h"},{id:1060,name:"<MapFileParser>allocator/platformmemory.h",boundName:"allocator/platformmemory.h"},{id:1061,name:"@7@allocator/debugallocator.h",boundName:"@0@allocator/debugallocator.h",inc:[{id:397},{id:347},{id:1062}]},{id:1062,name:"@7@utilities/reflectableenum.h",boundName:"@0@utilities/reflectableenum.h",inc:[{id:117}]},{id:1063,name:"@7@allocator/dualthreadallocator.h",boundName:"@0@allocator/dualthreadallocator.h",inc:[{id:397},{id:411}]},
+    {id:1064,name:"@7@allocator/tlsallocator.h",boundName:"@0@allocator/tlsallocator.h",inc:[{id:397},{id:411}]},{id:1065,name:"@7@allocator/stackallocator.h",boundName:"@0@allocator/stackallocator.h",inc:[{id:397}]},{id:1066,name:"@7@allocator/bucketallocator.h",boundName:"@0@allocator/bucketallocator.h",inc:[{id:397},{id:1037},{id:753},{id:555},{id:1067},{id:347},{id:356}]},{id:1067,name:"@7@threads/extendedatomicops.h",boundName:"@0@threads/extendedatomicops.h",inc:[{id:374},{id:376},{id:377},{id:379},{id:380},{id:381},{id:382}]},{id:1068,name:"@7@allocator/threadsafelinearallocator.h",boundName:"@0@allocator/threadsafelinearallocator.h",inc:[{id:310},{id:397},{id:347},{id:631}]},{id:1069,name:"@7@allocator/unitydefaultallocator.h",boundName:"@0@allocator/unitydefaultallocator.h",inc:[{id:710},{id:347},{id:1058},{id:631}]},{id:1070,name:"<MapFileParser>platformdependent/iphoneplayer/iphonenewlabelallocator.h",boundName:"@8@iphoneplayer/iphonenewlabelallocator.h",inc:[{id:397},{id:1071}]},
+    {id:1071,name:"<MapFileParser>malloc/malloc.h",boundName:"malloc/malloc.h"},{id:1072,name:"<MapFileParser>../crt/src/dbgint.h",boundName:"../crt/src/dbgint.h"},
+    {id:1073,name:"<MapFileParser>mach/vm_map.h",boundName:"mach/vm_map.h"},{id:1074,name:"<MapFileParser>winnt.h",boundName:"winnt.h"},{id:1075,name:"<MapFileParser>Runtime/Threads/Posix/PlatformMutex.o",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Runtime/Threads/Posix/PlatformMutex.o",actions:[{name:"C.C++",secondargument:["<MapFileParser>Runtime/Threads/Posix/PlatformMutex.cpp"]}],deps:[{id:1076},{id:1077}]},
+    {id:1076,name:"@6@Runtime/Threads/Posix",boundName:"@1@macosx32_debug_MapFileParser_mono_1/Runtime/Threads/Posix",actions:[{name:"MkDir1"}]},{id:1077,name:"<MapFileParser>Runtime/Threads/Posix/PlatformMutex.cpp",boundName:"Runtime/Threads/Posix/PlatformMutex.cpp",inc:[{id:310},{id:351}]},{id:1078,name:"<!dir!>/Users/lucas/unity3/build/MacEditor/Unity.app/Contents/Tools/MapFileParser",boundName:"/Users/lucas/unity3/build/MacEditor/Unity.app/Contents/Tools/MapFileParser",actions:[{name:"MkDir1"}]}],
+  requestednodes:[0],
+  top:"/Users/lucas/unity3/",
+  prefixes:[
+    "/Users/lucas/unity3/runtime/",
+    "/Users/lucas/unity3/artifacts/",
+    "/Users/lucas/unity3/External/UnitTest++/src/",
+    "<UnitTest++>src",
+    "/Users/lucas/unity3/Tools/il2cpp/il2cpp/MapFileParser/",
+    "/Users/lucas/unity3/external/",
+    "<!dir!>/Users/lucas/unity3/artifacts/macosx32_debug_MapFileParser_mono_1/",
+    "<MapFileParser>runtime/",
+    "/Users/lucas/unity3/platformdependent/",
+    "/Users/lucas/unity3/Runtime/",
+    "/Users/lucas/unity3/editor/src/",
+    ]
+};
+
+
+var realData =
+'$REPLACE_ME$'
+;
+
+var parsedData = typeof(realData) === 'string' ? testData : realData;
+
+
+var allNodes = parsedData.nodes;
+var prefixes = parsedData.prefixes;
+
+// to reduce massive amount of storage/memory for strings with often the same prefixes,
+// they are often stored as "@index@RestOfString", with @index@ part replaced by prefix
+// from common prefixes table.
+function Deprefix(s)
+{
+  var match = s.match(/^@(\d+)@(.*)/);
+  if (!match)
+    return s;
+  return prefixes[match[1]] + match[2];
+}
+function DeprefixFull(s)
+{
+  return s.replace(/"@(\d+)@/g, function(match,p1,offset,string){return '"' + prefixes[p1]});
+}
+
+
+/* Component: NodeList
+ * Creates a Tree navigation of items
+*/
+var NodeList = React.createClass({
+  getDefaultProps: function() {
+    return {
+      showRefs: true
+    }
+  },
+
+  getInitialState: function() {
+    return {
+      expanded: this.props.expanded,
+      depth: this.props.depth
+    }
+  },
+
+  myOnClick: function(e) {
+    e.preventDefault();
+    this.setState({
+      expanded:!this.state.expanded
+    });
+  },
+
+  render: function() {
+    var listItemClasses = generateClassString({
+      'node__anchor--empty': this.props.entries.length==0,
+      'node__anchor--is-expanded': this.state.expanded
+    }, 'node-list__item__anchor node__anchor node__anchor--secondary ' + this.props.className);
+
+    var listItems = this.props.entries.map(function(idAndStack) {
+      return (
+        rce('li',
+          {
+            key: this.props.reactKey + "_li_" + idAndStack.id
+          },
+          rce(GraphNode,
+            {
+              key: this.props.reactKey + "_" + idAndStack.id,
+              reactKey: this.props.reactKey + "_" + idAndStack.id,
+              idAndStack: idAndStack,
+              graphNodeSelectCallback: this.props.graphNodeSelectCallback,
+              graphNodeActiveCallback: this.props.graphNodeActiveCallback,
+              selectedNode: this.props.selectedNode,
+              activeNode: this.props.activeNode,
+              depth: this.props.renderLabel ? this.props.depth + 1 : this.props.depth,
+              showRefs: this.props.showRefs
+            },
+            null
+          )
+        )
+      )
+    }, this);
+
+    return rce('div',
+        null,
+        this.props.renderLabel ?
+          rce('a',
+            {
+                className: listItemClasses,
+                href: '#',
+                onClick: this.myOnClick,
+                tabIndex: 0,
+                style: {
+                    paddingLeft: ((this.props.depth) * 16) + 'px'
+                }
+            },
+            rce('span', null,
+              this.props.caption
+            ),
+            this.props.renderLabel ?
+            rce('span', null,
+                ' ' + listItems.length
+            ): null,
+          ): null,
+
+        this.state.expanded ?
+          rce('ul', {className: 'node-list'}, listItems) : null
+      );
+  }
+});
+
+
+var CallstackButton = React.createClass({
+  myCallStackClick: function() {
+    console.log(this.props.callstack);
+  },
+
+  render: function() {
+    return rce('button', {
+      'data-balloon-length':"x-large",
+      'data-balloon': this.props.callstack.replace(/(?:\\r\\n|\\r|\\n)/g, '\n'),
+      'data-balloon-break': 1,
+      'data-balloon-pos':"right",
+      onClick: this.myCallStackClick
+    }, 'Callstack');
+  }
+});
+
+var NavigatableNodes = React.createClass({
+  getInitialState: function() {
+    return {
+      selectedNode: null,
+    }
+  },
+
+  componentDidUpdate: function() {
+    this.allNodes = this.nodetree.querySelectorAll('.node__anchor');
+  },
+
+  setFocus: function(value) {
+    var activeElement = document.activeElement;
+    this.allNodes.forEach((el, i) => {
+        if (el === activeElement) {
+          this.allNodes[i + value] ? this.allNodes[i + value].focus() : null;
+          return false;
+        }
+    })
+  },
+
+  select: function() {
+    var activeElement = document.activeElement;
+    activeElement.click();
+    setTimeout(() => {
+        this.allNodes = this.nodetree.querySelectorAll('.node__anchor');
+    }, 100)
+  },
+
+  handleKeyDown: function(e) {
+    var codeUp = 38;
+    var codeDown = 40;
+    var codeEnter = 13;
+    var codeRight = 39;
+    var codeLeft = 37;
+
+    if (e.keyCode === codeUp) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.setFocus(-1);
+    }
+
+    if (e.keyCode === codeDown) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.setFocus(1);
+    }
+
+    if (e.keyCode === codeLeft || e.keyCode === codeRight) {
+      this.select();
+    }
+  },
+
+  render: function() {
+    return rce('div', {
+        onKeyDown: this.handleKeyDown,
+        ref: (nodeTree) => this.nodetree = nodeTree
+      }, this.props.children)
+  }
+});
+
+var GraphNode = React.createClass({
+
+  getDefaultProps: function() {
+    return {
+      showRefs: true,
+      expanded: false
+    }
+  },
+
+  getInitialState: function() {
+    return {
+      expanded: this.props.expanded,
+      depth: this.props.depth
+    }
+  },
+
+  myOnClick: function(e){
+    e.preventDefault();
+
+    this.setState({
+      expanded: !this.state.expanded,
+    });
+
+    this.props.graphNodeActiveCallback
+    ? this.props.graphNodeActiveCallback(this)
+    : null;
+
+
+    this.props.graphNodeSelectCallback
+      ? this.props.graphNodeSelectCallback(allNodes[this.props.idAndStack.id])
+      : null;
+  },
+
+  render: function() {
+    var node = allNodes[this.props.idAndStack.id];
+    // note: all nodes have references; ignore existence of them when computing
+    // whether we should display node as leaf or not
+    var hasChildren;
+    if ("deps" in node || "inc" in node || "needs" in node) {
+      hasChildren = true;
+      if (!this.props.showRefs && !("deps" in node)) {
+        hasChildren = false;
+      }
+    }
+    var isFile = ("boundName" in node) && Deprefix(node.boundName).startsWith(parsedData.top);
+
+    var itemClassNames = generateClassString({
+      'node__anchor--is-active': this == this.props.activeNode,
+      'node__anchor--is-selected': this.props.selectedNode.id == this.props.idAndStack.id,
+      'node__anchor--is-empty': !hasChildren,
+      'node__anchor--is-expanded': hasChildren && this.state.expanded,
+      'node__anchor--has-deps': "deps" in node,
+      'node__anchor--has-needs': "needs" in node,
+      'node__anchor--has-inc': "inc" in node,
+      'node__anchor--has-refby': "refby" in node
+    }, 'node__anchor');
+
+    var fileNameClasses = generateClassString({
+      'graph-node__filename': isFile
+    });
+
+    // if node name contains grist ("<foobar>") at front, display it in different style
+    var context = '';
+    var name = Deprefix(node.name);
+    var match = name.match(/^(<.+>)(.*)/);
+    if (match)
+    {
+      context = match[1];
+      name = match[2];
+    }
+
+    // if name starts with root folder, display it in different style
+    var top = '';
+
+    if (name.startsWith(parsedData.top)) {
+      top = 'top';
+      name = name.substr(parsedData.top.length);
+    }
+
+
+    var elCallstack = null;
+    if ("callstack" in this.props.idAndStack) {
+      elCallstack = rce(CallstackButton,
+        {
+          callstack: this.props.idAndStack.callstack
+        },
+        null
+      )
+    };
+
+    var elAction = null;
+    if ("actions" in node && node.actions.length > 0) {
+      elAction = rce('span',
+        {
+          className: 'node__anchor__action'
+        },
+        node.actions[0].name
+      );
+    }
+
+    var elChildren;
+    var elChildrenArray;
+    var elDeps;
+    var nodesCriteria = this.props.showRefs ? ['deps', 'inc', 'needs', 'refby']: [];
+    var createListItem = function(name, src, label, ctx, caption, expanded, depth) {
+      if (name in src) {
+        return (
+          rce('li', null, rce(NodeList, {
+            ref: name + "List",
+            key: ctx.props.reactKey + "_" + name,
+            reactKey: ctx.props.reactKey + "_" + name,
+            caption: caption,
+            className: "internalNode " + name,
+            expanded: expanded,
+            entries: src[name],
+            graphNodeSelectCallback: ctx.props.graphNodeSelectCallback,
+            graphNodeActiveCallback: ctx.props.graphNodeActiveCallback,
+            selectedNode: ctx.props.selectedNode,
+            activeNode: ctx.props.activeNode,
+            renderLabel: label,
+            depth: depth + 1,
+            showRefs: ctx.props.showRefs
+          }, null))
+        )
+      }
+    }
+
+    if (this.state.expanded) {
+      // elDeps = createListItem('deps', node, false, this, null, true, this.props.depth);
+      elChildrenArray = nodesCriteria.map(function(criteria) {
+        var caption;
+
+        switch (criteria) {
+          case 'deps':
+            caption = '::Depends';
+            break;
+          case 'inc':
+            caption = '::Includes';
+            break;
+          case 'needs':
+            caption = '::Needs';
+            break;
+          case 'refby':
+            caption = '::Referenced by'
+            break;
+        }
+
+        return createListItem(criteria, node, true, this, caption, false, this.props.depth);
+      }, this);
+
+      elChildren = rce('ul', {className: 'node__list'}, elChildrenArray);
+    }
+
+    return rce('div',
+        {className: 'graph-node'},
+        rce('a',
+          {
+            className: itemClassNames,
+            onClick: this.myOnClick,
+            href: '#',
+            tabIndex: 0,
+            style: {
+                paddingLeft: (this.props.depth * 16) + 'px'
+            }
+          },
+
+        context.length > 0 ?
+          rce('span',
+            {
+              className: 'node__anchor__ctx'
+            },
+            context
+          ) : null,
+
+        top.length > 0 ?
+          rce('span',
+            {
+              className: 'node__anchor__ctx__top'
+            },
+            top
+          ) : null,
+
+          rce('span',
+            {
+              className: fileNameClasses
+            },
+            name
+          ),
+
+          elAction
+        ),
+        //elCallstack,
+        rce('ul', {className: 'node__list'},
+            elDeps
+        ),
+        elChildren ?
+        elChildren : null
+      );
+  }
+});
+
+var SearchField = React.createClass({
+  timer: null,
+
+  getInitialProps: function() {
+    value: ''
+  },
+
+  getInitialState: function() {
+    return { value: this.props.value }
+  },
+
+  handleChange: function(event) {
+    this.setState({value: event.target.value});
+    // clearTimeout(this.timer);
+    // this.timer = setTimeout(() => {
+    //   this.props.onNewValue();
+    // }, 200)
+  },
+
+  componentDidMount: function() {
+    // this.refs.searchinput.focus();
+  },
+
+  handleOnFocus: function() {
+    this.refs.searchinput.setSelectionRange(this.state.value.length, this.state.value.length)
+  },
+
+  myKeyPress: function(event) {
+    // On enter key
+    if (event.keyCode == 13) {
+        this.props.onNewValue();
+    }
+  },
+  render: function()
+  {
+    return rce('input', {
+      ref: 'searchinput',
+      type:'text',
+      title: 'Press enter to search',
+      placeholder:"Search in dependencies",
+      value: this.state.value,
+      onChange:this.handleChange,
+      onKeyUp:this.myKeyPress,
+      onFocus: this.handleOnFocus
+    }, null);
+  }
+});
+
+
+var ResetButton = React.createClass({
+  render: function()
+  {
+    return rce('i', {className: 'material-icons header__search__icon-close', onClick:this.props.onClick}, 'close');
+  }
+})
+
+
+var Inspector = React.createClass({
+  getDefaultProps: function() {
+    return {
+      selectedNodenodeToDisplay: null,
+    }
+  },
+
+  myDumpToConsole: function() {
+    console.log(DeprefixFull(JSON.stringify(this.state.selectedNodenodeToDisplay, null, 2)));
+  },
+
+  render: function() {
+    return rce('div', {className:'dump'},
+      // rce('button', {onClick:this.myDumpToConsole}, 'DumpToConsole'),
+      rce('pre', null, DeprefixFull(JSON.stringify(this.props.selectedNodenodeToDisplay, null, 2))));
+  }
+});
+
+
+var ListGroup = React.createClass({
+  getDefaultProps: function() {
+    return {
+      horizontal: false,
+      style: {}
+    }
+  },
+
+  render: function() {
+    var listGroupClasses = generateClassString({
+      'list-group--horizontal': this.props.horizontal
+    }, 'list-group');
+    return rce('div', {className: listGroupClasses, style: this.props.style},
+      this.props.children
+    )
+  }
+});
+
+var ListGroupItem = React.createClass({
+  getDefaultProps: function() {
+    return {
+      title: 'Item title',
+      collapsed: false
+    }
+  },
+
+  getInitialState: function() {
+    return {
+      collapsed: this.props.collapsed
+    }
+  },
+
+  handleToggleCollapse: function() {
+    this.setState({collapsed: !this.state.collapsed});
+  },
+
+  render: function() {
+    var listGroupItemClasses = generateClassString({
+      'list-group__item--is-collapsed': this.state.collapsed
+    }, 'list-group__item');
+
+    return rce('div', {className: listGroupItemClasses},
+      rce('div', {
+        className: 'list-group__item__head',
+        onClick: this.handleToggleCollapse,
+        title: this.props.title
+      }, null),
+      rce('div', {className: 'list-group__item__body'}, this.props.children)
+    )
+  }
+});
+
+var TabList = React.createClass({
+  getDefaultProps: function() {
+    return {
+      activeIndex: 0,
+    }
+  },
+
+  getInitialState: function() {
+    return {
+      activeIndex: this.props.activeIndex
+    }
+  },
+
+  handleLabelClick: function(e, i) {
+    e.preventDefault();
+    this.setState({activeIndex: i})
+  },
+
+  labels: function(child, index) {
+    var labelClasses = generateClassString({
+      'tab-list__header__tabs__label--is-active': index === this.state.activeIndex
+    }, 'tab-list__header__tabs__label');
+
+    return rce('li', {key: 'label-' + index, className: labelClasses},
+      rce('a', {
+        href: '#',
+        onClick: (e) => this.handleLabelClick(e, index)
+      }, child.props.label)
+    );
+  },
+
+  render: function() {
+    return rce('div', {className: 'tab-list'},
+      rce('div', {className: 'tab-list__header'},
+        rce('ul', {
+          className: 'tab-list__header__tabs'
+        },
+          React.Children.map(this.props.children, this.labels)
+        ),
+
+        this.props.actions
+        ? rce('div', {className: 'tab-list__header__actions'}, this.props.actions)
+        : null
+      ),
+      rce('div', {className: 'tab-list__body'},
+        React.Children.toArray(this.props.children)[this.state.activeIndex]
+      )
+    )
+  }
+});
+
+
+var TabListItem = React.createClass({
+  getDefaultProps: function() {
+    return {
+      label: 'tab label',
+    }
+  },
+  render: function() {
+    return rce('div', {style: {height: '100%'}}, this.props.children);
+  }
+});
+
+
+var App = React.createClass({
+  getInitialState: function() {
+    return {
+      selectedNode: { id:-1, msg:"Click a node to inspect", totalNodes:allNodes.length },
+      rootNodes: parsedData.requestednodes.map(function(index) {
+          return {id:index};
+      }),
+      filterValue: '',
+      searchResults: [],
+      inspectorIsOpen: true,
+      layoutVertical: false,
+      visibleInspectorTab: 'inspector',
+      activeNode: null,
+      isSearching: false,
+      isSearchResults: false
+    }
+  },
+
+  nodeSelected: function(node) {
+    this.setState({selectedNode: node});
+  },
+
+  nodeActivated: function(node) {
+    this.setState({activeNode: node})
+  },
+
+  filterChanged:function() {
+    this.setState({
+      isSearching: true,
+      filterValue: this.refs.searchfield.state.value
+    });
+    var r = new RegExp(this.refs.searchfield.state.value,"i");
+
+    var searchData = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(parsedData.nodes.filter(function(n) { return Deprefix(n.name).match(r);}).map(function(m) { return {id:m.id};}));
+      })
+    });
+
+    searchData.then(result => {
+      if (!this.refs.searchfield.state.value == '') {
+        this.setState({
+          rootNodes: result,
+          isSearching: false,
+          isSearchResults: true
+        });
+      } else {
+        this.setState({
+          rootNodes: parsedData.requestednodes.map(function(index) {
+            return {id:index};
+          }),
+          isSearching: false,
+          isSearchResults: false
+        });
+      }
+    }).catch(err => {console.log(err)})
+  },
+
+  resetRoots:function() {
+    this.refs.searchfield.setState({value: ""});
+    this.setState({
+      rootNodes: parsedData.requestednodes.map(function(index) {
+        return {id:index};
+      })
+    });
+  },
+
+  handleToggleInspectorClick: function() {
+    this.setState({
+      inspectorIsOpen: !this.state.inspectorIsOpen
+    });
+  },
+
+  handleToggleThemeClick: function() {
+    this.setState({
+      themeIsDark: !this.state.themeIsDark
+    });
+  },
+
+  handleLayoutClick: function() {
+    this.setState({
+      layoutVertical: !this.state.layoutVertical
+    })
+  },
+
+  handleTabClick: function(name, event) {
+    event.preventDefault();
+    this.setState({
+      visibleInspectorTab: name
+    });
+  },
+
+  render: function() {
+    var bodyClassNames = generateClassString({
+      'theme-dark': this.state.themeIsDark
+    });
+
+    var layoutClassNames = generateClassString({
+      'layout--vertical': this.state.layoutVertical
+    }, 'layout');
+
+    var inspectorClassNames = generateClassString({
+      'inspector--horizontal': this.state.layoutVertical
+    }, 'inspector');
+
+    var layoutButtonClasses = generateClassString({
+      'button--action-layout--is-horizontal': this.state.layoutVertical
+    }, 'button button--action-layout');
+
+    return rce('div', {className: bodyClassNames},
+      rce('div', {className: layoutClassNames},
+          rce('div', {className: 'layout__main'},
+            rce('div', {className:'header'},
+              rce('div', {className: 'flex-shrink header__title'}, 'Dependency Graph'),
+              rce('div', {className:'header__search'},
+                rce('i', {className: 'header__search__icon material-icons'}, 'search'),
+                rce(SearchField, {
+                  ref:'searchfield',
+                  onNewValue:this.filterChanged,
+                  value: this.state.filterValue
+                }, null),
+                this.state.filterValue.length
+                ? rce(ResetButton, {
+                  ref:'resetbutton',
+                  onClick:this.resetRoots
+                }, null)
+                : null
+              ),
+              rce('div', { className: 'flex-pull-right' },
+                !this.state.inspectorIsOpen
+                ? rce('button', {
+                  className: 'material-icons icon-button',
+                  onClick: this.handleToggleInspectorClick,
+                  title: 'Show Inspector'}, 'code')
+                : null
+              )
+            ),
+
+            !this.state.isSearching
+            ? rce('div', {className: 'body'},
+                !this.state.isSearchResults
+                ? rce('span', {className:'root-path'},
+                    rce('i', {className: 'material-icons root-path__icon'}, 'folder_open'),
+                    rce('span', null, parsedData.top)
+                  )
+                : rce('span', {className:'root-path'},
+                    rce('i', {className: 'material-icons root-path__icon'}, 'search'),
+                    rce('span', null, `Search results (${this.state.rootNodes.length})`),
+                  ),
+
+                !this.state.isSearching
+                ? rce(NavigatableNodes, null,
+                    rce(NodeList,
+                      {
+                        ref: (input) => this.rootNode = input,
+                        reactKey:'rootNode',
+                        caption:'RequestedNodes',
+                        className:'root',
+                        entries: this.state.rootNodes,
+                        graphNodeSelectCallback: this.nodeSelected,
+                        graphNodeActiveCallback: this.nodeActivated,
+                        selectedNode:this.state.selectedNode,
+                        activeNode: this.state.activeNode,
+                        expanded: true,
+                        showRefs: true,
+                        depth: 2
+                      },
+                      null
+                    )
+                  )
+                : null,
+              )
+            : null,
+          ),
+
+          this.state.inspectorIsOpen ?
+            rce('div', {className: 'layout__panel layout__panel--bottom'},
+              rce('div', {className: 'inspector'},
+                rce(TabList, {
+                  activeIndex: 0,
+                  actions: rce('div', null,
+                    rce('button', {
+                      className: 'material-icons icon-button',
+                      onClick: this.handleLayoutClick,
+                      title: 'Change position'
+                    }, 'view_compact'),
+                    rce('button', {
+                      className: 'material-icons icon-button',
+                      onClick: this.handleToggleInspectorClick,
+                      title: 'Close'
+                    }, 'close')
+                  )
+                },
+                  rce(TabListItem, {label: rce('span', {className: 'icon-label'},
+                    rce('i', {className: 'material-icons'}, 'code'),
+                    rce('span', null, 'Inspector')
+                  )},
+                    rce(ListGroup, {horizontal: this.state.layoutVertical, style: {height: '100%'}},
+                      rce(ListGroupItem, {title: `Dump`},
+                        rce(Inspector, {selectedNodenodeToDisplay: this.state.selectedNode}, null)
+                      ),
+                    )
+                  ),
+                )
+              )
+            ) : null
+        )
+      )
+  }
+});
+
+ReactDOM.render(rce(App), document.getElementById('container'));
+
+</script>
+</body>
+</html>

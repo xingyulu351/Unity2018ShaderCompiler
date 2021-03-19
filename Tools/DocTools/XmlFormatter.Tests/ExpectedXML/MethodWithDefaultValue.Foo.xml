@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>MethodWithDefaultValue</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Foo" type="function" modifiers="public static" />
+      <ParamElement name="text" type="string" />
+      <ParamElement name="flag" type="bool" default="true" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Foo does foo]]></Summary>
+    <ParamWithDoc>
+      <name>text</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>flag</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+  </Section>
+</Model>

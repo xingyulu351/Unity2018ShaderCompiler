@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model Namespace="NamespaceA">
+  <StaticVars />
+  <Vars />
+  <Constructors />
+  <MemberFunctions />
+  <ProtectedFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+  <Events />
+  <Delegates />
+  <Section>
+    <Signature>
+      <Declaration name="ClassMovedToNamespace" type="class" namespace="NamespaceA" modifiers="public" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[This class has been moved]]></Summary>
+    <Description><![CDATA[Yes it has]]></Description>
+    <Example nocheck="false" convertexample="false">
+      <JavaScript><![CDATA[no example available in JavaScript]]></JavaScript>
+      <CSharp><![CDATA[public class NewBehaviourScript {
+	private ]]><link ref="NamespaceA.ClassMovedToNamespace">ClassMovedToNamespace</link><![CDATA[ a = null;
+}]]></CSharp>
+    </Example>
+  </Section>
+  <InheritsFrom>NamespaceA.ClassMovedToNamespace</InheritsFrom>
+</Model>

@@ -1,0 +1,642 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Utilities/PathNameUtility.h"
+#include "Runtime/Input/InputManager.h"
+#include "Runtime/Input/TimeManager.h"
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/BaseClasses/Tags.h"
+#include "Runtime/Misc/DebugUtility.h"
+#include "Runtime/Misc/PlayerSettings.h"
+#include "Runtime/GameCode/CloneObject.h"
+#include "Runtime/Math/Random/Random.h"
+#include "Runtime/Misc/PreloadManager.h"
+#include "Runtime/Animation/Animation.h"
+#include "Runtime/Math/Color.h"
+#include "Runtime/Utilities/PlayerPrefs.h"
+#include "Runtime/Camera/Camera.h"
+#include "Runtime/Dynamics/Rigidbody.h"
+#include "Runtime/Utilities/Word.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Filters/Misc/TextMesh.h"
+#include "Runtime/Dynamics/ConstantForce.h"
+#include "Runtime/Filters/Renderer.h"
+#include "Runtime/Misc/SaveAndLoadHelper.h"
+#include "Runtime/Network/NetworkView.h"
+#include "Runtime/Camera/RenderLayers/GUIText.h"
+#include "Runtime/Camera/RenderLayers/GUITexture.h"
+#include "Runtime/Dynamics/Collider.h"
+#include "Runtime/Dynamics/HingeJoint.h"
+#include "Runtime/Filters/Particles/ParticleEmitter.h"
+#include "Runtime/Misc/AssetBundleUtility.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/BaseClasses/IsPlaying.h"
+#include "Runtime/Misc/CaptureScreenshot.h"
+#include "Runtime/Misc/GameObjectUtility.h"
+#include "Runtime/Misc/Plugins.h"
+#include "Runtime/Utilities/PathNameUtility.h"
+#include "Runtime/Utilities/File.h"
+#include "Runtime/Network/NetworkManager.h"
+#include <ctime>
+#include "Runtime/Input/GetInput.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Animation/AnimationManager.h"
+#include "Runtime/Animation/AnimationClip.h"
+#include "Runtime/BaseClasses/RefCounted.h"
+#include "Runtime/Misc/GOCreation.h"
+#include "Runtime/Utilities/URLUtility.h"
+#include "Runtime/Graphics/ScreenManager.h"
+#include "Runtime/Serialize/PersistentManager.h"
+#include "Runtime/Shaders/GraphicsCaps.h"
+#include "Runtime/Misc/SystemInfo.h"
+#include "Runtime/Utilities/FileUtilities.h"
+#include "Runtime/Misc/GraphicsDevicesDB.h"
+#include "artifacts/generated/Configuration/UnityConfigureVersion.gen.h"
+#include "Runtime/File/ApplicationSpecificPersistentDataPath.h"
+#include "Runtime/Mono/Coroutine.h"
+#include "Runtime/Utilities/UserAuthorizationManager.h"
+#if WEBPLUG
+#include "PlatformDependent/CommonWebPlugin/UnityWebStream.h"
+#include "PlatformDependent/CommonWebPlugin/WebScripting.h"
+#endif
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingManager.h"
+
+#if UNITY_EDITOR
+	#include "Editor/Src/EditorSettings.h"
+	#include "Editor/Src/EditorUserBuildSettings.h"
+	#include "Editor/Mono/MonoEditorUtility.h"
+#endif
+
+#if PLATFORM_ANDROID
+	#include "PlatformDependent/AndroidPlayer/EntryPoint.h"
+#endif
+
+
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// Describes network reachability options.
+ENUM NetworkReachability
+	// Network is not reachable
+	NotReachable = 0,
+	// Network is reachable via carrier data network
+	ReachableViaCarrierDataNetwork = 1,
+	// Network is reachable via WiFi or cable
+	ReachableViaLocalAreaNetwork = 2
+END
+
+
+// Access to application run-time data.
+
+CLASS Application
+	C++RAW
+
+
+	// Quits the player application. Quit is ignored in the editor or the web player.
+	CUSTOM static void Quit ()
+	{
+		GetInputManager ().QuitApplication ();
+	}
+
+	// Cancels quitting the application. This is useful for showing a splash screen at the end of a game.
+	CUSTOM static void CancelQuit ()
+	{
+		GetInputManager ().CancelQuitApplication ();
+	}
+
+	// The level index that was last loaded (RO).
+	CUSTOM_PROP static int loadedLevel { return PlayerGetLoadedSceneIndex (); }
+
+	// The name of the level that was last loaded (RO).
+	CUSTOM_PROP static string loadedLevelName { return CreateScriptingString(PlayerGetLoadedSceneName()); }
+
+
+	///*listonly*
+	CSRAW static public void LoadLevel (int index) { LoadLevelAsync(null, index, false, true); }
+
+	// Loads the level by its name or index.
+	CSRAW static public void LoadLevel (string name) { LoadLevelAsync(name, -1, false, true); }
+
+
+	///*listonly*
+	CSRAW static public AsyncOperation LoadLevelAsync (int index) { return LoadLevelAsync(null, index, false, false); }
+
+	// Loads the level asynchronously in the background.
+	CSRAW static public AsyncOperation LoadLevelAsync (string levelName)
+	{
+		return LoadLevelAsync(levelName, -1, false, false);
+	}
+
+
+	///*listonly*
+	CSRAW static public AsyncOperation LoadLevelAdditiveAsync (int index) { return LoadLevelAsync(null, index, true, false); }
+
+	// Loads the level additively and asynchronously in the background.
+	CSRAW static public AsyncOperation LoadLevelAdditiveAsync (string levelName)
+	{
+		return LoadLevelAsync(levelName, -1, true, false);
+	}
+
+	CUSTOM static private AsyncOperation LoadLevelAsync (string monoLevelName, int index, bool additive, bool mustCompleteNextFrame)
+	{
+		string levelName = monoLevelName;
+		string levelPath;
+		string assetPath;
+
+		if (!GetSceneAndAssetPath (levelName, index, &levelPath, &assetPath, &index))
+			return SCRIPTING_NULL;
+
+		LoadSceneOperation::LoadingMode mode = additive ? LoadSceneOperation::kLoadSceneAdditive : LoadSceneOperation::kLoadScene;
+		AsyncOperation* result = LoadSceneOperation::LoadScene(levelPath, assetPath, index, mode, mustCompleteNextFrame);
+		#if UNITY_FLASH
+		
+		result->Release();
+		
+		// ToDo: if we're returning AsyncOperation, it throws:
+		// ReferenceError: Error #1069: Property http://unity3d.com/cil2as::DefaultValue not found on class UnityEngine.AsyncOperation and there is no default value.
+	    // at UnityEngine.Marshalling::Marshaller$/GetUninitializedObject()
+	    // at com.unity::UnityNative$/Ext_Scripting_InstantiateObject()
+		// ...
+		return SCRIPTING_NULL;
+		#else
+		ScriptingObjectPtr o = scripting_object_new(GetCommonScriptingClasses ().asyncOperation);
+		ScriptingObjectWithIntPtrField<AsyncOperation>(o).SetPtr(result);
+		return o;
+		#endif
+	}
+
+	///*listonly*
+	CSRAW static public void LoadLevelAdditive (int index) { LoadLevelAsync (null, index, true, true); }
+	// Loads a level additively.
+	CSRAW static public void LoadLevelAdditive (string name) { LoadLevelAsync (name, -1, true, true); }
+
+	// Is some level being loaded? (RO)
+	CUSTOM_PROP static bool isLoadingLevel { return IsLoadingScene(); }
+
+	// The total number of levels available (RO).
+	CUSTOM_PROP static int levelCount { return PlayerGetSceneCount (); }
+
+	CUSTOM private static float GetStreamProgressForLevelByName (string levelName) {
+		#if WEBPLUG
+		return GetUnityWebStream().GetProgressForScene(GetBuildSettings().GetSceneIndexChecked (levelName));
+		#else
+		return 1.0F;
+		#endif
+	}
+
+	// How far has the download progressed? [0...1]
+	CUSTOM public static float GetStreamProgressForLevel (int levelIndex) {
+		#if WEBPLUG
+		return GetUnityWebStream().GetProgressForScene(levelIndex);
+		#else
+		if (levelIndex >= 0 && levelIndex < GetBuildSettings().levels.size())
+			return 1.0F;
+		else
+			return 0.0F;
+		#endif
+	}
+
+	// How far has the download progressed? [0...1]
+	CSRAW public static float GetStreamProgressForLevel (string levelName) { return GetStreamProgressForLevelByName(levelName); }
+
+	// How many bytes have we downloaded from the main unity web stream (RO).
+	CUSTOM_PROP static int streamedBytes
+	{
+		#if WEBPLUG
+		return GetUnityWebStream().GetDownloadedBytes();
+		#else
+		return 0;
+		#endif
+	}
+
+	CUSTOM private static bool CanStreamedLevelBeLoadedByName (string levelName) {
+		string cppName = levelName;
+		#if WEBPLUG
+		return GetUnityWebStream().CanSceneBeLoaded(GetBuildSettings().GetSceneIndex (cppName)) || GetHasLateBoundSceneFromAssetBundle(cppName);
+		#else
+		return GetBuildSettings().GetSceneIndex (cppName) != -1 || GetHasLateBoundSceneFromAssetBundle(cppName);
+		#endif
+	}
+
+	// Can the streamed level be loaded?
+	CUSTOM public static bool CanStreamedLevelBeLoaded (int levelIndex) {
+		#if WEBPLUG
+		return GetUnityWebStream().CanSceneBeLoaded(levelIndex);
+		#else
+		return levelIndex >= 0 && levelIndex < GetBuildSettings().levels.size();
+		#endif
+	}
+
+	// Can the streamed level be loaded?
+	CSRAW public static bool CanStreamedLevelBeLoaded (string levelName) { return CanStreamedLevelBeLoadedByName(levelName); }
+
+	// Returns true when in any kind of player (RO).
+	CUSTOM_PROP static bool isPlaying { return IsWorldPlaying (); }
+
+	// Are we running inside the Unity editor? (RO)
+	CUSTOM_PROP static bool isEditor
+	{
+		#if UNITY_EDITOR
+		return true;
+		#else
+		return false;
+		#endif
+	}
+
+	// Are we running inside a web player? (RO)
+	CUSTOM_PROP static bool isWebPlayer
+	{
+		int platform = systeminfo::GetRuntimePlatform();
+		return platform == WindowsWebPlayer || platform == OSXWebPlayer;
+	}
+
+	// Returns the platform the game is running (RO).
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM_PROP static RuntimePlatform platform { return systeminfo::GetRuntimePlatform(); }
+
+
+	// Captures a screenshot at path /filename/ as a PNG file.
+	CUSTOM static void CaptureScreenshot (string filename, int superSize = 0)
+	{
+		#if CAPTURE_SCREENSHOT_AVAILABLE
+		QueueScreenshot (filename, superSize);
+		#endif
+	}
+
+	// Should the player be running when the application is in the background?
+	CUSTOM_PROP static bool runInBackground { return GetPlayerRunInBackground(); } { SetPlayerRunInBackground(value); }
+
+	OBSOLETE warning use Application.isEditor instead
+	CSRAW public static bool isPlayer { get { return !isEditor; } }
+
+	/// Is Unity activated with the Pro License?
+	CUSTOM static bool HasProLicense()
+	{
+		return GetBuildSettings().hasPROVersion;
+	}
+
+	CUSTOM static internal bool HasAdvancedLicense()
+	{
+		return GetBuildSettings().hasAdvancedVersion;
+	}
+
+	OBSOLETE warning Use Object.DontDestroyOnLoad instead
+	CUSTOM static void DontDestroyOnLoad (Object mono)
+	{
+		Object* o = mono;
+		if (o)
+			DontDestroyOnLoad (*o);
+	}
+
+	// Contains the path to the game data folder (RO).
+	CUSTOM_PROP static string dataPath { return CreateScriptingString ( GetAppDataPath() ); }
+
+	// Contains the path to the StreamingAssets folder (RO).
+	CUSTOM_PROP static string streamingAssetsPath { return CreateScriptingString ( GetStreamingAssetsPath() ); }
+
+	// Contains the path to a persistent data directory (RO).
+	CSRAW #if !UNITY_WP8 && !PLATFORM_METRO
+	CSRAW [System.Security.SecurityCritical]
+	CSRAW #endif
+	CUSTOM_PROP static string persistentDataPath { return CreateScriptingString ( GetPersistentDataPathApplicationSpecific() ); }
+
+	// Contains the path to a temporary data / cache directory (RO).
+	CUSTOM_PROP static string temporaryCachePath { return CreateScriptingString ( GetTemporaryCachePathApplicationSpecific() ); }
+
+	// The path to the web player data file relative to the html file (RO).
+	CUSTOM_PROP static string srcValue { return CreateScriptingString (GetPlayerSettings().srcValue); }
+
+	// The absolute path to the web player data file (RO).
+	CUSTOM_PROP static string absoluteURL { return CreateScriptingString (GetPlayerSettings().absoluteURL); }
+
+	OBSOLETE warning Please use absoluteURL instead
+	CSRAW public static string absoluteUrl { get { return absoluteURL; } }
+
+	// Converts an object to a JavaScript text representation.
+	CONDITIONAL ENABLE_MONO
+	CSRAW private static string ObjectToJSString( object o )
+	{
+		if( o == null ) {
+			return "null";
+		} else if( o is string ) {
+			string s = o.ToString().Replace( "\"", "\\\"" ); // escape '"' characters
+			s = s.Replace( "\n", "\\n" ); // escape '\n' characters
+			s = s.Replace( "\r", "\\r" ); // escape '\r' characters
+			return '"' + s + '"';
+		} else if( o is Int32 || o is Int16 || o is UInt32 || o is UInt16 || o is Byte ) {
+			return o.ToString();
+		} else if( o is Single ) {
+			System.Globalization.NumberFormatInfo nf = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
+			return ((Single)o).ToString( nf );
+		} else if( o is Double ) {
+			System.Globalization.NumberFormatInfo nf = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
+			return ((Double)o).ToString( nf );
+		} else if( o is Char ) {
+			if( (Char)o == '"' )
+				return "\"\\\"\""; // escape the '"' character
+			else
+				return '"' + o.ToString() + '"';
+		} else if( o is System.Collections.IList ) {
+			// Any IList object is dumped as JS Array
+			System.Collections.IList list = (System.Collections.IList)o;
+
+			System.Text.StringBuilder sb = new System.Text.StringBuilder();
+			sb.Append( "new Array(" );
+			int size = list.Count;
+			for( int i = 0; i < size; ++i ) {
+				if( i != 0 )
+					sb.Append( ", " );
+				sb.Append( ObjectToJSString(list[i]) );
+			}
+			sb.Append( ")" );
+			return sb.ToString();
+		} else {
+			// Unrecognized objects are dumped as strings
+			return ObjectToJSString(o.ToString());
+		}
+	}
+
+	// Calls a function in the containing web page __(Web Player only)__.
+	CSRAW public static void ExternalCall (string functionName, params object[] args)
+	{
+		#if ENABLE_MONO
+		Internal_ExternalCall(BuildInvocationForArguments(functionName,args));
+		#elif UNITY_FLASH
+		Internal_ExternalCall_Flash(functionName,(object)args);
+		#endif
+	}
+
+	CONDITIONAL UNITY_FLASH
+	CUSTOM private static void Internal_ExternalCall_Flash(string script, object args)
+	{
+		ScriptingObjectPtr arg = args;
+		if(args){
+			Ext_ExternalCall(script.ToUTF8().c_str(), arg);
+		}
+	}
+
+	CONDITIONAL ENABLE_MONO
+	CSRAW private static string BuildInvocationForArguments(string functionName, params object[] args)
+	{
+		var sb = new System.Text.StringBuilder();
+		sb.Append( functionName );
+		sb.Append( '(' );
+		int size = args.Length;
+		for( int i = 0; i < size; ++i ) {
+			if( i != 0 )
+				sb.Append( ", " );
+			sb.Append( ObjectToJSString(args[i]) );
+		}
+		sb.Append( ')' );
+		sb.Append( ';' );
+		return sb.ToString();
+	}
+
+
+	// Evaluates script snippet in the containing web page __(Web Player only)__.
+	CONDITIONAL ENABLE_MONO
+	CSRAW public static void ExternalEval (string script)
+	{
+		if (script.Length > 0 && script[script.Length-1] != ';')
+			script += ';';
+		Internal_ExternalCall(script);
+	}
+
+	CONDITIONAL ENABLE_MONO
+	CUSTOM private static void Internal_ExternalCall(string script) {
+		#if WEBPLUG
+		WebScripting::Get().ExternalCall(script);
+		#else
+		LogString(Format ("External Call: %s", script.ToUTF8().c_str()));
+		#endif
+	}
+
+	// The version of the Unity runtime used to play the content.
+	CUSTOM_PROP static string unityVersion
+	{
+		return CreateScriptingString(UNITY_VERSION);
+	}
+
+	CUSTOM internal static int GetBuildUnityVersion ()
+	{
+		return GetBuildSettings().GetIntVersion();
+	}
+
+	CUSTOM internal static int GetNumericUnityVersion (string version)
+	{
+		return GetNumericVersion (version);
+	}
+
+
+	// Indicates whether Unity's webplayer security model is enabled.
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM_PROP static bool webSecurityEnabled
+	{
+		#if WEBPLUG
+		return true;
+		#endif
+		#if UNITY_EDITOR
+		return (GetBuildTargetGroup( GetEditorUserBuildSettings().GetActiveBuildTarget ()) == kPlatformWebPlayer);
+		#endif
+		return false;
+	}
+
+	//*undocumented
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM_PROP static string webSecurityHostUrl
+	{
+		#if UNITY_EDITOR
+			return CreateScriptingString(GetEditorSettings().GetWebSecurityEmulationHostUrl());
+		#elif WEBPLUG
+			return CreateScriptingString(GetPlayerSettings().absoluteURL);
+		#else
+			return CreateScriptingString("");
+		#endif
+	}
+
+	// Opens the /url/ in a browser.
+
+
+	CUSTOM static void OpenURL (string url)
+	{
+	#if WEBPLUG
+	#if PLATFORM_OSX
+		if (systeminfo::IsRunningInDashboardWidget ())
+			WebScripting::Get().ExternalCall("goToUrl(\"" + url.ToUTF8() + "\");");
+		else
+	#endif
+			WebScripting::Get().ExternalCall("location.href=\"" + url.ToUTF8() + "\";");
+	#elif UNITY_FLASH
+		Ext_OpenURL(url.ToUTF8().c_str());
+	#elif UNITY_WP8
+		printf("ERROR: OpenURL not supported\n"); exit(-1);
+	#else
+		OpenURL (url);
+	#endif
+	}
+
+	OBSOLETE warning For internal use only
+	CUSTOM public static void CommitSuicide (int mode)
+	{
+		if (mode == 0)
+		{
+			printf_console("Committing suicide -- Intentionally Dereferencing NULL pointer\n");
+			int* p = NULL;
+			*p = 5;
+		}
+		else if (mode == 1)
+		{
+			FatalErrorString("Intentionally caused fatal error");
+		}
+		else if (mode == 2)
+		{
+			abort();
+		}
+	}
+
+	// Instructs game to try to render at a specified frame rate.
+	CUSTOM_PROP static int targetFrameRate
+	{
+		return GetTargetFrameRateFromScripting();
+	}
+	{
+		SetTargetFrameRate(value);
+	}
+
+	// The language the user's operating system is running in.
+	CUSTOM_PROP static SystemLanguage systemLanguage
+	{
+		return (SystemLanguage)systeminfo::GetSystemLanguage();
+	}
+
+	// Register a delegate to be called on log messages.
+	CSRAW public static void RegisterLogCallback (Application.LogCallback handler)
+	{
+		s_LogCallback = handler; SetLogCallbackDefined(handler != null, false);
+	}
+
+	// Register a delegate to be called on log messages.
+	CSRAW public static void RegisterLogCallbackThreaded (Application.LogCallback handler) {
+		s_LogCallback = handler;
+		SetLogCallbackDefined(handler != null, true);
+	}
+
+    CSRAW private static volatile LogCallback s_LogCallback;
+
+	CSRAW private static void CallLogCallback(string logString, string stackTrace, LogType type)
+	{
+		if ( s_LogCallback != null )
+			s_LogCallback(logString, stackTrace, type);
+	}
+
+	// Use this delegate type with RegisterLogCallback to monitor what gets logged.
+    CSRAW public delegate void LogCallback (string condition, string stackTrace, LogType type);
+
+    // Log callback that calls into the mono log callback
+	C++RAW
+ static void LogCallbackImplementation(const std::string& condition, const std::string &stackTrace, int type)
+	{
+#if ENABLE_MONO
+		if ( !GetMonoManagerPtr() )
+			return;
+		
+		ScriptingInvocation invocation(GetCommonScriptingClasses ().callLogCallback);
+		invocation.AddString(condition.c_str());
+		invocation.AddString(stackTrace.c_str());
+		invocation.AddInt(type);
+		invocation.Invoke<ScriptingObjectPtr>();
+#endif
+	}
+	CUSTOM private static void SetLogCallbackDefined(bool defined, bool threaded)
+	{
+		RegisterLogCallback(defined ? LogCallbackImplementation : NULL, threaded);
+	}
+
+	// Priority of background loading thread.
+	CUSTOM_PROP static ThreadPriority backgroundLoadingPriority
+	{
+		return GetPreloadManager().GetThreadPriority();
+	}
+	{
+		GetPreloadManager().SetThreadPriority(value);
+	}
+
+	// Returns the type of Internet reachability currently possible on the device.
+	CUSTOM_PROP static NetworkReachability internetReachability
+	{
+		return GetInternetReachability ();
+	}
+
+
+	// Returns false if application is altered in any way after it was built.
+	CUSTOM_PROP static bool genuine
+	{
+		return IsApplicationGenuine ();
+	}
+
+	// Returns true if application integrity can be confirmed.
+	CUSTOM_PROP static bool genuineCheckAvailable
+	{
+		return IsApplicationGenuineAvailable ();
+	}
+	
+	// Request authorization to use the webcam or microphone in the Web Player.
+	CUSTOM static AsyncOperation RequestUserAuthorization (UserAuthorization mode)
+	{
+		#if ENABLE_MONO
+		AsyncOperation* result = GetUserAuthorizationManager().RequestUserAuthorization (mode);
+		MonoObject* mono = mono_object_new(mono_domain_get(), GetCommonScriptingClasses ().asyncOperation);
+		ExtractMonoObjectData<AsyncOperation*>(mono) = result;
+		return mono;
+		#else
+		return SCRIPTING_NULL;
+		#endif
+	}
+
+	// Check if the user has authorized use of the webcam or microphone in the Web Player.
+	CUSTOM static bool HasUserAuthorization (UserAuthorization mode)
+	{
+		return GetUserAuthorizationManager().HasUserAuthorization (mode);
+	}
+
+	CUSTOM static internal void ReplyToUserAuthorizationRequest (bool reply, bool remember = false)
+	{
+		return GetUserAuthorizationManager().ReplyToUserAuthorizationRequest (reply, remember);
+	}
+
+	CUSTOM static private int GetUserAuthorizationRequestMode_Internal ()
+	{
+		return GetUserAuthorizationManager().GetAuthorizationRequest();
+	}
+
+	CSRAW static internal UserAuthorization GetUserAuthorizationRequestMode ()
+	{
+		return (UserAuthorization)GetUserAuthorizationRequestMode_Internal();
+	}
+END
+
+// Constants to pass to [[Application.RequestUserAuthorization]].
+ENUM UserAuthorization
+	// Request permission to use any video input sources attached to the computer.
+	WebCam = 1,
+	// Request permission to use any audio input sources attached to the computer.
+	Microphone = 2
+END
+
+CSRAW }

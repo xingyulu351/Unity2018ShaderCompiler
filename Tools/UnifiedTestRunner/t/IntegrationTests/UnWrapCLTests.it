@@ -1,0 +1,19 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use RunTests qw (runTests);
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=UnWrapCL');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/UnWrapCL/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/UnWrapCL/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/TestResults.xml"));
+}
+
+done_testing();

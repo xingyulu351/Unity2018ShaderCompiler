@@ -1,0 +1,452 @@
+START
+THREAD_AND_SERIALIZATION_SAFE CUSTOM static IntPtr      SafeIntPtrMethodIntPtrStringDef(IntPtr javaClass, string signature = "") { a++; }
+RESULT
+[ThreadAndSerializationSafe ()]
+public static IntPtr SafeIntPtrMethodIntPtrStringDef (IntPtr javaClass, [uei.DefaultValue("\"\"")]  string signature ) {
+IntPtr result;
+INTERNAL_CALL_SafeIntPtrMethodIntPtrStringDef ( javaClass, signature, out result );
+return result;
+}
+[ThreadAndSerializationSafe ()]
+[uei.ExcludeFromDocs]
+public static IntPtr SafeIntPtrMethodIntPtrStringDef (IntPtr javaClass) {
+string signature = "";
+IntPtr result;
+INTERNAL_CALL_SafeIntPtrMethodIntPtrStringDef ( javaClass, signature, out result );
+return result;
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_SafeIntPtrMethodIntPtrStringDef (IntPtr javaClass, string signature, out IntPtr value);
+STOP
+
+START
+CUSTOM static void      StaticVoidMethodStringDef(string argDef1 = "") { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public static  void StaticVoidMethodStringDef ( [uei.DefaultValue("\"\"")] string argDef1 ) ;
+[uei.ExcludeFromDocs]
+public static void StaticVoidMethodStringDef () {
+string argDef1 = "";
+StaticVoidMethodStringDef ( argDef1 );
+}
+STOP
+
+START
+CUSTOM static void      StaticVoidMethodStringStringDef(string arg1, string argDef1 = "") { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public static  void StaticVoidMethodStringStringDef (string arg1, [uei.DefaultValue("\"\"")]  string argDef1 ) ;
+[uei.ExcludeFromDocs]
+public static void StaticVoidMethodStringStringDef (string arg1) {
+string argDef1 = "";
+StaticVoidMethodStringStringDef ( arg1, argDef1 );
+}
+STOP
+
+START
+CUSTOM static void      StaticVoidMethodStringStringDefStringDef(string arg1, string argDef1 = "", string argDef2 = "") { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public static  void StaticVoidMethodStringStringDefStringDef (string arg1, [uei.DefaultValue("\"\"")]  string argDef1 , [uei.DefaultValue("\"\"")]  string argDef2 ) ;
+[uei.ExcludeFromDocs]
+public static void StaticVoidMethodStringStringDefStringDef (string arg1, string argDef1 ) {
+string argDef2 = "";
+StaticVoidMethodStringStringDefStringDef ( arg1, argDef1, argDef2 );
+}
+[uei.ExcludeFromDocs]
+public static void StaticVoidMethodStringStringDefStringDef (string arg1) {
+string argDef2 = "";
+string argDef1 = "";
+StaticVoidMethodStringStringDefStringDef ( arg1, argDef1, argDef2 );
+}
+STOP
+
+START
+CUSTOM static void      StaticVoidMethodStringStringStringDef(string arg1, string argDef1 = "") { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public static  void StaticVoidMethodStringStringStringDef (string arg1, [uei.DefaultValue("\"\"")]  string argDef1 ) ;
+[uei.ExcludeFromDocs]
+public static void StaticVoidMethodStringStringStringDef (string arg1) {
+string argDef1 = "";
+StaticVoidMethodStringStringStringDef ( arg1, argDef1 );
+}
+STOP
+
+
+START
+CUSTOM_PROP int intPropGetter { return null; }
+RESULT
+public extern  int intPropGetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+	get;
+}
+STOP
+
+START
+CUSTOM_PROP int intPropGetterSetter { return null; }  { a = value; }
+RESULT
+public extern  int intPropGetterSetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+set;
+}
+STOP
+
+START
+CUSTOM_PROP string stringPropGetter { return null; }
+RESULT
+public extern  string stringPropGetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+CUSTOM_PROP string stringPropGetterSetter { return null; }  { a = value; }
+RESULT
+public extern  string stringPropGetterSetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+set;
+}
+STOP
+
+START
+CUSTOM_PROP Vector3 Vector3PropGetter { return null; }
+RESULT
+public  Vector3 Vector3PropGetter
+{
+	get { Vector3 tmp; INTERNAL_get_Vector3PropGetter(out tmp); return tmp;  }
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private  void INTERNAL_get_Vector3PropGetter (out Vector3 value) ;
+STOP
+
+START
+CUSTOM_PROP Vector3 Vector3PropGetterSetter { return null; }  { a = value; }
+RESULT
+public  Vector3 Vector3PropGetterSetter
+{ 
+get { Vector3 tmp; INTERNAL_get_Vector3PropGetterSetter(out tmp); return tmp;  }
+set { INTERNAL_set_Vector3PropGetterSetter(ref value); }
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private  void INTERNAL_get_Vector3PropGetterSetter (out Vector3 value) ; 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private  void INTERNAL_set_Vector3PropGetterSetter (ref Vector3 value) ; 
+STOP
+
+START
+CUSTOM_PROP static int static_intPropGetter { return null; }
+RESULT
+public extern static int static_intPropGetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+CUSTOM_PROP private int private_intPropGetter { return null; }
+RESULT
+private extern  int private_intPropGetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+CUSTOM_PROP private static int private_static_intPropGetter { return null; }
+RESULT
+private extern static int private_static_intPropGetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+CUSTOM_PROP static private int static_private_intPropGetter { return null; }
+RESULT
+private extern static int static_private_intPropGetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+AUTO_PROP bool boolAuto BoolAuto
+RESULT
+public extern bool boolAuto
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+AUTO_PROP bool boolAutoGetterSetter BoolAutoGetter BoolAutoSetter
+RESULT
+public extern bool boolAutoGetterSetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+set;
+}
+STOP
+
+START
+AUTO_PROP string stringAuto StringAuto
+RESULT
+public extern string stringAuto
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+}
+STOP
+
+START
+AUTO_PROP string stringAutoGetterSetter GetStringAuto SetStringAuto
+RESULT
+public extern string stringAutoGetterSetter
+{ 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+get;
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+set;
+}
+STOP
+
+START
+AUTO_PROP Vector3 vector3Auto Vector3Auto
+RESULT
+public Vector3 vector3Auto
+{ 
+get { Vector3 tmp; INTERNAL_get_vector3Auto(out tmp); return tmp;  }
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private void INTERNAL_get_vector3Auto (out Vector3 value) ; 
+STOP
+
+START
+AUTO_PROP Vector3 vector3AutoGetterSetter GetVector3Auto SetVector3Auto
+RESULT
+public Vector3 vector3AutoGetterSetter
+{ 
+get { Vector3 tmp; INTERNAL_get_vector3AutoGetterSetter(out tmp); return tmp;  }
+set { INTERNAL_set_vector3AutoGetterSetter(ref value); }
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private void INTERNAL_get_vector3AutoGetterSetter (out Vector3 value) ; 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private void INTERNAL_set_vector3AutoGetterSetter (ref Vector3 value) ; 
+STOP
+
+START
+CUSTOM int intMethod () { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public int intMethod () ; 
+STOP
+
+START
+CUSTOM string stringMethod () { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public string stringMethod () ; 
+STOP
+
+START
+CUSTOM IntPtr IntPtrMethod () { a++; }
+RESULT
+public IntPtr IntPtrMethod () {
+IntPtr result;
+INTERNAL_CALL_IntPtrMethod ( this, out result );
+return result;
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_IntPtrMethod (MyClass self, out IntPtr value);
+STOP
+
+START
+CUSTOM Vector3 Vector3Method () { a++; }
+RESULT
+public Vector3 Vector3Method () {
+	Vector3 result;
+	INTERNAL_CALL_Vector3Method ( this, out result );
+	return result;
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_Vector3Method (MyClass self, out Vector3 value); 
+STOP
+
+START
+CUSTOM static int static_intMethod () { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public static  int static_intMethod () ; 
+STOP
+
+START
+CUSTOM private int private_intMethod () { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private int private_intMethod () ; 
+STOP
+
+START
+CUSTOM private static int private_static_intMethod () { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private static  int private_static_intMethod () ; 
+STOP
+
+START
+CUSTOM static private int static_private_intMethod () { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern private static  int static_private_intMethod () ; 
+STOP
+
+START
+CUSTOM void voidMethodVector3 (Vector3 a1) { a++; }
+RESULT
+public void voidMethodVector3 (Vector3 a1) { 
+INTERNAL_CALL_voidMethodVector3 ( this, ref a1 );
+} 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_voidMethodVector3 (MyClass self, ref Vector3 a1);
+STOP
+
+START
+CUSTOM void voidMethodVector3Out (out Vector3 a1) { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public void voidMethodVector3Out (out Vector3 a1) ; 
+STOP
+
+START
+CUSTOM void voidMethodVector3Ref (ref Vector3 a1) { a++; }
+RESULT
+public void voidMethodVector3Ref (ref Vector3 a1) { 
+INTERNAL_CALL_voidMethodVector3Ref ( this, ref a1 );
+} 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_voidMethodVector3Ref (MyClass self, ref Vector3 a1);
+STOP
+
+START
+CUSTOM void voidMethodVector3OutIntOut (out Vector3 a1, out int b) { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public void voidMethodVector3OutIntOut (out Vector3 a1, out int b) ; 
+STOP
+
+START
+CUSTOM void voidMethodVector3OutVector3Out (out Vector3 a1, out Vector3 b) { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public void voidMethodVector3OutVector3Out (out Vector3 a1, out Vector3 b) ; 
+STOP
+
+START
+CUSTOM void voidMethodVector3RefVector3Ref (ref Vector3 a1, ref Vector3 b) { a++; }
+RESULT
+public void voidMethodVector3RefVector3Ref (ref Vector3 a1, ref Vector3 b) { 
+INTERNAL_CALL_voidMethodVector3RefVector3Ref ( this, ref a1, ref b );
+} 
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_voidMethodVector3RefVector3Ref (MyClass self, ref Vector3 a1, ref Vector3 b);
+STOP
+
+START
+CUSTOM void voidMethodWritableObject ([Writable]Object rhs) { a++; }
+RESULT
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+extern public void voidMethodWritableObject ([Writable]Object rhs) ;
+STOP
+
+START
+CUSTOM static void staticvoidMethodVector3 (Vector3 a1) { a++; }
+RESULT
+public static void staticvoidMethodVector3 (Vector3 a1) {
+INTERNAL_CALL_staticvoidMethodVector3 ( ref a1 );
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_staticvoidMethodVector3 (ref Vector3 a1);
+STOP
+
+START
+CUSTOM public void PublicMethodVector3WritableTexture2D (Vector3 v, [Writable]Texture2D tex) { a++; }
+RESULT
+public void PublicMethodVector3WritableTexture2D (Vector3 v, [Writable]Texture2D tex) {
+INTERNAL_CALL_PublicMethodVector3WritableTexture2D ( this, ref v, tex );
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_PublicMethodVector3WritableTexture2D (MyClass self, ref Vector3 v, [Writable]Texture2D tex);
+STOP
+
+START
+CUSTOM public static void PublicStaticMethodVector3WritableTexture2D (Vector3 v, [Writable]Texture2D tex) { a++; }
+RESULT
+public static void PublicStaticMethodVector3WritableTexture2D (Vector3 v, [Writable]Texture2D tex) {
+INTERNAL_CALL_PublicStaticMethodVector3WritableTexture2D ( ref v, tex );
+}
+[UnityEngine.Scripting.GeneratedByOldBindingsGeneratorAttribute] // Temporarily necessary for bindings migration
+[System.Runtime.CompilerServices.MethodImplAttribute((System.Runtime.CompilerServices.MethodImplOptions)0x1000)]
+private extern static void INTERNAL_CALL_PublicStaticMethodVector3WritableTexture2D (ref Vector3 v, [Writable]Texture2D tex);
+STOP

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass DisplayName="Range">SocialPlatforms.Range</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Range" type="constructor" namespace="SocialPlatforms" modifiers="public" />
+      <ParamElement name="fromValue" type="int" />
+      <ParamElement name="valueCount" type="int" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Constructor for a score range, the range starts from a specific value and contains a maxium score count.]]></Summary>
+    <ParamWithDoc>
+      <name>fromValue</name>
+      <doc><![CDATA[The minimum allowed value.]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>valueCount</name>
+      <doc><![CDATA[The number of possible values.]]></doc>
+    </ParamWithDoc>
+  </Section>
+</Model>

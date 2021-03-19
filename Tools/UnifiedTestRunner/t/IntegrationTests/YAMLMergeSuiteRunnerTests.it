@@ -1,0 +1,21 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+use RunTests qw (runTests);
+
+RunTest_CompletedSuccessfully_ProducesExpectedArtifacts:
+{
+    my $testresultsXml = catfile(tempdir(), "tr.xml");
+    my ($exitCode, $artifactsPath) = runTests('--suite=yamlmerge', "--testresultsxml=$testresultsXml", '--mode=native');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/UnityYAMLMerge/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/UnityYAMLMerge/stderr.txt"));
+    ok(-e $testresultsXml);
+}
+
+done_testing();

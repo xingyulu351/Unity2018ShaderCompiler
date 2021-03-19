@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>DragAndDrop</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="AcceptDrag" type="function" modifiers="public static" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Accept a drag operation.]]></Summary>
+  </Section>
+</Model>

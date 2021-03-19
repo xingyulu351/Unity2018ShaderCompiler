@@ -1,0 +1,7 @@
+OK integration AtomicOpsTests AtomicExchange 0
+OK integration AtomicOpsTests AtomicCompareExchange 0
+OK integration AtomicOpsTests AtomicDecrement 0
+OK integration AtomicOpsTests AtomicIncrement 0
+OK integration AtomicOpsTests AtomicSub 0
+OK integration AtomicOpsTests AtomicAdd 0
+OK integration MemoryManager NewDelete 0

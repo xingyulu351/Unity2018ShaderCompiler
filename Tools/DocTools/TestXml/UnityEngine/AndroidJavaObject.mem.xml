@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="AndroidJavaObject" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>AndroidJavaObject is the Unity representation of a generic instance of java.lang.Object.</summary>
+      <description>It can be used as type-less interface to an instance of any Java class.</description>
+    </section>
+    <member name="AndroidJavaObject.Dispose" type="Method">
+      <section>
+        <signature><![CDATA[Dispose()]]></signature>
+        <summary>IDisposable callback.</summary>
+        <description>Used in conjunction with using() { }
+
+SA: &lt;a href="http://msdn.microsoft.com/en-us/library/system.idisposable.aspx"&gt;IDisposable Interface (MSDN)&lt;/a&gt;</description>
+      </section>
+    </member>
+    <member name="AndroidJavaObject.CallStatic" type="Method">
+      <section>
+        <signature><![CDATA[CallStatic(string,object[])]]></signature>
+        <summary>Call a static Java method on a class.</summary>
+        <param name="methodName">Specifies which method to call.</param>
+        <param name="args">An array of parameters passed to the method.</param>
+        <description>To call a static method with return type 'void', use the regular version.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	// Create a android.os.Binder object and call statich method flushPendingCommands().
+	function Start() {
+		var jo = new AndroidJavaObject("android.os.Binder");
+		jo.CallStatic("flushPendingCommands");
+	}]]></code>
+        </example>
+      </section>
+      <section>
+        <signature><![CDATA[CallStatic<ReturnType>(string,object[])]]></signature>
+        <summary>Call a static Java method on a class.</summary>
+        <param name="methodName">Specifies which method to call.</param>
+        <param name="args">An array of parameters passed to the method.</param>
+        <description>To call a static method with a non-void return type, use the generic version.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	// Create a java.lang.String object, and call static method valueOf(double value).
+	function Start() {
+		var jo = new AndroidJavaObject("java.lang.String");
+		var valueString = jo.CallStatic.<String>("valueOf", 42d);
+	}]]></code>
+        </example>
+      </section>
+    </member>
+  </member>
+</doc>

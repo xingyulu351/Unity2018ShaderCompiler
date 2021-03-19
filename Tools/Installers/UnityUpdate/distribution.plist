@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+	<title>Unity</title>
+    <pkg-ref id="com.unity3d.UnityEditor4.x"/>
+    <pkg-ref id="com.unity.UnityWebPlayer"/>
+    <background file="background.tiff" alignment="topleft"/>
+    <options hostArchitectures='i386'/>
+    <welcome file="Welcome.rtf"/>    
+    <choices-outline>
+		<line choice="com.unity3d.UnityEditor4.x"/>
+		<line choice="com.unity.UnityWebPlayer"/>
+    </choices-outline>
+    <choice id="com.unity3d.UnityEditor4.x" visible="true" title="Unity" description="The Unity editor which you use to author content.">
+        <pkg-ref id="com.unity3d.UnityEditor4.x"/>
+    </choice>
+    <pkg-ref id="com.unity3d.UnityEditor4.x" version="0" onConclusion="none">Unity.pkg</pkg-ref>
+    <choice id="com.unity.UnityWebPlayer" visible="true" title="Unity Web Player" description="The Unity Web Player internet plug-in is needed to play back Unity content in your web browser.">
+        <pkg-ref id="com.unity.UnityWebPlayer"/>
+    </choice>
+    <pkg-ref id="com.unity.UnityWebPlayer" version="0.0.0" onConclusion="none">WebPlayer.pkg</pkg-ref>
+</installer-gui-script>

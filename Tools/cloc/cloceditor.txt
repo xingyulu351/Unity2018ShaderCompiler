@@ -1,0 +1,19 @@
+Editor
+External/Elf2Coff
+External/Resources/editor_resources/Assets/Editor Default Resources
+External/shaderlab/CGBatch
+External/shaderlab/ShaderFixor/src
+External/Unwrap
+Tools/BinaryToTextFile
+Tools/Blender exporter
+Tools/BugReporter
+Tools/BugReporterWin
+Tools/Build
+Tools/FBX/FBXImporter
+Tools/Installers
+Tools/iPhone/UnityRemote
+External/Perl/lib/OTEE
+Tools/UnityAPIExampleChecker
+Tools/UnityEngineVerifier
+Tools/UnityProfileDocumenter
+Tools/UnusedByteCodeStripper

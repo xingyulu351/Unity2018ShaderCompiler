@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model Namespace="NamespaceI">
+  <StaticVars />
+  <Vars />
+  <Constructors />
+  <MemberFunctions />
+  <ProtectedFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+  <Events />
+  <Delegates />
+  <Section>
+    <Signature>
+      <Declaration name="InterfaceB" type="interface" namespace="NamespaceI" modifiers="public" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[summary for interface B]]></Summary>
+  </Section>
+  <InheritsFrom>NamespaceI.InterfaceB</InheritsFrom>
+</Model>

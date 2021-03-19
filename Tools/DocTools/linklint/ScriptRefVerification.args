@@ -1,0 +1,44 @@
+#===========================================================================
+# Arguments for Linklint tool for link validation
+#===========================================================================
+
+# remove redundant *.txt files from the -doc directory
+-htmlonly
+
+# all pages contains (hidden) links to other language of same page. ignore these
+-ignore @/da/@
+-ignore @/en/@
+-ignore @/es/@
+-ignore @/ko/@
+-ignore @/pt_BR/@
+-ignore @/pt_br/@
+-ignore @/ru/@
+-ignore @/zh_CN/@
+-ignore @/zh_cn/@
+-ignore @/ja/@
+
+# ignore global_toc and ALL User Manual pages
+-ignore @/global_toc.js
+-ignore @/Manual/@
+-ignore /Manual
+-ignore @/StaticFiles/@
+
+-ignore @SetLODS.html
+-ignore @UI.InputField-caretSelectPos.html
+-ignore @UI.IClippable.html
+-ignore @UI.Scrollbar.OnPointerDown.html
+
+-ignore @CanvasRenderer.SetMaterialCount.html
+-ignore @DistanceJoint2D-anchor.html
+-ignore @DistanceJoint2D-connectedAnchor.html
+-ignore @SliderJoint2D-anchor.html
+-ignore @SliderJoint2D-connectedAnchor.html
+-ignore @SpringJoint2D-anchor.html
+-ignore @SpringJoint2D-connectedAnchor.html
+
+-ignore @HumanPose.html
+-ignore @HumanPose-muscles.html
+-ignore @HumanPoseHandler.html
+
+# default is 500. make sure this number is higher than total number of pages
+-limit 50000

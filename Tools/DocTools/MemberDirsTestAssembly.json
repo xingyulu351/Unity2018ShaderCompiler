@@ -1,0 +1,6 @@
+{Assemblies:"Tools/Doctools/UnderlyingModel.TestAssemblySource/bin/Debug",
+Mem2files:"Tools/Doctools/UnderlyingModel.TestAssemblySource/TestDocs",
+HtmlOutputRoot:"build/UserDocumentation/html",
+StaticFilesSource:"Tools/DocTools/APIDocumentationGenerator/StaticFiles",
+XSLTSource:"Tools/DocTools/APIDocumentationGenerator/XSLT",
+XmlOutputRoot:"build/temp/UserDocumentation/XML"}

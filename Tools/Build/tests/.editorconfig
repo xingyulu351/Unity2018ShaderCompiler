@@ -1,0 +1,5 @@
+# this blocks editorconfig from finding the repo root .editorconfig. This folder is ignored in .repoconfig
+# and no formatting is run on it, so we want to ignore the root editorconfig as well.
+# Ignore reason: confuses format.pl because it contains Mercurial test files which use the same extension .t as perl test files
+
+root = true

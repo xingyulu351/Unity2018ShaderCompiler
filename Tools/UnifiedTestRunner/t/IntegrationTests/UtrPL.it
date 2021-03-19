@@ -1,0 +1,15 @@
+use warnings;
+use strict;
+
+use FindBin qw ($Bin);
+use lib "$Bin/../../";
+use Dirs;
+use lib Dirs::external_root();
+use File::pushd;
+use Test::More;
+
+my $newDir = pushd(Dirs::getRoot());
+my $exitCode = system('perl', 'utr.pl', '--suite=invalid');
+ok($exitCode != 0);
+
+done_testing();

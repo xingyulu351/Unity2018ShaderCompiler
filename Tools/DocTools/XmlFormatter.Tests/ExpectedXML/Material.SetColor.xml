@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Material</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="SetColor" type="function" />
+      <ParamElement name="propertyName" type="string" />
+      <ParamElement name="color" type="Color" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Set a named color value.]]></Summary>
+    <ParamWithDoc>
+      <name>propertyName</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>color</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[Many shaders use more than one color. Use SetColor to change the ]]><varname>propertyName</varname><![CDATA[ color.]]><p /><![CDATA[Common color names used by Unity's builtin shaders: ]]><br /><![CDATA[
+]]><monotype>"_Color"</monotype><![CDATA[ is the main color of a material. This can also be accessed via ]]><link ref="Material-color">color</link><![CDATA[ property. ]]><br /><![CDATA[
+]]><monotype>"_SpecColor"</monotype><![CDATA[ is the specular color of a material (used in specular/vertexlit shaders). ]]><br /><![CDATA[
+]]><monotype>"_Emission"</monotype><![CDATA[ is the emissive color of a material (used in vertexlit shaders). ]]><br /><![CDATA[
+]]><monotype>"_ReflectColor"</monotype><![CDATA[ is the reflection color of the material (used in reflective shaders).]]><p /><![CDATA[See Also: ]]><link ref="Material-color">color</link><![CDATA[ property, ]]><link ref="Material.GetColor">GetColor</link><![CDATA[.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	function Start () {
+		// Set specular shader
+		renderer.material.shader = Shader.Find ("Specular");
+		// Set red specular highlights
+		renderer.material.SetColor ("_SpecColor", Color.red);
+	}
+]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;
+
+public class Example : MonoBehaviour {
+    void Start() {
+        renderer.material.shader = Shader.Find("Specular");
+        renderer.material.SetColor("_SpecColor", Color.red);
+    }
+}
+]]></CSharp>
+      <Boo><![CDATA[import UnityEngine
+import System.Collections
+
+public class Example(MonoBehaviour):
+
+	def Start() as void:
+		renderer.material.shader = Shader.Find('Specular')
+		renderer.material.SetColor('_SpecColor', Color.red)
+
+]]></Boo>
+    </Example>
+  </Section>
+</Model>

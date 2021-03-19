@@ -1,0 +1,1399 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Graphics/Heightmap.h"
+#include "Runtime/Filters/Mesh/LodMesh.h"
+#include "Runtime/Terrain/DetailDatabase.h"
+#include "Runtime/Terrain/SplatDatabase.h"
+#include "Runtime/Terrain/TerrainData.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/BaseClasses/GameObject.h"
+#include "Runtime/Terrain/TerrainRenderer.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Terrain/DetailRenderer.h"
+#include "Runtime/Terrain/ImposterRenderTexture.h"
+#include "Runtime/Terrain/TreeRenderer.h"
+#include "Runtime/Terrain/Wind.h"
+#include "Runtime/Terrain/Tree.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+
+#if ENABLE_TERRAIN
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace UnityEngine
+{
+
+// Simple class that contains a pointer to a tree prototype.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CONDITIONAL ENABLE_TERRAIN
+CLASS TreePrototype
+	CSRAW internal GameObject m_Prefab;
+	CSRAW internal float m_BendFactor;
+
+	// Retrieves the actual GameObect used by the tree.
+	CSRAW public GameObject prefab { get { return m_Prefab; } set { m_Prefab = value; } }
+
+	// Bend factor of the tree prototype.
+	CSRAW public float bendFactor { get { return m_BendFactor; } set { m_BendFactor = value; } }
+END
+
+// Render mode for detail prototypes.
+ENUM DetailRenderMode
+	// The detail prototype will be rendered as billboards, so always facing
+	GrassBillboard = 0,
+
+	// Will show the prototype using diffuse shading.
+	VertexLit = 1,
+
+	// The detail prototype will use the grass shader. When using custom
+	Grass = 2
+END
+
+// Detail prototype used by the Terrain GameObject.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CONDITIONAL ENABLE_TERRAIN
+CLASS DetailPrototype
+	CSRAW GameObject	m_Prototype = null;
+	CSRAW Texture2D		m_PrototypeTexture = null;
+	CSRAW Color			m_HealthyColor = new Color (67/255F, 249/255F, 42/255F, 1 );
+	CSRAW Color			m_DryColor = new Color (205/255.0F, 188/255.0F, 26/255.0F, 1.0F ) ;
+	CSRAW float			m_MinWidth = 1.0F;
+	CSRAW float			m_MaxWidth = 2.0F;
+	CSRAW float			m_MinHeight = 1F;
+	CSRAW float			m_MaxHeight = 2F;
+	CSRAW float			m_NoiseSpread = 0.1F;
+	CSRAW float			m_BendFactor = 0.1F;
+	CSRAW int			m_RenderMode = 2;
+	CSRAW int			m_UsePrototypeMesh = 0;
+
+	// GameObject used by the DetailPrototype.	
+	CSRAW public GameObject prototype { get { return m_Prototype; } set  { m_Prototype = value; } }
+
+	// Texture used by the DetailPrototype
+	CSRAW public Texture2D prototypeTexture { get { return m_PrototypeTexture; } set { m_PrototypeTexture = value; } }
+
+	// Minimum width of the grass billboards (if render mode is GrassBillboard).
+	CSRAW public float minWidth { get { return m_MinWidth; } set { m_MinWidth = value; } }
+
+	// Maximum width of the grass billboards (if render mode is GrassBillboard).
+	CSRAW public float maxWidth { get { return m_MaxWidth; } set { m_MaxWidth = value; } }
+
+	// Minimum height of the grass billboards (if render mode is GrassBillboard).
+	CSRAW public float minHeight { get { return m_MinHeight; } set { m_MinHeight = value; } }
+
+	// Maximum height of the grass billboards (if render mode is GrassBillboard).
+	CSRAW public float maxHeight { get { return m_MaxHeight; } set { m_MaxHeight = value; } }
+
+	// How spread out is the noise for the DetailPrototype.
+	CSRAW public float noiseSpread { get { return m_NoiseSpread; } set { m_NoiseSpread = value; } }
+
+	// Bend factor of the detailPrototype.
+	CSRAW public float bendFactor { get { return m_BendFactor; } set { m_BendFactor = value; } }
+
+	// Color when the DetailPrototypes are "healthy".
+	CSRAW public Color healthyColor { get  { return m_HealthyColor; } set { m_HealthyColor = value; } }
+
+	// Color when the DetailPrototypes are "dry".
+	CSRAW public Color dryColor { get  { return m_DryColor; } set { m_DryColor = value; } }
+
+	// Render mode for the DetailPrototype.
+	CSRAW public DetailRenderMode renderMode { get { return (DetailRenderMode)m_RenderMode; } set { m_RenderMode = (int)value; } }
+
+	// *undocumented*
+	CSRAW public bool usePrototypeMesh { get { return m_UsePrototypeMesh != 0; } set { m_UsePrototypeMesh = value ? 1 : 0; } }
+END
+
+// A Splat prototype is just a texture that is used by the TerrainData
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CONDITIONAL ENABLE_TERRAIN
+CLASS SplatPrototype
+	CSRAW Texture2D m_Texture;
+	CSRAW Texture2D m_NormalMap;
+	CSRAW Vector2 m_TileSize = new Vector2 (15,15);
+	CSRAW Vector2 m_TileOffset = new Vector2 (0, 0);
+	
+	// Texture of the splat applied to the Terrain
+	CSRAW public Texture2D texture { get { return m_Texture; } set { m_Texture = value; } }
+	
+	// Normal map of the splat applied to the Terrain
+	CSRAW public Texture2D normalMap { get { return m_NormalMap; } set { m_NormalMap = value; } }
+
+	// Size of the tile used in the texture of the SplatPrototype.
+	CSRAW public Vector2 tileSize { get { return m_TileSize; } set { m_TileSize = value; } }
+	
+	// Offset of the tile texture of the SplatPrototype.
+	CSRAW public Vector2 tileOffset { get { return m_TileOffset; } set { m_TileOffset = value; } }
+END
+
+// List of changes done to the terrain for OnTerrainChanged
+// OnTerrainChanged is called with a bitfield of these items telling it what was changed.
+CSRAW [Flags] internal enum TerrainChangedFlags
+{
+	Heightmap = 1,
+	TreeInstances = 2, 
+	DelayedHeightmapUpdate = 4,
+	FlushEverythingImmediately = 8,
+	RemoveDirtyDetailsImmediately = 16,
+	WillBeDestroyed = 256,
+}
+
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CONDITIONAL ENABLE_TERRAIN
+CLASS internal TerrainRenderer
+	CSRAW internal IntPtr m_Ptr;
+
+	C++RAW
+
+	#if ENABLE_TERRAIN
+	inline TerrainRenderer* GetTerrainRenderer(ScriptingObjectPtr self)
+	{
+		TerrainRenderer* r;
+		MarshallManagedStructIntoNative(self,&r);
+		return r;
+	}
+	#define GET	GetTerrainRenderer(self)
+	#endif
+
+	CUSTOM TerrainRenderer (int instanceID, TerrainData terrainData, Vector3 position, int lightmapIndex)
+	{
+		TerrainRenderer* t = new TerrainRenderer (instanceID, terrainData, position, lightmapIndex);
+		MarshallNativeStructIntoManaged(t,self);
+	}
+	
+	CUSTOM void Dispose ()
+	{
+		GET->Cleanup();
+		delete GET;
+		
+		TerrainRenderer* t = NULL;
+		MarshallNativeStructIntoManaged(t,self);
+	}
+
+	CUSTOM void ReloadPrecomputedError() { GET->ReloadPrecomputedError(); }
+	
+	CUSTOM void ReloadBounds () { GET->ReloadBounds(); }
+
+	CUSTOM void ReloadAll () { GET->ReloadAll(); }
+	
+	CUSTOM void Internal_RenderStep1 (Camera camera, int maxLodLevel, float tau, float splatDistance)
+	{
+		GET->RenderStep1 (camera, maxLodLevel, tau, splatDistance);
+	}
+
+	CSRAW public void RenderStep1 (Camera camera, int maxLodLevel, float tau, float splatDistance)
+	{
+		Internal_RenderStep1 (camera, maxLodLevel, tau, splatDistance);
+	}
+
+	CUSTOM void RenderStep2 () { GET->RenderStep2(); }
+
+	CUSTOM void RenderStep3 (Camera camera, int layer, bool castShadows, Material mat) { GET->RenderStep3(camera, layer, castShadows, mat); }
+	
+	CUSTOM void SetNeighbors (TerrainRenderer left, TerrainRenderer top, TerrainRenderer right, TerrainRenderer bottom)
+	{
+		TerrainRenderer* nativeLeft = NULL;
+		TerrainRenderer* nativeTop = NULL;
+		TerrainRenderer* nativeRight = NULL;
+		TerrainRenderer* nativeBottom = NULL;
+		if (left)  MarshallManagedStructIntoNative(left,&nativeLeft);
+		if (top)   MarshallManagedStructIntoNative(top,&nativeTop);
+		if (right) MarshallManagedStructIntoNative(right,&nativeRight);
+		if (bottom)MarshallManagedStructIntoNative(bottom,&nativeBottom);
+
+		GET->SetNeighbors (nativeLeft, nativeTop, nativeRight, nativeBottom);
+	}
+
+	CUSTOM_PROP TerrainData terrainData { return Scripting::ScriptingWrapperFor(GET->GetTerrainData ()); } { GET->SetTerrainData (value); }
+	CUSTOM_PROP int lightmapIndex { return GET->GetLightmapIndex (); } { GET->SetLightmapIndex (value); }
+	CUSTOM void SetLightmapSize(int lightmapSize) 
+	{ 
+		#if UNITY_EDITOR 
+		GET->SetLightmapSize (lightmapSize); 
+		#endif
+	}
+
+END
+
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CONDITIONAL ENABLE_TERRAIN
+CLASS internal DetailRenderer
+	CSRAW internal IntPtr m_Ptr;
+	C++RAW
+ 
+	inline DetailRenderer* GetDetailRenderer(ScriptingObjectPtr self)
+	{
+		DetailRenderer* r;
+		MarshallManagedStructIntoNative(self,&r);
+		return r;
+	}
+	#define GETDETAILRENDERER	GetDetailRenderer(self)
+
+
+	CUSTOM DetailRenderer (TerrainData terrainData, Vector3 position, int lightmapIndex)
+	{
+		DetailRenderer* r = new DetailRenderer (terrainData, position, lightmapIndex);
+		MarshallNativeStructIntoManaged(r,self);
+	}
+	
+	CUSTOM void Dispose ()
+	{
+		GETDETAILRENDERER->Cleanup();
+		delete GETDETAILRENDERER;
+		
+		DetailRenderer* r = NULL;
+		MarshallNativeStructIntoManaged(r,self);
+	}
+
+	CUSTOM void Render(Camera camera, float viewDistance, int layer, float detailDensity)
+	{ 
+		GETDETAILRENDERER->Render(camera, viewDistance, layer, detailDensity);
+	}
+	
+	CUSTOM_PROP int lightmapIndex { return GETDETAILRENDERER->GetLightmapIndex (); } { GETDETAILRENDERER->SetLightmapIndex (value); }
+	
+	CUSTOM void ReloadAllDetails () { GETDETAILRENDERER->ReloadAllDetails(); }
+
+	CUSTOM void ReloadDirtyDetails () { GETDETAILRENDERER->ReloadDirtyDetails(); }
+	
+END
+
+// The TerrainData class stores heightmaps, detail mesh positions, tree instances, and terrain texture alpha maps.
+CONDITIONAL ENABLE_TERRAIN
+CLASS TerrainData : Object
+	//*undocumented
+	CSRAW public TerrainData ()
+	{
+		Internal_Create(this);
+	}
+	
+	CUSTOM private void Internal_Create([Writable]TerrainData terrainData)
+	{
+		TerrainData* td = NEW_OBJECT (TerrainData);
+		td->Reset();
+
+        //this is only for ensuring, that HeightMap initialized properly before someone uses TerrainData
+		if (td)
+			td->GetHeightmap().SetResolution(0);
+
+		ConnectScriptingWrapperToObject (terrainData.GetScriptingObject(), td);
+		td->AwakeFromLoad(kInstantiateOrCreateFromCodeAwakeFromLoad);
+	}
+
+	CUSTOM internal bool HasUser (GameObject user) { return self->HasUser (user); }	
+	CUSTOM internal void AddUser (GameObject user) { self->AddUser (user); }
+	CUSTOM internal void RemoveUser (GameObject user) { self->RemoveUser (user); }
+	
+	// HEIGHTMAP INTERFACE
+	C++RAW
+ #define GETHEIGHT (&(self->GetHeightmap()))
+	
+	// =============================================
+	C++RAW
+ #define GETDETAIL (&(self->GetDetailDatabase()))
+
+	C++RAW
+ #define GETTREEDATABASE (&(self->GetTreeDatabase()))
+
+	// Width of the terrain in samples (RO).
+	CUSTOM_PROP int heightmapWidth { return GETHEIGHT->GetWidth (); }
+	// Height of the terrain in samples (RO).
+	CUSTOM_PROP int heightmapHeight { return GETHEIGHT->GetHeight (); }
+	
+	//Resolution of the heightmap 
+	CUSTOM_PROP int heightmapResolution { return GETHEIGHT->GetResolution (); } { GETHEIGHT->SetResolution (value); }
+	
+	//The size of each heightmap sample
+	CUSTOM_PROP Vector3 heightmapScale { return GETHEIGHT->GetScale (); }
+
+	// The total size in world units of the terrain
+	CUSTOM_PROP Vector3 size { return GETHEIGHT->GetSize (); } { GETHEIGHT->SetSize (value); }
+
+	// Gets the height at a certain point x,y
+	CUSTOM float GetHeight (int x, int y) { return GETHEIGHT->GetHeight (x,y); }
+	// Gets an interpolated height at a point x,y 
+	CUSTOM float GetInterpolatedHeight (float x, float y) { return GETHEIGHT->GetInterpolatedHeight (x,y); }
+
+	// Get an array of heightmap samples.
+	CUSTOM public float[,] GetHeights (int xBase, int yBase, int width, int height) {
+	
+		if(xBase < 0 || yBase < 0 || xBase+width > GETHEIGHT->GetWidth() || yBase+height > GETHEIGHT->GetHeight ())
+		{
+			RaiseMonoException ("Trying to access out-of-bounds terrain height information.");
+			return SCRIPTING_NULL;
+		}
+
+		ScriptingArrayPtr map = CreateScriptingArray2D<float> (GetCommonScriptingClasses ().floatSingle, height, width);
+		GETHEIGHT->GetHeights (xBase, yBase, width, height, &GetScriptingArrayElement<float>(map, 0));
+		return map;
+	}
+
+	// Set an array of heightmap samples.
+	CSRAW public void SetHeights (int xBase, int yBase, float[,] heights) {
+		if (heights == null)
+		{
+			throw new System.NullReferenceException ();
+		}
+		if (xBase+heights.GetLength(1) > heightmapWidth || xBase < 0 || yBase < 0 || yBase+heights.GetLength(0) > heightmapHeight)
+		{
+			throw new System.Exception (UnityString.Format ("X or Y base out of bounds. Setting up to {0}x{1} while map size is {2}x{3}", xBase+heights.GetLength(1), yBase+heights.GetLength(0), heightmapWidth, heightmapHeight));
+		}
+
+		Internal_SetHeights (xBase, yBase, heights.GetLength(1), heights.GetLength(0), heights);
+	}
+
+	CUSTOM private void Internal_SetHeights (int xBase, int yBase, int width, int height, float[,] heights)
+	{
+		GETHEIGHT->SetHeights(xBase, yBase, width, height, &GetScriptingArrayElement<float>(heights, 0), false);
+		GETTREEDATABASE->RecalculateTreePositions();
+	}
+
+	CUSTOM private void Internal_SetHeightsDelayLOD (int xBase, int yBase, int width, int height, float[,] heights)
+	{
+		GETHEIGHT->SetHeights(xBase, yBase, width, height, &GetScriptingArrayElement<float>(heights, 0), true);
+	}
+
+	CUSTOM internal int[] ComputeDelayedLod()
+	{
+		vector<int> invalid;
+		GETHEIGHT->RecomputeInvalidPatches(invalid);
+		
+		return CreateScriptingArray(&invalid[0], invalid.size(), GetScriptingManager().GetCommonClasses().int_32);
+	}
+	CSRAW internal void SetHeightsDelayLOD (int xBase, int yBase, float[,] heights)
+	{
+		Internal_SetHeightsDelayLOD (xBase, yBase, heights.GetLength(1), heights.GetLength(0), heights);
+	}
+	
+	// Gets the gradient of the terrain at point <x,y>.
+	CUSTOM float GetSteepness (float x, float y) { return GETHEIGHT->GetSteepness (x,y); }
+	
+	// Get an interpolated normal at a given location.
+	CUSTOM Vector3 GetInterpolatedNormal (float x, float y) { return GETHEIGHT->GetInterpolatedNormal (x,y); }
+
+
+	CUSTOM internal int GetAdjustedSize (int size) { return GETHEIGHT->GetAdjustedSize (size); }
+
+	C++RAW
+ #undef GETHEIGHT
+
+	//Strength of the waving grass in the terrain.
+	CUSTOM_PROP float wavingGrassStrength { return GETDETAIL->GetWavingGrassStrength(); } { GETDETAIL->SetWavingGrassStrength (value); self->SetDirty(); }
+	//Amount of waving grass in the terrain.
+	CUSTOM_PROP float wavingGrassAmount { return GETDETAIL->GetWavingGrassAmount(); } { GETDETAIL-> SetWavingGrassAmount (value); self->SetDirty(); }
+	//Speed of the waving grass.
+	CUSTOM_PROP float wavingGrassSpeed { return GETDETAIL->GetWavingGrassSpeed(); } { GETDETAIL-> SetWavingGrassSpeed (value); self->SetDirty(); }
+	//Color of the waving grass that the terrain has.
+	CUSTOM_PROP Color wavingGrassTint { return GETDETAIL->GetWavingGrassTint(); } { GETDETAIL-> SetWavingGrassTint (value); self->SetDirty(); }
+
+	//Detail width of the TerrainData.
+	CUSTOM_PROP int detailWidth { return GETDETAIL->GetWidth (); }
+	
+	//Detail height of the TerrainData.
+	CUSTOM_PROP int detailHeight { return GETDETAIL->GetHeight (); }
+
+	// /detailResolution/ specifies the number of pixels in the detail resolution map. A larger detailResolution, leads to more accurate detail object painting.
+	CUSTOM void SetDetailResolution (int detailResolution, int resolutionPerPatch)
+	{
+		GETDETAIL->SetDetailResolution(detailResolution, resolutionPerPatch);
+	}
+	
+	// Detail Resolution of the TerrainData.
+	CUSTOM_PROP int detailResolution { return GETDETAIL->GetResolution (); }
+
+	// Detail Resolution of each patch. A larger value will decrease the number of batches used by detail objects
+	CUSTOM_PROP internal int detailResolutionPerPatch { return GETDETAIL->GetResolutionPerPatch (); }
+
+	CUSTOM internal void ResetDirtyDetails () { GETDETAIL->ResetDirtyDetails (); }
+
+	// Reloads all the values of the available prototypes (ie, detail mesh assets) in the TerrainData Object.
+	CUSTOM void RefreshPrototypes ()
+	{
+		GETDETAIL->RefreshPrototypes ();
+		GETTREEDATABASE->RefreshPrototypes ();
+	}
+	
+	// Contains the detail texture/meshes that the terrain has.
+	CUSTOM_PROP DetailPrototype[] detailPrototypes 
+	{
+		return VectorToScriptingClassArray<DetailPrototype, MonoDetailPrototype> (GETDETAIL->GetDetailPrototypes(), GetCommonScriptingClasses ().detailPrototype, DetailPrototypeToMono);
+	}
+	{
+		GETDETAIL->SetDetailPrototypes (ScriptingClassArrayToVector<DetailPrototype, MonoDetailPrototype> (value, DetailPrototypeToCpp));
+	}
+
+	// Returns an array of all supported detail layer indices in the area.
+	CUSTOM 	int[] GetSupportedLayers (int xBase, int yBase, int totalWidth, int totalHeight) {
+		int size = GETDETAIL->GetSupportedLayers (xBase, yBase, totalWidth, totalHeight, NULL);  // Get the count of layers
+		ScriptingArrayPtr arr = CreateScriptingArray<int>(GetCommonScriptingClasses ().int_32, size);
+		GETDETAIL->GetSupportedLayers (xBase, yBase, totalWidth, totalHeight, &GetScriptingArrayElement<int> (arr, 0));
+		return arr;
+	}
+
+	// Returns a 2D array of the detail object density in the specific location.
+	CUSTOM int[,] GetDetailLayer (int xBase, int yBase, int width, int height, int layer) {
+		ScriptingArrayPtr map = CreateScriptingArray2D<int> (GetCommonScriptingClasses ().int_32, height, width);
+		GETDETAIL->GetLayer (xBase, yBase, width, height, layer, &GetScriptingArrayElement<int> (map, 0));
+		return map;	
+	}
+
+	// Sets the detail layer density map.
+	CSRAW public void SetDetailLayer (int xBase, int yBase, int layer, int[,] details) {
+		Internal_SetDetailLayer (xBase, yBase, details.GetLength(1), details.GetLength(0), layer, details);
+	}
+	
+	CUSTOM private void Internal_SetDetailLayer (int xBase, int yBase, int totalWidth, int totalHeight, int detailIndex, int[,] data)
+	{
+		GETDETAIL->SetLayer (xBase, yBase, totalWidth, totalHeight, detailIndex, &GetScriptingArrayElement<int> (data, 0));
+	}
+	
+	// Contains the current trees placed in the terrain.
+	CUSTOM_PROP TreeInstance[] treeInstances
+	{
+		return CreateScriptingArray(&GETTREEDATABASE->GetInstances()[0], GETTREEDATABASE->GetInstances().size(), GetCommonScriptingClasses ().treeInstance);
+	}
+	{
+		MonoRaiseIfNull((ScriptingObjectPtr)value);
+		TreeInstance *first = &GetScriptingArrayElement<TreeInstance> (value, 0);
+		GETTREEDATABASE->GetInstances().assign (first, first + GetScriptingArraySize(value));
+		GETTREEDATABASE->UpdateTreeInstances();
+	}
+	// The list of tree prototypes this are the ones available in the inspector.
+	CUSTOM_PROP TreePrototype[] treePrototypes
+		{ return VectorToScriptingClassArray<TreePrototype, MonoTreePrototype> (GETTREEDATABASE->GetTreePrototypes(), GetCommonScriptingClasses ().treePrototype, TreePrototypeToMono); }
+		{ GETTREEDATABASE->SetTreePrototypes (ScriptingClassArrayToVector<TreePrototype, MonoTreePrototype> (value, TreePrototypeToCpp)); }
+
+	// Removes a tree at a given index.
+	CUSTOM internal void RemoveTreePrototype (int index)
+	{
+		GETTREEDATABASE->RemoveTreePrototype (index);
+	}
+	
+	// Recalculate the positions of the trees.
+	CUSTOM internal void RecalculateTreePositions () 
+	{
+		GETTREEDATABASE->RecalculateTreePositions ();
+	}
+	
+	// Removes a detail prototype at a given index.
+	CUSTOM internal void RemoveDetailPrototype (int index)
+	{
+		GETDETAIL->RemoveDetailPrototype (index);
+	}
+	
+	C++RAW
+ #undef GETDETAIL
+	
+	
+	// OLD SPLAT DATABASE
+	// =============================================
+	C++RAW
+ #define GETSPLAT (&(self->GetSplatDatabase()))
+	
+	// Number of alpha map layers
+	CUSTOM_PROP int alphamapLayers  { return GETSPLAT->GetDepth(); }
+	// Returns the alpha map at a position x, y given a width and height
+	CUSTOM public float[,,] GetAlphamaps (int x, int y, int width, int height) {
+		ScriptingArrayPtr map = CreateScriptingArray3D<float> (GetCommonScriptingClasses ().floatSingle, height, width, GETSPLAT->GetDepth ());
+		GETSPLAT->GetAlphamaps (x, y, width, height, &GetScriptingArrayElement<float>(map, 0));
+		return map;
+	}
+
+	// Resolution of the alpha map.
+	CUSTOM_PROP int alphamapResolution { return GETSPLAT->GetAlphamapResolution(); } { return GETSPLAT->SetAlphamapResolution(value); }
+	// Width of the alpha map.
+	CUSTOM_PROP int alphamapWidth { return GETSPLAT->GetAlphamapResolution(); }
+	// Height of the alpha map.
+	CUSTOM_PROP int alphamapHeight { return GETSPLAT->GetAlphamapResolution(); }
+	// Resolution of the base map used for rendering far patches on the terrain
+	CUSTOM_PROP int baseMapResolution { return GETSPLAT->GetBaseMapResolution(); } { return GETSPLAT->SetBaseMapResolution(value); }
+
+	// Assign all splat values in the given map area.
+	CSRAW public void SetAlphamaps (int x, int y, float[,,] map)
+	{
+		if (map.GetLength(2) != alphamapLayers) {
+			throw new System.Exception (UnityString.Format ("Float array size wrong (layers should be {0})", alphamapLayers));
+		}
+		// TODO: crop the map or throw if outside,
+		
+		Internal_SetAlphamaps (x,y, map.GetLength(1), map.GetLength(0), map);
+	}
+	CUSTOM private void Internal_SetAlphamaps (int x, int y, int width, int height, float[,,] map)
+	{
+		GETSPLAT->SetAlphamaps (x, y, width, height, &GetScriptingArrayElement<float>(map, 0));
+	}
+
+	CUSTOM internal void RecalculateBasemapIfDirty()
+	{
+		GETSPLAT->RecalculateBasemapIfDirty();
+	}
+	
+	CUSTOM internal void SetBasemapDirty(bool dirty)
+	{
+		GETSPLAT->SetBasemapDirty(dirty);
+	}
+	
+	CUSTOM private Texture2D GetAlphamapTexture(int index) {
+		return Scripting::ScriptingWrapperFor (GETSPLAT->GetAlphaTexture(index)); 
+	}
+
+	CUSTOM_PROP private int alphamapTextureCount {
+		return GETSPLAT->GetAlphaTextureCount(); 
+	}
+	
+	// Alpha map textures used by the Terrain. Used by Terrain Inspector for undo.
+	CSRAW internal Texture2D[] alphamapTextures
+	{
+		get {
+			Texture2D[] splatTextures = new Texture2D[alphamapTextureCount];
+			for (int i=0;i<splatTextures.Length;i++)
+				splatTextures[i] =  GetAlphamapTexture(i);
+			return splatTextures;
+		}
+	}
+	
+	// Splat texture used by the terrain. 
+	CUSTOM_PROP SplatPrototype[] splatPrototypes
+		{ return VectorToScriptingClassArray<SplatPrototype, MonoSplatPrototype> (GETSPLAT->GetSplatPrototypes(), GetCommonScriptingClasses ().splatPrototype, SplatPrototypeToMono); }
+		{ GETSPLAT->SetSplatPrototypes (ScriptingClassArrayToVector<SplatPrototype, MonoSplatPrototype> (value, SplatPrototypeToCpp)); }
+	C++RAW
+ #undef GET
+	
+	CUSTOM internal bool HasTreeInstances ()
+	{
+		return !self->GetTreeDatabase().GetInstances().empty();
+	}
+
+	CUSTOM internal void AddTree (out TreeInstance tree)
+	{
+		self->GetTreeDatabase().AddTree (*tree);	
+	}
+	
+	CUSTOM internal int RemoveTrees (Vector2 position, float radius, int prototypeIndex)
+	{
+		return self->GetTreeDatabase().RemoveTrees (position, radius, prototypeIndex);
+	}	
+END
+
+
+//Contains information about a tree placed in the Terrain game object.
+CONDITIONAL ENABLE_TERRAIN
+STRUCT TreeInstance
+	CSRAW	Vector3		m_Position;
+	CSRAW	float			m_WidthScale;
+	CSRAW	float			m_HeightScale;
+	CSRAW	Color32		m_Color;
+	CSRAW	Color32		m_LightmapColor;
+	CSRAW	int			m_Index;
+	CSRAW	float			m_TemporaryDistance;
+	
+	// Position of the tree.
+	public Vector3 position { get { return m_Position; } set { m_Position = value; } }
+
+	// Width scale of this instance (compared to the prototype's size).
+	public float widthScale { get { return m_WidthScale; } set { m_WidthScale = value; } }
+
+	// Height scale of this instance (compared to the prototype's size).
+	public float heightScale { get { return m_HeightScale; } set { m_HeightScale = value; } }
+
+	// Color of this instance.
+	public Color color { get { return m_Color; } set { m_Color = value; } }
+
+	// Lightmap color calculated for this instance.
+	public Color lightmapColor { get { return m_LightmapColor; } set { m_LightmapColor = value; } }
+
+	// Index of this instance in the TerrainData.treePrototypes array.
+	public int prototypeIndex { get { return m_Index; } set { m_Index = value; } }
+
+	internal float temporaryDistance { get { return m_TemporaryDistance; } set { m_TemporaryDistance = value; } }	
+END
+
+
+ENUM TerrainRenderFlags
+	heightmap = 1,
+	trees = 2,
+	details = 4,
+	all = heightmap | trees | details
+END
+
+// The Terrain component renders the terrain.
+[AddComponentMenu("")]
+CSRAW [ExecuteInEditMode]
+CONDITIONAL ENABLE_TERRAIN
+CLASS Terrain : MonoBehaviour
+	CSRAW 
+	// The active terrain. This is a convenience function to get to the main terrain in the scene.
+	public static Terrain activeTerrain { get { return ms_ActiveTerrain; } }	
+	
+	// The Terrain Data that stores heightmaps, terrain textures, detail meshes and trees.
+	public TerrainData		terrainData { get { return m_TerrainData; }  set { m_TerrainData = value; }}
+	
+	// The maximum distance at which trees are rendered
+	public float treeDistance { get { return m_TreeDistance; } set { m_TreeDistance = value; } }
+
+	// Distance from the camera where trees will be rendered as billboards only.
+	public float treeBillboardDistance { get { return m_TreeBillboardDistance; } set { m_TreeBillboardDistance = value; } }
+
+	// Total distance delta that trees will use to transition from billboard orientation to mesh orientation.
+	public float treeCrossFadeLength { get { return m_TreeCrossFadeLength; } set { m_TreeCrossFadeLength = value; } }
+
+	// Maximum number of trees rendered at full LOD.
+	public int   treeMaximumFullLODCount { get { return m_TreeMaximumFullLODCount; } set { m_TreeMaximumFullLODCount = value; } }
+
+	// Detail objects will be displayed up to this distance.
+	public float detailObjectDistance { get { return m_DetailObjectDistance; } set { m_DetailObjectDistance = value; } }
+	
+	// Density of detail objects.
+	public float detailObjectDensity { get { return m_DetailObjectDensity; }
+		set {
+			value = Mathf.Clamp(value,0.0f,1.0f);
+			bool changed = (value != m_DetailObjectDensity);
+			m_DetailObjectDensity = value;
+			if (changed)
+			{
+				foreach (Renderer r in renderers)
+					r.details.ReloadAllDetails ();
+			}
+		}
+	}
+
+	// An approximation of how many pixels the terrain will pop in the worst case when switching lod.
+	public float heightmapPixelError { get { return m_HeightmapPixelError; } set { m_HeightmapPixelError = value; } }
+
+	// Lets you essentially lower the heightmap resolution used for rendering
+	public int   heightmapMaximumLOD { get { return m_HeightmapMaximumLOD; } set { m_HeightmapMaximumLOD = value; } }
+
+	// Heightmap patches beyond basemap distance will use a precomputed low res basemap.
+	public float basemapDistance { get { return m_SplatMapDistance; } set { m_SplatMapDistance = value; } }
+
+	OBSOLETE error use basemapDistance
+	CSRAW public float splatmapDistance { get { return m_SplatMapDistance; } set { m_SplatMapDistance = value; } }
+	
+	// The index of the lightmap applied to this renderer.
+	CSRAW public int lightmapIndex { get { return m_LightmapIndex; } set { SetLightmapIndex(value); } }
+	
+	private void SetLightmapIndex(int value)
+	{
+		m_LightmapIndex = value;
+		foreach (Renderer r in renderers)
+		{
+			r.terrain.lightmapIndex = value;
+			r.trees.lightmapIndex = value;
+			r.details.lightmapIndex = value;
+		}
+	}
+	private void ShiftLightmapIndex(int offset) { m_LightmapIndex += offset; }
+	
+	// Resolution of the lightmap that will be calculated for this terrain during the next bake.
+	internal int lightmapSize 
+	{ 
+		get { return m_LightmapSize; } 
+		set 
+		{ 
+			m_LightmapSize = value > 0 ? value : 1;
+			foreach (Renderer r in renderers)
+				r.terrain.SetLightmapSize(value);
+		} 
+	}
+	
+	// Should terrain cast shadows?.
+	CSRAW public bool castShadows { get { return m_CastShadows; } set { m_CastShadows = value; } }
+	
+	CSRAW public Material materialTemplate { get { return m_MaterialTemplate; } set { m_MaterialTemplate = value; } }
+	
+	CSRAW internal bool drawTreesAndFoliage { get { return m_DrawTreesAndFoliage; } set { m_DrawTreesAndFoliage = value; } }
+	
+	// Samples the height at the given position defined in world space, relative to the terrain space.
+	CSRAW public float SampleHeight (Vector3 worldPosition)
+	{
+		worldPosition -= GetPosition();
+		worldPosition.x /= m_TerrainData.size.x;
+		worldPosition.z /= m_TerrainData.size.z;
+		return m_TerrainData.GetInterpolatedHeight(worldPosition.x, worldPosition.z);
+	}
+		
+	// Creates a Terrain including collider from [[TerrainData]]
+	public static GameObject CreateTerrainGameObject (TerrainData assignTerrain)
+	{
+		// Also create the renderer game object
+	#if ENABLE_PHYSICS
+		GameObject go = new GameObject("Terrain", typeof(Terrain), typeof(TerrainCollider));
+	#else
+		GameObject go = new GameObject("Terrain", typeof(Terrain));
+	#endif
+		go.isStatic = true;
+		Terrain terrain = go.GetComponent(typeof(Terrain)) as Terrain;
+	#if ENABLE_PHYSICS
+		TerrainCollider collider = go.GetComponent(typeof(TerrainCollider)) as TerrainCollider;
+		collider.terrainData = assignTerrain;
+		terrain.terrainData = assignTerrain;
+	#endif
+		// The terrain already got an OnEnable, but the terrain data had not been set up correctly.
+		terrain.OnEnable ();
+
+		return go;
+	}
+	
+	// This method is used internally by the engine to reconnect Terrain objects to TerrainData.
+	CSRAW private static void ReconnectTerrainData()
+	{
+		List<Terrain> activeTerrains = new List<Terrain> (ms_ActiveTerrains);
+		foreach (Terrain terrain in activeTerrains)
+		{
+			// we could delete asset directly - remove it here (we are calling this function on StopAssetEditing
+			if( terrain.m_TerrainData == null )
+			{
+				terrain.OnDisable();
+				continue;
+			}
+
+			// Check if connection to m_TerrainData has been lost
+			if (!terrain.m_TerrainData.HasUser(terrain.gameObject))
+			{
+				// destroy and recreate data
+				terrain.OnDisable();
+				terrain.OnEnable();
+			}
+		}
+	}	
+	
+	CSRAW private static void SetLightmapIndexOnAllTerrains (int lightmapIndex)
+	{
+		foreach (Terrain terrain in ms_ActiveTerrains)
+		{
+			terrain.SetLightmapIndex(lightmapIndex);
+		}
+	}
+	
+	CSRAW internal void ApplyDelayedHeightmapModification ()
+	{
+		int[] invalidPatches = terrainData.ComputeDelayedLod();
+		if (invalidPatches.Length != 0)
+		{
+			terrainData.RecalculateTreePositions();
+
+			foreach (Renderer r in renderers)
+			{
+				r.terrain.ReloadPrecomputedError ();
+				r.terrain.ReloadBounds ();
+				r.details.ReloadAllDetails ();
+			}
+		}
+	}
+	
+		
+	CSRAW private void FlushDirty () 
+	{		
+		bool reloadDetails = false;
+		bool reloadTrees = false;
+		
+		// Figure out what we need to recalc depending on what to update.
+		// we build some bool flags so we never do more than one update no matter 
+		// what was changed and which dependencies they have of each other.
+		if ((dirtyFlags & TerrainChangedFlags.Heightmap) != 0)
+			reloadDetails = reloadTrees = true;
+		if ((dirtyFlags & TerrainChangedFlags.TreeInstances) != 0)
+			reloadTrees = true;
+			
+		// Optimized live terrain painting update mode
+		if ((dirtyFlags & TerrainChangedFlags.DelayedHeightmapUpdate) != 0)
+		{
+			// Reload precomputed error, this will make affected patches reload the vertices!
+			foreach (Renderer r in renderers)
+				r.terrain.ReloadPrecomputedError ();
+		}
+		
+		if (reloadTrees)
+		{
+			foreach (Renderer r in renderers)
+				r.trees.ReloadTrees();
+		}
+	
+		if (reloadDetails)
+		{
+			foreach (Renderer r in renderers)
+				r.details.ReloadAllDetails ();
+		}
+
+
+		if ((dirtyFlags & TerrainChangedFlags.Heightmap) != 0)
+		{
+			foreach (Renderer r in renderers)
+				r.terrain.ReloadAll();
+		}
+		
+		
+		dirtyFlags = 0;
+	}
+	
+	CSRAW private static void CullAllTerrains (int cullingMask)
+	{
+		ms_TempCulledTerrains.Clear();
+		
+		// Generate basic terrain data and do basic tesselation
+		int size = ms_ActiveTerrains.Count;
+		for (int i=0;i<size;i++)
+		{
+			Terrain terrain = (Terrain)ms_ActiveTerrains[i];
+			
+			int terrainLayer = terrain.gameObject.layer;
+			if( ((1<<terrainLayer) & cullingMask) == 0 )
+				continue;
+							
+			ms_TempCulledTerrains.Add(terrain);
+			Vector3 currentTerrrainPosition = terrain.GetPosition ();
+			if (currentTerrrainPosition != terrain.m_Position)
+			{
+				terrain.m_Position = currentTerrrainPosition;
+				terrain.Flush ();
+			}
+			
+			terrain.GarbageCollectRenderers ();
+		
+			Profiler.BeginSample("Terrain.FlushDirty");
+			terrain.FlushDirty ();
+			Profiler.EndSample();
+						
+			Profiler.BeginSample("Terrain.Heightmap.RenderStep1");
+			Renderer renderer = terrain.GetRenderer ();
+			if (renderer != null)
+			{
+				// Draw terrain
+				terrain.terrainData.RecalculateBasemapIfDirty();
+
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.heightmap) != 0)
+				{
+					float splatMapDistance = terrain.m_EditorRenderFlags == TerrainRenderFlags.heightmap ? Mathf.Infinity : terrain.m_SplatMapDistance;
+					renderer.terrain.RenderStep1 (renderer.camera, terrain.m_HeightmapMaximumLOD, terrain.m_HeightmapPixelError, splatMapDistance);
+				}
+			}
+			Profiler.EndSample();
+		}
+
+		// Setup neighbors
+		size = ms_TempCulledTerrains.Count;
+		for (int i=0;i<size;i++)
+		{
+			Terrain terrain = (Terrain)ms_TempCulledTerrains[i];
+
+			TerrainRenderer renderer = terrain.GetTerrainRendererDontCreate ();
+			if ( renderer != null )
+			{
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.heightmap) != 0)
+				{
+					// Find neighbor Terrains and update TerrainRenderer
+					TerrainRenderer left = null, right = null, top = null, bottom = null;
+					if (terrain.m_LeftNeighbor != null)
+						left = terrain.m_LeftNeighbor.GetTerrainRendererDontCreate ();
+					if (terrain.m_RightNeighbor != null)
+						right = terrain.m_RightNeighbor.GetTerrainRendererDontCreate ();
+					if (terrain.m_TopNeighbor != null)
+						top = terrain.m_TopNeighbor.GetTerrainRendererDontCreate ();
+					if (terrain.m_BottomNeighbor != null)
+						bottom = terrain.m_BottomNeighbor.GetTerrainRendererDontCreate ();
+					renderer.SetNeighbors(left, top, right, bottom);
+				}
+			}
+		}
+	
+	
+		// Apply force splitting on boundaries
+		size = ms_TempCulledTerrains.Count;
+		for (int i=0;i<size;i++)
+		{
+			Terrain terrain = (Terrain)ms_TempCulledTerrains[i];
+			TerrainRenderer renderer = terrain.GetTerrainRendererDontCreate ();
+			if (renderer != null)
+			{
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.heightmap) != 0)
+				{
+					Profiler.BeginSample("Terrain.Heightmap.RenderStep2");
+					renderer.RenderStep2 ();
+					Profiler.EndSample();
+				}
+			}
+		}
+		
+		// Do the actual rendering
+		size = ms_TempCulledTerrains.Count;
+		for (int i=0;i<size;i++)
+		{
+			Terrain terrain = (Terrain)ms_TempCulledTerrains[i];
+			Renderer renderer = terrain.GetRenderer ();
+			if (renderer != null)
+			{
+				int terrainLayer = terrain.gameObject.layer;
+
+				Light[] lights = Light.GetLights (LightType.Directional, terrainLayer);
+				
+				Profiler.BeginSample("Terrain.Heightmap.RenderStep3");
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.heightmap) != 0)
+				{
+					renderer.terrain.RenderStep3 (renderer.camera, terrainLayer, terrain.m_CastShadows, terrain.materialTemplate);
+				}
+				Profiler.EndSample();
+				
+				Profiler.BeginSample("Terrain.Details.Render");
+				// Draw details and trees
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.details) != 0 && terrain.m_DrawTreesAndFoliage && terrain.m_DetailObjectDistance > 0.001)
+					renderer.details.Render (renderer.camera, terrain.m_DetailObjectDistance, terrainLayer, terrain.m_DetailObjectDensity);
+				Profiler.EndSample();
+
+				Profiler.BeginSample("Terrain.Trees.Render");
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.trees) != 0 && terrain.m_DrawTreesAndFoliage && terrain.m_TreeDistance > 0.001)
+					renderer.trees.Render (renderer.camera, lights, terrain.m_TreeBillboardDistance, terrain.m_TreeDistance, terrain.m_TreeCrossFadeLength, terrain.m_TreeMaximumFullLODCount, terrainLayer);
+				Profiler.EndSample();
+
+//				terrain.m_DebugTreeRenderTex = renderer.trees.GetImposterRenderTexture();
+			}
+		}
+	}
+	
+	
+	CSRAW private static void CullAllTerrainsShadowCaster (Light light)
+	{
+		foreach (Terrain terrain in ms_ActiveTerrains)
+		{
+			Renderer renderer = terrain.GetRenderer ();
+			if (renderer != null)
+			{
+				// Draw additional tree shadow casters (the ones that are outside of view but still
+				// cast shadows)
+				if ((terrain.m_EditorRenderFlags & TerrainRenderFlags.trees) != 0 && terrain.m_DrawTreesAndFoliage && terrain.m_TreeDistance > 0.001) {
+					renderer.trees.RenderShadowCasters (
+						light,
+						renderer.camera,
+						Mathf.Min(terrain.m_TreeBillboardDistance, terrain.m_TreeDistance),
+						terrain.m_TreeMaximumFullLODCount,
+						terrain.gameObject.layer
+					);
+				}
+			}
+		}
+	}
+	
+	// Adds a tree instance to the terrain
+	CSRAW public void AddTreeInstance (TreeInstance instance)
+	{
+		bool hasTrees = m_TerrainData.HasTreeInstances();
+		m_TerrainData.AddTree(out instance);
+
+		foreach (Renderer r in renderers)
+		{
+			if (hasTrees)
+			{
+				r.trees.InjectTree (out instance);
+			}
+			else
+			{
+				// The renderer didn't have any trees and a new one got added.
+				r.trees.Cleanup();
+				r.trees = new TreeRenderer (m_TerrainData, GetPosition(), m_LightmapIndex);
+			}
+		}
+	}
+	
+	// Lets you setup the connection between neighboring Terrains.
+	CSRAW public void SetNeighbors (Terrain left, Terrain top, Terrain right, Terrain bottom)
+	{
+		m_TopNeighbor = top;
+		m_LeftNeighbor = left;
+		m_RightNeighbor = right;
+		m_BottomNeighbor = bottom;
+	}
+	
+	// Get the position of the terrain
+	CSRAW public Vector3 GetPosition ()
+	{
+		return transform.position;
+	}
+
+	// Flushes any change done in the terrain so it takes effect.
+	CSRAW public void Flush ()
+	{	
+		foreach (Renderer r in renderers)
+		{
+			r.trees.Cleanup();
+			r.terrain.Dispose();
+			r.details.Dispose();
+		}
+		renderers = new List<Renderer> ();
+	}
+	
+	private void GarbageCollectRenderers ()
+	{
+		int frame = Time.renderedFrameCount;
+		// traverse backwards so we can remove renderers
+		for (int i = renderers.Count-1; i >= 0; --i) {
+			Renderer r = (Renderer)renderers[i];
+			int frameDiff = frame - r.lastUsedFrame;
+			// cleanup renderers after they are unused for some frames; handle wrap-around just in case
+			// also cleanup immediately when camera is destroyed
+			if( frameDiff > 100 || frameDiff < 0 || r.camera == null) {
+				r.trees.Cleanup();
+				r.terrain.Dispose();
+				r.details.Dispose();
+				renderers.RemoveAt(i);
+			}
+		}
+	}
+
+
+	// Removes trees at a given position and a certain radius.
+	CSRAW internal void RemoveTrees (Vector2 position, float radius, int prototypeIndex)
+	{
+		int trees = m_TerrainData.RemoveTrees(position, radius, prototypeIndex);
+		if (trees != 0)
+		{
+			foreach (Renderer r in renderers)
+				r.trees.RemoveTrees(position, radius, prototypeIndex);
+		}
+	}
+	
+	// Called from engine
+	CSRAW private void OnTerrainChanged (TerrainChangedFlags flags)
+	{
+		// Dirty details must be deleted immediately because we are clearing data that stores what was set dirty immediately afterwards.
+		if ((flags & TerrainChangedFlags.RemoveDirtyDetailsImmediately) != 0)
+		{
+			foreach (Renderer r in renderers)
+				r.details.ReloadDirtyDetails();
+		}
+			
+		if ((flags & TerrainChangedFlags.FlushEverythingImmediately) != 0)
+			Flush ();
+		else
+			dirtyFlags |= flags;
+
+	}
+	
+	// Called from engine
+	CSRAW private void OnEnable ()
+	{		
+		if (m_TerrainData)
+			m_TerrainData.AddUser (gameObject);
+
+		ms_ActiveTerrain = this;
+		
+		if (!ms_ActiveTerrains.Contains (this))
+			ms_ActiveTerrains.Add(this);
+	}
+
+
+	// Called from engine
+	private void OnDisable ()
+	{	
+		ms_ActiveTerrains.Remove(this);
+
+		if (ms_ActiveTerrain == this)
+			ms_ActiveTerrain = null;
+
+		if (m_TerrainData) {
+			m_TerrainData.RemoveUser (gameObject);
+		}
+		
+		ms_ActiveTerrains.Remove(this);
+		
+		Flush();
+	}
+
+	private TerrainRenderer GetTerrainRendererDontCreate ()
+	{
+		Camera cam = Camera.current;
+
+		if ((cam.cullingMask & (1 << gameObject.layer)) == 0)
+			return null;
+
+		foreach (Renderer r in renderers)
+		{
+			if (r.camera == cam)
+				return r.terrain;
+		}
+		
+		return null;
+	}
+	
+	private Renderer GetRenderer ()
+	{		
+		Camera cam = Camera.current;
+
+		if ((cam.cullingMask & (1 << gameObject.layer)) == 0)
+			return null;
+
+		if (!cam.IsFiltered (gameObject))
+			return null;
+			
+		int frame = Time.renderedFrameCount;
+		foreach (Renderer r in renderers)
+		{
+			if (r.camera == cam)
+			{
+				if (r.terrain.terrainData == null)
+				{
+					Flush();
+					break;	
+				}
+				r.lastUsedFrame = frame;
+				return r;
+			}
+		}
+			
+		if (m_TerrainData != null)
+		{
+			Vector3 position = GetPosition();
+				
+			Renderer renderer = new Renderer ();
+			renderer.camera = cam;
+			renderer.terrain = new TerrainRenderer (gameObject.GetInstanceID(), m_TerrainData, position, lightmapIndex);
+			renderer.terrain.SetLightmapSize(m_LightmapSize);
+			renderer.trees = new TreeRenderer (m_TerrainData, position, lightmapIndex);
+			renderer.details = new DetailRenderer (m_TerrainData, position, lightmapIndex);
+			renderer.lastUsedFrame = frame;
+			renderers.Add(renderer);
+			return renderer;
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	[SerializeField]	
+	private TerrainData		 m_TerrainData;
+	[SerializeField]	
+	float m_TreeDistance = 5000.0F;
+	[SerializeField]	
+	float m_TreeBillboardDistance = 50.0F;
+	[SerializeField]	
+	float m_TreeCrossFadeLength = 5.0F;
+	[SerializeField]	
+	int   m_TreeMaximumFullLODCount = 50;
+	[SerializeField]	
+	float m_DetailObjectDistance = 80.0F;
+	[SerializeField]
+	float m_DetailObjectDensity = 1.0f;
+	[SerializeField]	
+	float m_HeightmapPixelError = 5.0F;
+	[SerializeField]	
+	float m_SplatMapDistance = 1000.0F;
+	[SerializeField]	
+	int   m_HeightmapMaximumLOD = 0;
+	[SerializeField]	
+	bool  m_CastShadows = true;
+	[SerializeField]	
+	int m_LightmapIndex = -1;
+	[SerializeField]	
+	int m_LightmapSize = 1024;
+	[SerializeField]
+	bool m_DrawTreesAndFoliage = true;
+	
+	[SerializeField]	
+	Material m_MaterialTemplate;
+	
+	[System.NonSerialized]
+	Terrain	 m_LeftNeighbor;
+	[System.NonSerialized]
+	Terrain	 m_RightNeighbor;
+	[System.NonSerialized]
+	Terrain	 m_BottomNeighbor;
+	[System.NonSerialized]
+	Terrain	 m_TopNeighbor;
+	[System.NonSerialized]
+	Vector3	 m_Position;
+	
+	[System.NonSerialized]
+	private TerrainRenderFlags m_EditorRenderFlags = TerrainRenderFlags.all;
+
+	CSRAW public TerrainRenderFlags editorRenderFlags { get { return m_EditorRenderFlags; } set { m_EditorRenderFlags = value; } }
+
+
+	CLASS internal Renderer
+		CSRAW
+		internal Camera           camera;
+		internal TerrainRenderer  terrain;
+		internal TreeRenderer     trees;
+		internal DetailRenderer   details;
+		internal int              lastUsedFrame;
+	END
+	
+	[System.NonSerialized]
+	private List<Renderer> renderers = new List<Renderer> ();
+	static internal List<Terrain> ms_ActiveTerrains = new List<Terrain> ();
+	static List<Terrain> ms_TempCulledTerrains = new List<Terrain> ();
+
+	// Which part of the terrain is dirty
+	[System.NonSerialized]
+	private TerrainChangedFlags dirtyFlags;
+	
+	// The active terrain (so we don't have to have it selected in wizards	
+	private static Terrain                 ms_ActiveTerrain;
+END
+
+// Simple struct that contains all the arguments needed by Render.
+CONDITIONAL ENABLE_TERRAIN
+STRUCT internal RenderArguments
+	CSRAW public float meshTreeDistance;
+	CSRAW public float billboardTreeDistance;
+	CSRAW public float crossFadeLength;
+	CSRAW public int maximumMeshTrees;
+	CSRAW public int layer;
+END
+
+C++RAW
+
+struct MonoRenderArguments {
+	float meshTreeDistance;
+	float billboardTreeDistance;
+	float crossFadeLength;
+	int maximumMeshTrees;
+	int layer;
+};
+
+//*undocumented
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CONDITIONAL ENABLE_TERRAIN
+CLASS internal TreeRenderer
+	CSRAW internal IntPtr m_Ptr;
+	C++RAW
+
+	inline TreeRenderer* GetTreeRenderer(ScriptingObjectPtr self)
+	{
+		TreeRenderer* r;
+		MarshallManagedStructIntoNative(self,&r);
+		return r;
+	}
+	#define GETTREERENDERER	GetTreeRenderer(self)
+	
+	CUSTOM public TreeRenderer (TerrainData data, Vector3 position, int lightmapIndex)
+	{
+		TreeRenderer* r = new TreeRenderer(data->GetTreeDatabase(), position, lightmapIndex);
+		MarshallNativeStructIntoManaged(r,self);
+	}
+	
+	CUSTOM public void ReloadTrees () {
+		GETTREERENDERER->ReloadTrees();
+	}
+	
+	CSRAW public void Render (Camera camera, Light[] lights, float meshTreeDistance, float billboardTreeDistance, float crossFadeLength, int maximumMeshTrees, int layer)
+	{
+		RenderArguments arguments = new RenderArguments ();
+		arguments.meshTreeDistance = meshTreeDistance;
+		arguments.billboardTreeDistance = billboardTreeDistance;
+		arguments.crossFadeLength = crossFadeLength;
+		arguments.maximumMeshTrees = maximumMeshTrees;
+		arguments.layer = layer;
+		Render (camera, lights, ref arguments);
+	}
+
+	CUSTOM private void Render (Camera camera, Light[] lights, ref RenderArguments arguments)
+	{
+		const int maxLights = 16;
+		int lightCount = GetScriptingArraySize(lights);
+		if(lightCount > maxLights)
+			lightCount = maxLights;
+		
+		std::vector<Light*> lightPtrs(lightCount);
+		for( int i = 0; i < lightCount; ++i )
+		{
+			Light* light = ScriptingObjectToObject<Light>( GetScriptingArrayElementNoRef<ScriptingObjectPtr>( lights, i ) );
+			lightPtrs[i] = light;
+		}
+	
+		GETTREERENDERER->Render(*(camera), lightPtrs, arguments.meshTreeDistance, arguments.billboardTreeDistance, arguments.crossFadeLength, arguments.maximumMeshTrees, arguments.layer);
+	}
+	
+	CUSTOM internal void RenderShadowCasters (Light light, Camera camera, float meshTreeDistance, int maximumMeshTrees, int layer)
+	{
+		GETTREERENDERER->RenderShadowCasters(*light, *camera, meshTreeDistance, maximumMeshTrees, layer);
+	}
+	
+	CUSTOM public void Cleanup ()
+	{
+		delete GETTREERENDERER;
+		TreeRenderer* r = NULL;
+		MarshallNativeStructIntoManaged(r,self);
+	}
+	
+	CUSTOM public void InjectTree (out TreeInstance newTree)
+	{
+		GETTREERENDERER->InjectTree (*newTree);
+	}
+	
+	CUSTOM public void RemoveTrees (Vector3 pos, float radius, int prototypeIndex)
+	{
+		GETTREERENDERER->RemoveTrees(pos, radius, prototypeIndex);
+	}
+	
+	CUSTOM internal void InvalidateImposters ()
+	{
+		GETTREERENDERER->InvalidateImposter ();
+	}
+	
+	CUSTOM_PROP int lightmapIndex { return GETTREERENDERER->GetLightmapIndex (); } { GETTREERENDERER->SetLightmapIndex (value); }
+END
+
+// Modes a Wind Zone can have, either Spherical or Directional
+CONDITIONAL ENABLE_TERRAIN
+ENUM internal WindZoneMode 
+	// Wind zone only has an effect inside the radius, and has a falloff from the center towards the edge.
+	Directional = 0, 
+	// Wind zone affects the entire scene in one direction.
+	Spherical = 1
+END
+
+// Wind Zones add realism to the trees you create by making them wave their branches and leaves as if blown by the wind.
+CSRAW
+CONDITIONAL ENABLE_TERRAIN
+CLASS internal WindZone : Component
+
+	// Defines the type of wind zone to be used (Spherical or Directional).
+	AUTO_PROP WindZoneMode mode GetMode SetMode
+
+	// Radius of the Spherical Wind Zone (only active if the WindZoneMode is set to Spherical).
+	AUTO_PROP float radius GetRadius SetRadius
+
+	// The primary wind force.
+	AUTO_PROP float windMain GetWindMain SetWindMain
+
+	// The turbulence wind force.
+	AUTO_PROP float windTurbulence GetWindTurbulence SetWindTurbulence
+
+	// Defines ow much the wind changes over time.
+	AUTO_PROP float windPulseMagnitude GetWindPulseMagnitude SetWindPulseMagnitude
+
+	// Defines the frequency of the wind changes.
+	AUTO_PROP float windPulseFrequency GetWindPulseFrequency SetWindPulseFrequency
+END
+
+CSRAW
+
+// Tree Component for the tree creator.
+CONDITIONAL ENABLE_TERRAIN
+CLASS Tree : Component
+	
+	// Data asociated to the Tree.
+	AUTO_PTR_PROP ScriptableObject data GetTreeData SetTreeData
+END
+
+// A heightmap based collider.
+CONDITIONAL ENABLE_TERRAIN && ENABLE_PHYSICS
+CLASS TerrainCollider : Collider
+
+	// The terrain that stores the heightmap
+	AUTO_PTR_PROP TerrainData terrainData GetTerrainData SetTerrainData
+	
+END
+
+CSRAW
+}
+#endif // ENABLE_TERRAIN

@@ -1,0 +1,301 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+// Position, rotation and scale of an object. 
+CSRAW
+CLASS Transform : Component, IEnumerable
+	
+	CSRAW private Transform () { }
+	
+	// The position of the transform in world space.
+	CSRAW
+	AUTO_PROP Vector3 position GetPosition SetPosition
+	
+	// Position of the transform relative to the parent transform.
+	CSRAW
+	AUTO_PROP Vector3 localPosition GetLocalPosition SetLocalPosition
+
+	// The rotation as Euler angles in degrees.
+	CSRAW public Vector3 eulerAngles { get { return rotation.eulerAngles; } set { rotation = Quaternion.Euler(value); }  }
+
+	// The rotation as Euler angles in degrees relative to the parent transform's rotation.
+	AUTO_PROP Vector3 localEulerAngles GetLocalEulerAngles SetLocalEulerAngles
+	
+	// The red axis of the transform in world space.
+	CSRAW public Vector3 right  { get { return rotation * Vector3.right; } set { rotation = Quaternion.FromToRotation(Vector3.right, value); } }
+
+	// The green axis of the transform in world space.
+	CSRAW public Vector3 up       { get { return rotation * Vector3.up; }  set { rotation = Quaternion.FromToRotation(Vector3.up, value); } }
+
+	// The blue axis of the transform in world space.
+	CSRAW public Vector3 forward { get { return rotation * Vector3.forward; } set { rotation = Quaternion.LookRotation(value); } }
+	
+	// The rotation of the transform in world space stored as a [[Quaternion]].
+	AUTO_PROP Quaternion rotation GetRotation SetRotationSafe
+
+	// The rotation of the transform relative to the parent transform's rotation.
+	AUTO_PROP Quaternion localRotation GetLocalRotation SetLocalRotationSafe
+	
+	// The scale of the transform relative to the parent.
+	AUTO_PROP Vector3 localScale GetLocalScale SetLocalScale
+
+	// The parent of the transform.
+	CSRAW
+	AUTO_PTR_PROP Transform parent GetParent SetParent
+	
+	// Matrix that transforms a point from world space into local space (RO).
+	AUTO_PROP Matrix4x4 worldToLocalMatrix GetWorldToLocalMatrix
+	// Matrix that transforms a point from local space into world space (RO).
+	AUTO_PROP Matrix4x4 localToWorldMatrix GetLocalToWorldMatrix
+	
+	// Moves the transform in the direction and distance of /translation/.
+	CSRAW public void Translate (Vector3 translation, Space relativeTo = Space.Self)
+	{
+		if (relativeTo == Space.World)
+			position += translation;
+		else
+			position += TransformDirection (translation);
+	}
+	
+	// Moves the transform by /x/ along the x axis, /y/ along the y axis, and /z/ along the z axis.
+	CSRAW public void Translate (float x, float y, float z, Space relativeTo = Space.Self)
+	{
+		Translate (new Vector3 (x, y, z), relativeTo);
+	}
+
+	// Moves the transform in the direction and distance of /translation/.
+	CSRAW public void Translate (Vector3 translation, Transform relativeTo)
+	{
+		if (relativeTo)
+			position += relativeTo.TransformDirection (translation);
+		else
+			position += translation;
+	}
+	
+	// Moves the transform by /x/ along the x axis, /y/ along the y axis, and /z/ along the z axis.
+	CSRAW public void Translate (float x, float y, float z, Transform relativeTo)
+	{
+		Translate (new Vector3 (x, y, z), relativeTo);
+	}
+	
+	// Applies a rotation of /eulerAngles.z/ degrees around the z axis, /eulerAngles.x/ degrees around the x axis, and /eulerAngles.y/ degrees around the y axis (in that order).
+	CSRAW public void Rotate (Vector3 eulerAngles, Space relativeTo = Space.Self)
+	{
+		Quaternion eulerRot = Quaternion.Euler (eulerAngles.x, eulerAngles.y, eulerAngles.z);
+		if (relativeTo == Space.Self)
+			localRotation = localRotation * eulerRot;
+		else
+		{
+			rotation = rotation * (Quaternion.Inverse (rotation) * eulerRot * rotation);
+		}
+	}
+
+	// Applies a rotation of /zAngle/ degrees around the z axis, /xAngle/ degrees around the x axis, and /yAngle/ degrees around the y axis (in that order).
+	CSRAW public void Rotate (float xAngle, float yAngle, float zAngle, Space relativeTo = Space.Self)
+	{
+		Rotate (new Vector3 (xAngle, yAngle, zAngle), relativeTo);
+	}
+
+	CUSTOM internal void RotateAroundInternal (Vector3 axis, float angle) { self->RotateAroundSafe (axis, angle); }
+
+	// Rotates the transform around /axis/ by /angle/ degrees.
+	CSRAW public void Rotate (Vector3 axis, float angle, Space relativeTo = Space.Self)
+	{
+		if (relativeTo == Space.Self)
+			RotateAroundInternal (transform.TransformDirection (axis), angle * Mathf.Deg2Rad);
+		else
+			RotateAroundInternal (axis, angle * Mathf.Deg2Rad);
+	}
+
+	// Rotates the transform about /axis/ passing through /point/ in world coordinates by /angle/ degrees.
+	CSRAW public void RotateAround (Vector3 point, Vector3 axis, float angle)
+	{
+		Vector3 worldPos = position;
+		Quaternion q = Quaternion.AngleAxis (angle , axis);
+		Vector3 dif = worldPos - point;
+		dif = q * dif;
+		worldPos = point + dif;
+		position = worldPos;
+		RotateAroundInternal (axis, angle * Mathf.Deg2Rad);
+	}
+	
+	// Rotates the transform so the forward vector points at /target/'s current position.
+	CSRAW public void LookAt (Transform target, Vector3 worldUp = Vector3.up) {	if (target)	LookAt (target.position, worldUp); }
+
+	// Rotates the transform so the forward vector points at /worldPosition/.
+	CUSTOM void LookAt (Vector3 worldPosition, Vector3 worldUp = Vector3.up)
+	{
+		Vector3f forward = worldPosition - self->GetPosition ();
+		Quaternionf q = Quaternionf::identity ();
+		if (LookRotationToQuaternion (forward, worldUp, &q))
+			self->SetRotationSafe (q);
+		else	
+		{
+			float mag = Magnitude (forward);
+			if (mag > Vector3f::epsilon)
+			{
+				Matrix3x3f m;
+				m.SetFromToRotation (Vector3f::zAxis, forward / mag);
+				MatrixToQuaternion (m, q);
+				self->SetRotationSafe (q);
+			}
+		}
+	}
+	
+	// Transforms /direction/ from local space to world space.
+	AUTO Vector3 TransformDirection (Vector3 direction);
+
+	// Transforms direction /x/, /y/, /z/ from local space to world space.
+	CSRAW public Vector3 TransformDirection (float x, float y, float z) { return TransformDirection (new Vector3 (x, y, z)); }
+	
+	
+	// Transforms a /direction/ from world space to local space. The opposite of Transform.TransformDirection.
+	AUTO Vector3 InverseTransformDirection (Vector3 direction);
+
+	// Transforms the direction /x/, /y/, /z/ from world space to local space. The opposite of Transform.TransformDirection.
+	CSRAW public Vector3 InverseTransformDirection (float x, float y, float z) { return InverseTransformDirection (new Vector3 (x, y, z)); }
+
+	// Transforms /position/ from local space to world space.
+	AUTO Vector3 TransformPoint (Vector3 position);
+	
+	// Transforms the position /x/, /y/, /z/ from local space to world space.
+	CSRAW public Vector3 TransformPoint (float x, float y, float z) { return TransformPoint (new Vector3 (x, y, z)); }
+
+
+	// Transforms /position/ from world space to local space. The opposite of Transform.TransformPoint.
+	AUTO Vector3 InverseTransformPoint (Vector3 position);
+	
+	
+	// Transforms the position /x/, /y/, /z/ from world space to local space. The opposite of Transform.TransformPoint.
+	CSRAW public Vector3 InverseTransformPoint (float x, float y, float z) { return InverseTransformPoint (new Vector3 (x, y, z)); }
+
+
+	// Returns the topmost transform in the hierarchy.
+	CUSTOM_PROP Transform root { return Scripting::ScriptingWrapperFor(&self->GetRoot()); }
+
+	// The number of children the Transform has.
+	CUSTOM_PROP int childCount { return self->GetChildrenCount (); }
+
+	// Unparents all children.
+	CUSTOM void DetachChildren ()
+	{
+		Transform& transform = *self;
+		while (transform.begin () != transform.end ())
+			(**transform.begin ()).SetParent (NULL);
+	}
+	
+	// Finds a child by /name/ and returns it.
+	CUSTOM Transform Find (string name)
+	{
+		return Scripting::ScriptingWrapperFor (FindRelativeTransformWithPath (*self, name.ToUTF8().c_str ()));
+	}
+	
+	//*undocumented
+	CONDITIONAL UNITY_EDITOR
+	CUSTOM internal void SendTransformChangedScale ()
+	{
+		self->SendTransformChanged ( Transform::kScaleChanged );
+	}
+
+
+	// The global scale of the object (RO).
+	AUTO_PROP Vector3 lossyScale GetWorldScaleLossy
+
+	// Is this transform a child of /parent/?
+	CUSTOM bool IsChildOf (Transform parent) 
+	{
+		return IsChildOrSameTransform(*self, *parent); 
+	}
+
+	// Has the transform changed since the last time the flag was set to 'false'?
+	CUSTOM_PROP bool hasChanged { return self->GetChangedFlag(); } { self->SetChangedFlag(value); }
+
+	//*undocumented*
+	CSRAW public Transform FindChild (string name) { return Find(name); }
+
+	//*undocumented* Documented separately
+	CSRAW public IEnumerator GetEnumerator ()
+	{
+		return new Transform.Enumerator (this);
+	}
+	
+	CLASS private Enumerator : IEnumerator
+		CSRAW
+		Transform outer;
+		int currentIndex = -1;
+
+		internal Enumerator (Transform outer) { this.outer = outer; }
+		//*undocumented*
+		public object Current
+		{
+			get { return outer.GetChild (currentIndex); }
+		}
+		
+		//*undocumented*
+		public bool MoveNext ()
+		{
+			int childCount = outer.childCount;
+			return ++currentIndex < childCount;
+		}
+
+		//*undocumented*
+		public void Reset () { currentIndex = -1; }
+	END
+
+	// *undocumented* DEPRECATED
+	CSRAW
+	OBSOLETE warning use Transform.Rotate instead.
+	CUSTOM void RotateAround (Vector3 axis, float angle) { self->RotateAroundSafe (axis, angle); }
+
+	// *undocumented* DEPRECATED
+	OBSOLETE warning use Transform.Rotate instead.
+	CUSTOM void RotateAroundLocal (Vector3 axis, float angle) { self->RotateAroundLocalSafe (axis, angle); }
+
+	// Get a transform child by index
+	CUSTOM Transform GetChild (int index)
+	{
+		Transform& transform = *self;
+		if (index >= 0 && index < transform.GetChildrenCount ())
+			return Scripting::ScriptingWrapperFor (&transform.GetChild (index));
+		else
+		{
+			RaiseMonoException ("Transform child out of bounds");
+			return SCRIPTING_NULL;
+		}
+	}
+
+	//*undocumented* DEPRECATED
+	OBSOLETE warning use Transform.childCount instead.
+	CUSTOM int GetChildCount () { return self->GetChildrenCount (); }
+	
+	CONDITIONAL UNITY_EDITOR
+	CUSTOM internal bool IsNonUniformScaleTransform ()
+	{
+		Transform& transform = *self;
+		Matrix4x4f temp;
+		TransformType scaleType = transform.CalculateTransformMatrix (temp);
+		return IsNonUniformScaleTransform (scaleType);
+	}
+
+END
+
+CSRAW }

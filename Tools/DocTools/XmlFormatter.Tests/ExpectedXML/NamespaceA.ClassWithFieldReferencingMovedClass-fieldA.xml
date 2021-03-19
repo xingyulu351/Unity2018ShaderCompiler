@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass DisplayName="ClassWithFieldReferencingMovedClass">NamespaceA.ClassWithFieldReferencingMovedClass</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="fieldA" type="var" namespace="NamespaceA" modifiers="public" />
+      <ReturnType DisplayName="ClassMovedToNamespace" hasLink="true">NamespaceA.ClassMovedToNamespace</ReturnType>
+    </Signature>
+    <Summary><![CDATA[field points to class]]></Summary>
+  </Section>
+</Model>

@@ -1,0 +1,123 @@
+C++RAW
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#if ENABLE_SPRITES
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Filters/Mesh/SpriteRenderer.h"
+#include "Runtime/Graphics/SpriteFrame.h"
+#include "Runtime/Graphics/Texture2D.h"
+#endif //ENABLE_SPRITES
+
+#include "Editor/Src/AssetPipeline/SpriteFrameMetaData.h"
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+#if ENABLE_SPRITES
+namespace UnityEngine
+{
+CSRAW
+	ENUM public SpriteAlignment
+		Center = 0,
+		TopLeft = 1,
+		TopCenter = 2,
+		TopRight = 3,
+		LeftCenter = 4,
+		RightCenter = 5,
+		BottomLeft = 6,
+		BottomCenter = 7,
+		BottomRight = 8
+	END
+
+CONDITIONAL ENABLE_SPRITES
+/// Describes one sprite frame.
+CLASS SpriteFrame : Object
+
+	// Workaround for gcc/msvc where passing small mono structures by value does not work
+	CUSTOM private static void Internal_GetSize(SpriteFrame spriteFrame, out Vector2 output)
+	{
+		SpriteFrame& sf = *spriteFrame;
+		output->x = sf.GetSize().x/kTexturePixelsPerUnit;
+		output->y = sf.GetSize().y/kTexturePixelsPerUnit;
+	}
+
+	CUSTOM public void GenerateMesh(float quality, byte alphaTolerance, bool holeDetection, uint extrude)
+	{
+		quality = clamp(1.0f - quality, 0.0f, 1.0f); // Quality is inverse of hullTolerance
+		self->GenerateMesh(quality, alphaTolerance, holeDetection, extrude);
+	}
+
+	CSRAW public Vector2 size
+	{
+		get
+		{
+			Vector2 r;
+			Internal_GetSize(this, out r);
+			return r;
+		}
+	}
+
+	CUSTOM_PROP Bounds bounds
+	{
+		return self->GetBounds();
+	}
+
+	CUSTOM_PROP internal Vector4 uv
+	{
+		return self->GetRD().uv;
+	}
+
+	CUSTOM_PROP internal Rect rect
+	{
+		PPtr<Texture2D> texture = self->GetRD().GetTexture();
+		int width = texture->GetDataWidth();
+		int height = texture->GetDataHeight();
+		const Vector4f& uv = self->GetRD().uv;
+		return Rectf(uv.x * width, (1.0 - uv.y) * height, (uv.z - uv.x) * width, (uv.y - uv.w) * height);
+	}
+
+	CUSTOM_PROP internal Material material
+	{
+		return Scripting::ScriptingWrapperFor(self->GetRD().material);
+	}
+
+END
+
+CONDITIONAL ENABLE_SPRITES
+/// Renders a SpriteFrame.
+CLASS SpriteRenderer : Renderer
+
+	CSRAW
+	public SpriteFrame spriteFrame
+	{
+		get
+		{
+			return GetSpriteFrame_INTERNAL();
+		}
+		set
+		{
+			SetSpriteFrame_INTERNAL(value);
+		}
+	}
+
+	CUSTOM private SpriteFrame GetSpriteFrame_INTERNAL()
+	{
+		return Scripting::ScriptingWrapperFor(self->GetSpriteFrame());
+	}
+
+	CUSTOM private void SetSpriteFrame_INTERNAL(SpriteFrame spriteFrame)
+	{
+		self->SetSpriteFrame(spriteFrame);
+	}
+
+
+
+END
+
+CSRAW
+}
+#endif //ENABLE_SPRITES

@@ -1,0 +1,131 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Camera/Camera.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Camera/Skybox.h"
+#include "Runtime/Graphics/LightmapSettings.h"
+#include "Runtime/Filters/Renderer.h"
+#include "Runtime/Camera/IntermediateRenderer.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Shaders/Material.h"
+#include "Runtime/Filters/Misc/TextMesh.h"
+#include "Runtime/Shaders/Shader.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Camera/LightManager.h"
+#include "Runtime/Misc/QualitySettings.h"
+#include "Runtime/Camera/RenderSettings.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+
+#include <list>
+#include <vector>
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// Script interface for [[wiki:class-Light|light components]].
+CLASS Light : Behaviour
+	// The type of the light.
+	AUTO_PROP LightType type GetType SetType
+
+	// The color of the light.
+	AUTO_PROP Color color GetColor SetColor
+
+	// The Intensity of a light is multiplied with the Light color.
+	AUTO_PROP float intensity GetIntensity SetIntensity
+	
+	// How this light casts shadows?
+	AUTO_PROP LightShadows shadows GetShadows SetShadows
+	
+	
+	// Strength of light's shadows
+	AUTO_PROP float shadowStrength GetShadowStrength SetShadowStrength
+	
+	
+	// Shadow mapping bias
+	AUTO_PROP float shadowBias GetShadowBias SetShadowBias
+
+
+	// Softness of directional light's soft shadows
+	AUTO_PROP float shadowSoftness GetShadowSoftness SetShadowSoftness
+	
+	
+	// Fadeout speed of directional light's soft shadows
+	AUTO_PROP float shadowSoftnessFade GetShadowSoftnessFade SetShadowSoftnessFade
+	
+
+	
+	// The range of the light.
+	AUTO_PROP float range GetRange SetRange
+
+	// The angle of the light's spotlight cone in degrees.
+	AUTO_PROP float spotAngle GetSpotAngle SetSpotAngle
+	
+	// The cookie texture projected by the light.
+	AUTO_PTR_PROP Texture cookie GetCookie SetCookie
+	
+	// The [[wiki:class-Flare|flare asset]] to use for this light.
+	AUTO_PTR_PROP Flare flare GetFlare SetFlare
+	
+	// How to render the light.
+	AUTO_PROP LightRenderMode renderMode GetRenderMode SetRenderMode
+
+	// Has the light been already lightmapped.
+	AUTO_PROP bool alreadyLightmapped GetActuallyLightmapped SetActuallyLightmapped
+	
+
+	// This is used to light certain objects in the scene selectively.
+	AUTO_PROP int cullingMask GetCullingMask SetCullingMask
+	
+	// The size of the area light. Editor only.
+	CONDITIONAL UNITY_EDITOR
+	AUTO_PROP Vector2 areaSize GetAreaSize SetAreaSize
+
+	FLUSHCONDITIONS
+
+	CSRAW
+#if UNITY_EDITOR
+	[System.Obsolete ("Use QualitySettings.pixelLightCount instead.")]
+#endif
+	CUSTOM_PROP static int pixelLightCount { return GetQualitySettings().GetCurrent().pixelLightCount; } { GetQualitySettings().SetPixelLightCount(value); }
+	
+	//*undocumented For terrain engine only
+	CUSTOM public static Light[] GetLights (LightType type, int layer)
+	{
+		UNITY_TEMP_VECTOR(kMemUtility, Light*) lightsvector;
+			
+		layer = 1 << layer;
+		LightManager::Lights& lights = GetLightManager().GetAllLights();
+		for (LightManager::Lights::iterator i=lights.begin();i != lights.end();i++)
+		{
+			Light* light = &*i;
+			if (!light)
+				continue;
+			if (light->GetType() == type && (light->GetCullingMask() & layer) != 0)
+				lightsvector.push_back(light);
+		}
+		
+		return CreateScriptingArrayFromUnityObjects(lightsvector,ClassIDToScriptingType(ClassID(Light)));
+	}
+	
+	OBSOLETE error light.shadowConstantBias was removed, use light.shadowBias
+	CSRAW public float shadowConstantBias { get { return 0.0f; } set {} }
+	
+	OBSOLETE error light.shadowObjectSizeBias was removed, use light.shadowBias
+	CSRAW public float shadowObjectSizeBias { get { return 0.0f; } set {} }
+	
+	OBSOLETE error light.attenuate was removed; all lights always attenuate now
+	CSRAW public bool attenuate { get { return true; } set {} }
+	
+END
+
+
+CSRAW }

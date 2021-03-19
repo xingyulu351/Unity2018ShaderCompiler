@@ -1,0 +1,7 @@
+{Assemblies:"Tools/DocTools/TestDlls", 
+HtmlOutputRoot:"build/UserDocumentation/html",
+Memfiles:"Documentation/MemberDocs",
+Mem2files:"Documentation/ApiDocs",
+StaticFilesSource:"Tools/DocTools/APIDocumentationGenerator/StaticFiles",
+XSLTSource:"Tools/DocTools/APIDocumentationGenerator/XSLT",
+XmlOutputRoot:"build/temp/UserDocumentation/XML"}

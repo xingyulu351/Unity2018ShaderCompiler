@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AndroidJavaObject</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Dispose" type="function" modifiers="public" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[IDisposable callback.]]></Summary>
+    <Description><![CDATA[Used in conjunction with using() { }]]><br /><br /><![CDATA[See Also: ]]><a href="http://msdn.microsoft.com/en-us/library/system.idisposable.aspx">IDisposable Interface (MSDN)</a></Description>
+  </Section>
+</Model>

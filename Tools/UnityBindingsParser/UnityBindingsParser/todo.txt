@@ -1,0 +1,7 @@
+* documentation content massage
+* ref parameters/arguments for builtin structs in CUSTOM*/AUTO*.
+* overloads for methods with default arguments.
+* #if __MonoCS__/#else for extern properties and extern overrides
+* output visitor separates members nicely.
+* usings cleanup
+* build system integration

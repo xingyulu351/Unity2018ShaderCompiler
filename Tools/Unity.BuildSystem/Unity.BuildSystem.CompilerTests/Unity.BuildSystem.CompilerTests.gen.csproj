@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3744E2F5-EFDE-85D0-8122-13D93EB83116}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Unity.BuildSystem.CompilerTests</RootNamespace>
+    <AssemblyName>Unity.BuildSystem.CompilerTests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>7</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Unity.BuildSystem.CompilerTests\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Unity.BuildSystem.CompilerTests\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="nunit.framework" >
+      <HintPath>..\..\..\External\NUnit\framework\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Moq" >
+      <HintPath>..\..\..\External\Moq\Moq.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="Counter.cs">
+  </Compile>
+  <Compile Include="DeconstructFunctionPointer.cs">
+  </Compile>
+  <Compile Include="Deprecated.cs">
+  </Compile>
+  <Compile Include="ExitCode.cs">
+  </Compile>
+  <Compile Include="Macros.cs">
+  </Compile>
+  <Compile Include="Move.cs">
+  </Compile>
+  <Compile Include="NestedTemplates.cs">
+  </Compile>
+  <Compile Include="NullPtr.cs">
+  </Compile>
+  <Compile Include="OverridingVirtualMethods.cs">
+  </Compile>
+  <Compile Include="Printf.cs">
+  </Compile>
+  <Compile Include="StaticAssert.cs">
+  </Compile>
+  <Compile Include="Attributes\CompilerFeatureDescriptionAttribute.cs">
+  </Compile>
+  <Compile Include="Attributes\CompilerFeatureNameAttribute.cs">
+  </Compile>
+  <Compile Include="Attributes\CompilerTestFailureByDefaultAttribute.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.ARM\Bee.Toolchain.ARM.gen.csproj" >
+      <Project>{5F257235-A850-C839-B32D-58C3DCA44EF2}</Project>
+      <Name>Bee.Toolchain.ARM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.GNU\Bee.Toolchain.GNU.gen.csproj" >
+      <Project>{43AA3E7F-F59A-31EB-DE9E-D8EECCF86A05}</Project>
+      <Name>Bee.Toolchain.GNU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.LLVM\Bee.Toolchain.LLVM.gen.csproj" >
+      <Project>{99B0EFB7-07B2-561C-98F4-38D0E9657EDC}</Project>
+      <Name>Bee.Toolchain.LLVM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Xcode\Bee.Toolchain.Xcode.gen.csproj" >
+      <Project>{0DA4FDDD-0F42-B671-1E68-60758C2B478A}</Project>
+      <Name>Bee.Toolchain.Xcode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.VisualStudio\Bee.Toolchain.VisualStudio.gen.csproj" >
+      <Project>{51BEE503-CEB3-353C-05A2-AD10282AF45F}</Project>
+      <Name>Bee.Toolchain.VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Windows\Bee.Toolchain.Windows.gen.csproj" >
+      <Project>{28055389-D1F5-883E-5906-9C9D0B3EC837}</Project>
+      <Name>Bee.Toolchain.Windows</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.UWP\Bee.Toolchain.UWP.gen.csproj" >
+      <Project>{6D51E62D-C2C3-D1EC-2AA1-7ABB9A569A0D}</Project>
+      <Name>Bee.Toolchain.UWP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Lumin\Bee.Toolchain.Lumin.gen.csproj" >
+      <Project>{4671D3FC-2A5A-94B1-12C7-0B8FE3F8F4FB}</Project>
+      <Name>Bee.Toolchain.Lumin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Android\Bee.Toolchain.Android.gen.csproj" >
+      <Project>{2114809A-5983-FF72-2A45-68C4761946AF}</Project>
+      <Name>Bee.Toolchain.Android</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Emscripten\Bee.Toolchain.Emscripten.gen.csproj" >
+      <Project>{31CCB3B8-DAAE-649D-CA8E-F07D2209822C}</Project>
+      <Name>Bee.Toolchain.Emscripten</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.IOS\Bee.Toolchain.IOS.gen.csproj" >
+      <Project>{8382CE0B-D08E-B868-0451-A4123A7F78D3}</Project>
+      <Name>Bee.Toolchain.IOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Linux\Bee.Toolchain.Linux.gen.csproj" >
+      <Project>{8E22493B-E96A-6A05-6DFD-45CC6223C242}</Project>
+      <Name>Bee.Toolchain.Linux</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.MacOS\Bee.Toolchain.MacOS.gen.csproj" >
+      <Project>{CB6D7EFE-308A-4370-04CB-4AECEAECB576}</Project>
+      <Name>Bee.Toolchain.MacOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.TvOS\Bee.Toolchain.TvOS.gen.csproj" >
+      <Project>{7FB7F452-6417-A7B5-C58E-A9F4BD9ABCB8}</Project>
+      <Name>Bee.Toolchain.TvOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Emscripten.Unity\Bee.Toolchain.Emscripten.Unity.gen.csproj" >
+      <Project>{FE860853-9C0F-854D-FE07-B27C06B82873}</Project>
+      <Name>Bee.Toolchain.Emscripten.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Linux.Unity\Bee.Toolchain.Linux.Unity.gen.csproj" >
+      <Project>{EC5B5216-2097-E082-B8F5-3CEB18C5A0D2}</Project>
+      <Name>Bee.Toolchain.Linux.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.MacOS.Unity\Bee.Toolchain.MacOS.Unity.gen.csproj" >
+      <Project>{3F4AAF88-6873-1FBD-FE48-9303424B1E75}</Project>
+      <Name>Bee.Toolchain.MacOS.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\PS4\Bee.Toolchain.PS4\Bee.Toolchain.PS4.gen.csproj" >
+      <Project>{5D216BA1-77DB-AE38-9995-1809BD2BE06B}</Project>
+      <Name>Bee.Toolchain.PS4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\Switch\Bee.Toolchain.Switch\Bee.Toolchain.Switch.gen.csproj" >
+      <Project>{C932E6DD-A54B-2DA7-ADD3-E49654164642}</Project>
+      <Name>Bee.Toolchain.Switch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\XboxOne\Bee.Toolchain.XboxOne\Bee.Toolchain.XboxOne.gen.csproj" >
+      <Project>{B0B1285F-0600-5B65-8873-BE47759EFBAE}</Project>
+      <Name>Bee.Toolchain.XboxOne</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.ProgramRunner.CLI\Bee.ProgramRunner.CLI.gen.csproj" >
+      <Project>{27CC708C-3CD1-C0F9-E6BB-3AC650CC433C}</Project>
+      <Name>Bee.ProgramRunner.CLI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.StandaloneDriver\Bee.StandaloneDriver.gen.csproj" >
+      <Project>{A9EE224F-E0CA-BD1A-88F6-1AEB66AC9AF7}</Project>
+      <Name>Bee.StandaloneDriver</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.StandaloneDriver.Tests\Bee.StandaloneDriver.Tests.gen.csproj" >
+      <Project>{F67BB871-B052-94EE-D74F-FF536866074D}</Project>
+      <Name>Bee.StandaloneDriver.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.gen.csproj" >
+      <Project>{821B9927-8824-7A63-753A-B0722FEA2C3D}</Project>
+      <Name>NiceIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools\Bee.Tools.gen.csproj" >
+      <Project>{0A5A7B4F-EB80-9EEF-1943-D14B1AE24DB8}</Project>
+      <Name>Bee.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Core\Bee.NativeProgramSupport.Core.gen.csproj" >
+      <Project>{02A115F7-1A56-6F66-87E4-10A346B2744E}</Project>
+      <Name>Bee.NativeProgramSupport.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Running\Bee.NativeProgramSupport.Running.gen.csproj" >
+      <Project>{D845801D-3932-542C-0FB6-EF44CB3D78CF}</Project>
+      <Name>Bee.NativeProgramSupport.Running</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Building\Bee.NativeProgramSupport.Building.gen.csproj" >
+      <Project>{BCDC99E7-042A-BE8B-012F-156C52B915D9}</Project>
+      <Name>Bee.NativeProgramSupport.Building</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core\Bee.Core.gen.csproj" >
+      <Project>{7FB12158-1066-6DF7-CDB5-E7F236032555}</Project>
+      <Name>Bee.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TundraBackend.Tests\Bee.TundraBackend.Tests.gen.csproj" >
+      <Project>{0A63C61A-D7C3-C75A-76BA-AB1E6F7D1A24}</Project>
+      <Name>Bee.TundraBackend.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.ToolchainTestInfrastructure\Bee.ToolchainTestInfrastructure.gen.csproj" >
+      <Project>{387FF0B6-AAD1-813E-BEE0-FECF0F56CB1B}</Project>
+      <Name>Bee.ToolchainTestInfrastructure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.VisualStudio.Tests\Bee.Toolchain.VisualStudio.Tests.gen.csproj" >
+      <Project>{27320CEC-05F0-DA9C-5C1E-68B23E88310D}</Project>
+      <Name>Bee.Toolchain.VisualStudio.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Windows.Tests\Bee.Toolchain.Windows.Tests.gen.csproj" >
+      <Project>{22AF1F47-0D20-59DE-3B7A-84D7A8680A8D}</Project>
+      <Name>Bee.Toolchain.Windows.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.UWP.Tests\Bee.Toolchain.UWP.Tests.gen.csproj" >
+      <Project>{64F73D78-54D6-2A30-CD98-CF80F3082C02}</Project>
+      <Name>Bee.Toolchain.UWP.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Lumin.Tests\Bee.Toolchain.Lumin.Tests.gen.csproj" >
+      <Project>{5CAD5E6C-530E-AE65-2D38-E71ACF8CC196}</Project>
+      <Name>Bee.Toolchain.Lumin.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Android.Tests\Bee.Toolchain.Android.Tests.gen.csproj" >
+      <Project>{17DA9C9C-D7EC-437A-E36E-C27ACA479402}</Project>
+      <Name>Bee.Toolchain.Android.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Emscripten.Tests\Bee.Toolchain.Emscripten.Tests.gen.csproj" >
+      <Project>{9D2DCA31-236E-13AC-62C9-FBA9CDCD47E0}</Project>
+      <Name>Bee.Toolchain.Emscripten.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.IOS.Tests\Bee.Toolchain.IOS.Tests.gen.csproj" >
+      <Project>{ED62B19B-4FA5-31D6-97B1-3E2EADACEDF1}</Project>
+      <Name>Bee.Toolchain.IOS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Linux.Tests\Bee.Toolchain.Linux.Tests.gen.csproj" >
+      <Project>{FA8A6902-0F58-4849-719C-0959AB044E65}</Project>
+      <Name>Bee.Toolchain.Linux.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.MacOS.Tests\Bee.Toolchain.MacOS.Tests.gen.csproj" >
+      <Project>{23809E59-DC7C-8EB9-08A1-60C4A7E986D0}</Project>
+      <Name>Bee.Toolchain.MacOS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.TvOS.Tests\Bee.Toolchain.TvOS.Tests.gen.csproj" >
+      <Project>{3420E261-0942-A9F0-3155-53DB25981ED0}</Project>
+      <Name>Bee.Toolchain.TvOS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Emscripten.Unity.Tests\Bee.Toolchain.Emscripten.Unity.Tests.gen.csproj" >
+      <Project>{232B942B-5780-6C9F-8D63-FF2B3216D5E8}</Project>
+      <Name>Bee.Toolchain.Emscripten.Unity.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Linux.Unity.Tests\Bee.Toolchain.Linux.Unity.Tests.gen.csproj" >
+      <Project>{6004F0BE-B518-7214-7A3A-4E961C2132B9}</Project>
+      <Name>Bee.Toolchain.Linux.Unity.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.MacOS.Unity.Tests\Bee.Toolchain.MacOS.Unity.Tests.gen.csproj" >
+      <Project>{27C39A04-6BC2-AD3B-B7BE-B43990B828BE}</Project>
+      <Name>Bee.Toolchain.MacOS.Unity.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\PS4\Bee.Toolchain.PS4.Tests\Bee.Toolchain.PS4.Tests.gen.csproj" >
+      <Project>{EA749C95-A1B3-57A3-0370-817AFE407F2D}</Project>
+      <Name>Bee.Toolchain.PS4.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\Switch\Bee.Toolchain.Switch.Tests\Bee.Toolchain.Switch.Tests.gen.csproj" >
+      <Project>{1DA5217B-AE11-6289-E4B6-E38A7DA603B7}</Project>
+      <Name>Bee.Toolchain.Switch.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\XboxOne\Bee.Toolchain.XboxOne.Tests\Bee.Toolchain.XboxOne.Tests.gen.csproj" >
+      <Project>{BD2DC3DB-5BF7-4EC9-09FB-E5A6BA4F6B92}</Project>
+      <Name>Bee.Toolchain.XboxOne.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.Tests\NiceIO.Tests.gen.csproj" >
+      <Project>{0226786E-32B0-BD1F-C263-2AE906917131}</Project>
+      <Name>NiceIO.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Building.Tests\Bee.NativeProgramSupport.Building.Tests.gen.csproj" >
+      <Project>{182403F1-BAFE-3A60-BCD3-3681FC59A7AC}</Project>
+      <Name>Bee.NativeProgramSupport.Building.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core.Tests\Bee.Core.Tests.gen.csproj" >
+      <Project>{1B2C559D-AB10-5F05-8048-95E4A95BB33A}</Project>
+      <Name>Bee.Core.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore\Bee.Stevedore.gen.csproj" >
+      <Project>{62ED546F-A811-D28C-3694-1342EF18FD27}</Project>
+      <Name>Bee.Stevedore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program\Bee.Stevedore.Program.gen.csproj" >
+      <Project>{74E29FE0-0493-43E5-B53D-B1280F9ECDC0}</Project>
+      <Name>Bee.Stevedore.Program</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet\Bee.DotNet.gen.csproj" >
+      <Project>{2E85F509-C5FC-E315-F060-A392C39587BD}</Project>
+      <Name>Bee.DotNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport\Bee.CSharpSupport.gen.csproj" >
+      <Project>{52FFA209-FBF3-6B09-42BC-6919C343AC93}</Project>
+      <Name>Bee.CSharpSupport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TundraBackend\Bee.TundraBackend.gen.csproj" >
+      <Project>{4B2F375D-1D76-9CCE-4C40-4FA81738EFF3}</Project>
+      <Name>Bee.TundraBackend</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Why\Bee.Why.gen.csproj" >
+      <Project>{D02F44AD-DD15-4FF4-027D-FCF7DD33BE4A}</Project>
+      <Name>Bee.Why</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TestHelpers\Bee.TestHelpers.gen.csproj" >
+      <Project>{B0875520-0C80-E536-A85E-3CBF3BE18E2C}</Project>
+      <Name>Bee.TestHelpers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet.Tests\Bee.DotNet.Tests.gen.csproj" >
+      <Project>{EBEE5F98-C7CC-60BE-ABC9-3651D6D1EB57}</Project>
+      <Name>Bee.DotNet.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport.Tests\Bee.CSharpSupport.Tests.gen.csproj" >
+      <Project>{B2971572-9317-1472-BDAF-1D0EF01B55F5}</Project>
+      <Name>Bee.CSharpSupport.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Why.Tests\Bee.Why.Tests.gen.csproj" >
+      <Project>{5063FDF8-740B-A80C-F569-A4016F6D74BC}</Project>
+      <Name>Bee.Why.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Tests\Bee.Stevedore.Tests.gen.csproj" >
+      <Project>{9EE9C4B3-1A70-8DD9-F4C1-E51C69CC08A2}</Project>
+      <Name>Bee.Stevedore.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program.Tests\Bee.Stevedore.Program.Tests.gen.csproj" >
+      <Project>{CF1D1FCE-75BC-882A-2955-B35D2D4B6D45}</Project>
+      <Name>Bee.Stevedore.Program.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.VisualStudio.Tests\Bee.Toolchain.VisualStudio.Tests.gen.csproj" >
+      <Project>{27320CEC-05F0-DA9C-5C1E-68B23E88310D}</Project>
+      <Name>Bee.Toolchain.VisualStudio.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Windows.Tests\Bee.Toolchain.Windows.Tests.gen.csproj" >
+      <Project>{22AF1F47-0D20-59DE-3B7A-84D7A8680A8D}</Project>
+      <Name>Bee.Toolchain.Windows.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.UWP.Tests\Bee.Toolchain.UWP.Tests.gen.csproj" >
+      <Project>{64F73D78-54D6-2A30-CD98-CF80F3082C02}</Project>
+      <Name>Bee.Toolchain.UWP.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Lumin.Tests\Bee.Toolchain.Lumin.Tests.gen.csproj" >
+      <Project>{5CAD5E6C-530E-AE65-2D38-E71ACF8CC196}</Project>
+      <Name>Bee.Toolchain.Lumin.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Android.Tests\Bee.Toolchain.Android.Tests.gen.csproj" >
+      <Project>{17DA9C9C-D7EC-437A-E36E-C27ACA479402}</Project>
+      <Name>Bee.Toolchain.Android.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Emscripten.Tests\Bee.Toolchain.Emscripten.Tests.gen.csproj" >
+      <Project>{9D2DCA31-236E-13AC-62C9-FBA9CDCD47E0}</Project>
+      <Name>Bee.Toolchain.Emscripten.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.IOS.Tests\Bee.Toolchain.IOS.Tests.gen.csproj" >
+      <Project>{ED62B19B-4FA5-31D6-97B1-3E2EADACEDF1}</Project>
+      <Name>Bee.Toolchain.IOS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Linux.Tests\Bee.Toolchain.Linux.Tests.gen.csproj" >
+      <Project>{FA8A6902-0F58-4849-719C-0959AB044E65}</Project>
+      <Name>Bee.Toolchain.Linux.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.MacOS.Tests\Bee.Toolchain.MacOS.Tests.gen.csproj" >
+      <Project>{23809E59-DC7C-8EB9-08A1-60C4A7E986D0}</Project>
+      <Name>Bee.Toolchain.MacOS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.TvOS.Tests\Bee.Toolchain.TvOS.Tests.gen.csproj" >
+      <Project>{3420E261-0942-A9F0-3155-53DB25981ED0}</Project>
+      <Name>Bee.Toolchain.TvOS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Emscripten.Unity.Tests\Bee.Toolchain.Emscripten.Unity.Tests.gen.csproj" >
+      <Project>{232B942B-5780-6C9F-8D63-FF2B3216D5E8}</Project>
+      <Name>Bee.Toolchain.Emscripten.Unity.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Linux.Unity.Tests\Bee.Toolchain.Linux.Unity.Tests.gen.csproj" >
+      <Project>{6004F0BE-B518-7214-7A3A-4E961C2132B9}</Project>
+      <Name>Bee.Toolchain.Linux.Unity.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.MacOS.Unity.Tests\Bee.Toolchain.MacOS.Unity.Tests.gen.csproj" >
+      <Project>{27C39A04-6BC2-AD3B-B7BE-B43990B828BE}</Project>
+      <Name>Bee.Toolchain.MacOS.Unity.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\PS4\Bee.Toolchain.PS4.Tests\Bee.Toolchain.PS4.Tests.gen.csproj" >
+      <Project>{EA749C95-A1B3-57A3-0370-817AFE407F2D}</Project>
+      <Name>Bee.Toolchain.PS4.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\Switch\Bee.Toolchain.Switch.Tests\Bee.Toolchain.Switch.Tests.gen.csproj" >
+      <Project>{1DA5217B-AE11-6289-E4B6-E38A7DA603B7}</Project>
+      <Name>Bee.Toolchain.Switch.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\XboxOne\Bee.Toolchain.XboxOne.Tests\Bee.Toolchain.XboxOne.Tests.gen.csproj" >
+      <Project>{BD2DC3DB-5BF7-4EC9-09FB-E5A6BA4F6B92}</Project>
+      <Name>Bee.Toolchain.XboxOne.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.ProgramRunner.CLI.Tests\Bee.ProgramRunner.CLI.Tests.gen.csproj" >
+      <Project>{67C5B162-DD6B-ED79-FAB4-070C0839C666}</Project>
+      <Name>Bee.ProgramRunner.CLI.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.StandaloneDriver.Tests\Bee.StandaloneDriver.Tests.gen.csproj" >
+      <Project>{F67BB871-B052-94EE-D74F-FF536866074D}</Project>
+      <Name>Bee.StandaloneDriver.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.Tests\NiceIO.Tests.gen.csproj" >
+      <Project>{0226786E-32B0-BD1F-C263-2AE906917131}</Project>
+      <Name>NiceIO.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools.Tests\Bee.Tools.Tests.gen.csproj" >
+      <Project>{32028B78-8584-9BBF-9CAA-15E229FAB89B}</Project>
+      <Name>Bee.Tools.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Running.Tests\Bee.NativeProgramSupport.Running.Tests.gen.csproj" >
+      <Project>{7D8A0862-B221-C020-C426-5D1E1A5F1F7B}</Project>
+      <Name>Bee.NativeProgramSupport.Running.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Building.Tests\Bee.NativeProgramSupport.Building.Tests.gen.csproj" >
+      <Project>{182403F1-BAFE-3A60-BCD3-3681FC59A7AC}</Project>
+      <Name>Bee.NativeProgramSupport.Building.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core.Tests\Bee.Core.Tests.gen.csproj" >
+      <Project>{1B2C559D-AB10-5F05-8048-95E4A95BB33A}</Project>
+      <Name>Bee.Core.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Tests\Bee.Stevedore.Tests.gen.csproj" >
+      <Project>{9EE9C4B3-1A70-8DD9-F4C1-E51C69CC08A2}</Project>
+      <Name>Bee.Stevedore.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program.Tests\Bee.Stevedore.Program.Tests.gen.csproj" >
+      <Project>{CF1D1FCE-75BC-882A-2955-B35D2D4B6D45}</Project>
+      <Name>Bee.Stevedore.Program.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet.Tests\Bee.DotNet.Tests.gen.csproj" >
+      <Project>{EBEE5F98-C7CC-60BE-ABC9-3651D6D1EB57}</Project>
+      <Name>Bee.DotNet.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport.Tests\Bee.CSharpSupport.Tests.gen.csproj" >
+      <Project>{B2971572-9317-1472-BDAF-1D0EF01B55F5}</Project>
+      <Name>Bee.CSharpSupport.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TundraBackend.Tests\Bee.TundraBackend.Tests.gen.csproj" >
+      <Project>{0A63C61A-D7C3-C75A-76BA-AB1E6F7D1A24}</Project>
+      <Name>Bee.TundraBackend.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Why.Tests\Bee.Why.Tests.gen.csproj" >
+      <Project>{5063FDF8-740B-A80C-F569-A4016F6D74BC}</Project>
+      <Name>Bee.Why.Tests</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

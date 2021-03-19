@@ -1,0 +1,689 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Input/InputManager.h"
+#include "Runtime/Input/GetInput.h"
+#include "Runtime/Input/LocationService.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+
+#if SUPPORT_REPRODUCE_LOG
+#include "Runtime/Misc/ReproductionLog.h"
+#endif
+
+using namespace Unity;
+
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+
+// Describes phase of a finger touch.
+ENUM TouchPhase
+	// A finger touched the screen.
+	Began = 0,
+	// A finger moved on the screen.
+	Moved = 1,
+	// A finger is touching the screen but hasn't moved.
+	Stationary = 2,
+	// A finger was lifted from the screen. This is the final phase of a touch.
+	Ended = 3,
+	// The system cancelled tracking for the touch, as when (for example) the user puts the device to her face or more than five touches happened simultaneously. This is the final phase of a touch.
+	Canceled = 4
+END
+
+// Controls IME input
+ENUM IMECompositionMode
+	// Enable IME input only when a text field is selected (default).
+	Auto = 0,
+	// Enable IME input.
+	On = 1,
+	// Disable IME input.
+	Off = 2
+END
+
+// Structure describing status of a finger touching the screen.
+STRUCT Touch
+	CSRAW
+	private int m_FingerId;
+	private Vector2 m_Position;
+#if ENABLE_NEW_EVENT_SYSTEM
+	private Vector2 m_OldPosition;
+	private Vector2 m_PositionDelta;
+	private Vector2 m_ScrollDelta;
+	private Vector3 m_WorldPosition;
+	private float m_TimeDelta;
+	private int m_TapCount;
+	private TouchPhase m_Phase;
+	private IntPtr m_Hover;
+	private IntPtr m_Press;
+#else
+	private Vector2 m_PositionDelta;
+	private float m_TimeDelta;
+	private int m_TapCount;
+	private TouchPhase m_Phase;
+#endif
+		
+	// The unique index for touch.
+	CSRAW public int fingerId { get { return m_FingerId; } }
+
+	// The position of the touch.
+	CSRAW public Vector2 position { get { return m_Position; } }
+
+	// The position delta since last change.
+	CSRAW public Vector2 deltaPosition { get { return m_PositionDelta; } }
+
+	// The scroll delta position. X = horizontal, Y = vertical.
+	CONDITIONAL ENABLE_NEW_EVENT_SYSTEM
+	CSRAW public Vector2 deltaScroll { get { return m_ScrollDelta; } }
+
+	// The world position of the touch (raycast into the screen hitting a collider).
+	CONDITIONAL ENABLE_NEW_EVENT_SYSTEM
+	public Vector3 worldPosition { get { return m_WorldPosition; } }
+
+	// Amount of time passed since last change.
+	CSRAW public float deltaTime { get { return m_TimeDelta; } }
+
+	// Number of taps.
+	CSRAW public int tapCount { get { return m_TapCount; } }
+
+	// Describes the phase of the touch.
+	CSRAW public TouchPhase phase { get { return m_Phase; } }
+
+	CUSTOM static private GameObject Internal_GetPtr (IntPtr ptr) { return Scripting::ScriptingWrapperFor((GameObject*)ptr); }
+
+	// The object the mouse is hovering over (only works for mouse events)
+	CONDITIONAL ENABLE_NEW_EVENT_SYSTEM
+	CSRAW public GameObject hoveredObject { get { return Internal_GetPtr(m_Hover); } }
+
+	// The object this mouse or touch has pressed on
+	CONDITIONAL ENABLE_NEW_EVENT_SYSTEM
+	CSRAW public GameObject pressedObject { get { return Internal_GetPtr(m_Press); } }
+END
+
+// Describes physical orientation of the device as determined by the OS.
+ENUM DeviceOrientation
+	// The orientation of the device cannot be determined.
+	Unknown = 0,
+	// The device is in portrait mode, with the device held upright and the home button at the bottom.
+	Portrait = 1,
+	// The device is in portrait mode but upside down, with the device held upright and the home button at the top.
+	PortraitUpsideDown = 2,
+	// The device is in landscape mode, with the device held upright and the home button on the right side.
+	LandscapeLeft = 3,
+	// The device is in landscape mode, with the device held upright and the home button on the left side.
+	LandscapeRight = 4,
+	// The device is held parallel to the ground with the screen facing upwards.
+	FaceUp = 5,
+	// The device is held parallel to the ground with the screen facing downwards.
+	FaceDown = 6
+END
+
+// Structure describing acceleration status of the device.
+STRUCT AccelerationEvent
+	CSRAW private Vector3 m_Acceleration;
+	CSRAW private float m_TimeDelta;
+
+	// Value of acceleration.
+	CSRAW public Vector3 acceleration { get { return m_Acceleration; } }
+
+	// Amount of time passed since last accelerometer measurement.
+	CSRAW public float deltaTime { get { return m_TimeDelta; } }
+END
+
+// Interface into the Gyroscope.
+CLASS Gyroscope
+
+	CSRAW internal Gyroscope(int index) {
+		m_GyroIndex = index;
+	}
+
+	CSRAW private int m_GyroIndex;
+	CUSTOM private static Vector3 rotationRate_Internal(int idx) { return GetGyroRotationRate(idx); }
+	CUSTOM private static Vector3 rotationRateUnbiased_Internal(int idx) { return GetGyroRotationRateUnbiased(idx); }
+	CUSTOM private static Vector3 gravity_Internal(int idx) { return GetGravity(idx); }
+	CUSTOM private static Vector3 userAcceleration_Internal(int idx) { return GetUserAcceleration(idx); }
+	CUSTOM private static Quaternion attitude_Internal(int idx) { return GetAttitude(idx); }
+	CUSTOM private static bool getEnabled_Internal(int idx) { return IsGyroEnabled(idx); }
+	CUSTOM private static void setEnabled_Internal(int idx, bool enabled) { SetGyroEnabled(idx, enabled); }
+	CUSTOM private static float getUpdateInterval_Internal(int idx) { return GetGyroUpdateInterval(idx); }
+	CUSTOM private static void setUpdateInterval_Internal(int idx, float interval) { SetGyroUpdateInterval(idx, interval); }
+
+	// Returns rotation rate as measured by the device's gyroscope.
+	CSRAW public Vector3 rotationRate { get { return rotationRate_Internal(m_GyroIndex); } }
+
+	// Returns unbiased rotation rate as measured by the device's gyroscope.
+	CSRAW public Vector3 rotationRateUnbiased { get { return rotationRateUnbiased_Internal(m_GyroIndex); } }
+
+	// Returns the gravity acceleration vector expressed in the device's reference frame.
+	CSRAW public Vector3 gravity { get { return gravity_Internal(m_GyroIndex); } }
+
+	// Returns the acceleration that the user is giving to the device.
+	CSRAW public Vector3 userAcceleration { get { return userAcceleration_Internal(m_GyroIndex); } }
+
+	// Returns the attitude of the device.
+	CSRAW public Quaternion attitude { get { return attitude_Internal(m_GyroIndex); } }
+
+	// Sets or retrieves status of this gyroscope.
+	CSRAW public bool enabled { get { return getEnabled_Internal(m_GyroIndex); } set { setEnabled_Internal(m_GyroIndex, value); } }
+
+	// Sets or retrieves gyroscope interval in seconds.
+	CSRAW public float updateInterval { get { return getUpdateInterval_Internal(m_GyroIndex); } set { setUpdateInterval_Internal(m_GyroIndex, value); } }
+
+END
+
+// Structure describing device location.
+STRUCT LocationInfo
+	CSRAW private double m_Timestamp;
+	CSRAW private float m_Latitude;
+	CSRAW private float m_Longitude;
+	CSRAW private float m_Altitude;
+	CSRAW private float m_HorizontalAccuracy;
+	CSRAW private float m_VerticalAccuracy;
+
+	// Geographical device location latitude
+	CSRAW public float latitude { get { return m_Latitude; } }
+
+	// Geographical device location latitude
+	CSRAW public float longitude { get { return m_Longitude; } }
+
+	// Geographical device location altitude
+	CSRAW public float altitude { get { return m_Altitude; } }
+
+	// Horizontal accuracy of the location
+	CSRAW public float horizontalAccuracy { get { return m_HorizontalAccuracy; } }
+
+	// Vertical accuracy of the location
+	CSRAW public float verticalAccuracy { get { return m_VerticalAccuracy; } }
+
+	// Timestamp (in seconds since 1970) when location was last time updated
+	CSRAW public double timestamp { get { return m_Timestamp; } }
+END
+
+// Describes location service status.
+ENUM LocationServiceStatus
+	// Location service is stopped.
+	Stopped = 0,
+	// Location service is initializing, some time later it will switch to
+	Initializing = 1,
+	// Location service is running and locations could be queried.
+	Running = 2,
+	// Location service failed (user denied access to location service).
+	Failed = 3
+END
+
+// Interface into location functionality.
+CLASS LocationService
+	// Specifies whether location service is enabled in user settings.
+	CUSTOM_PROP bool isEnabledByUser
+	{
+		return LocationService::IsServiceEnabledByUser ();
+	}
+
+	// Returns location service status.
+	CUSTOM_PROP LocationServiceStatus status
+	{
+		return LocationService::GetLocationStatus ();
+	}
+
+	// Last measured device geographical location.
+	CUSTOM_PROP LocationInfo lastData
+	{
+		if (LocationService::GetLocationStatus () != kLocationServiceRunning)
+			printf_console ("Location service updates are not enabled. Check Handheld.locationServiceStatus before querying last location.\n");
+
+		return LocationService::GetLastLocation ();
+	}
+
+	// Starts location service updates.  Last location coordinates could be
+	CUSTOM void Start (float desiredAccuracyInMeters = 10f, float updateDistanceInMeters = 10f)
+	{
+		LocationService::SetDesiredAccuracy (desiredAccuracyInMeters);
+		LocationService::SetDistanceFilter (updateDistanceInMeters);
+		LocationService::StartUpdatingLocation ();
+	}
+
+	// Stops location service updates. This could be useful for saving battery
+	CUSTOM void Stop ()
+	{
+		LocationService::StopUpdatingLocation ();
+	}
+END
+
+// Interface into compass functionality.
+CLASS Compass
+	// The heading in degrees relative to the magnetic North Pole. 
+	CUSTOM_PROP public float magneticHeading
+	{
+		return LocationService::GetLastHeading().magneticHeading;
+	}
+
+	// The heading in degrees relative to the geographic North Pole. 
+	CUSTOM_PROP public float trueHeading
+	{
+		return LocationService::GetLastHeading().trueHeading;
+	}
+
+	// The raw geomagnetic data measured in microteslas. (RO)
+	CUSTOM_PROP public Vector3 rawVector
+	{
+		return LocationService::GetLastHeading().raw;
+	}
+
+	// Timestamp (in seconds since 1970) when the heading was last time updated. (RO)
+	CUSTOM_PROP public double timestamp
+	{
+		return LocationService::GetLastHeading().timestamp;
+	}
+
+	// Used to enable or disable compass. Note, that if you want @@Input.compass.trueHeading@@ property to contain a valid value, you must also enable location updates by calling @@Input.location.Start()@@.
+	CUSTOM_PROP public bool enabled
+	{
+		return LocationService::IsHeadingUpdatesEnabled();
+	}
+	{
+		LocationService::SetHeadingUpdatesEnabled(value);
+	}
+END
+
+// Interface into the Input system.
+CLASS Input
+
+	CUSTOM private static int mainGyroIndex_Internal() { return GetGyro(); }
+	
+	CONDITIONAL ENABLE_MONO || PLATFORM_WINRT
+	CSRAW private static Gyroscope m_MainGyro = null;
+
+	CUSTOM private static bool GetKeyInt (int key)
+	{
+		if (key > 0 && key < kKeyAndJoyButtonCount)
+			return GetInputManager ().GetKey (key);
+		else if (key == 0)
+			return false;
+		else
+		{
+			RaiseMonoException ("Invalid KeyCode enum.");
+			return false;
+		}
+	}
+
+	CUSTOM private static bool GetKeyString (string name)
+	{
+		string cname = name;
+		int key = StringToKey (cname);
+		if (key != 0)
+			return GetInputManager ().GetKey (key);
+		else
+		{
+			RaiseMonoException ("Input Key named: %s is unknown", cname.c_str());
+			return false;
+		}
+	}
+
+	CUSTOM private static bool GetKeyUpInt (int key)
+	{
+		if (key > 0 && key < kKeyAndJoyButtonCount)
+			return GetInputManager ().GetKeyUp (key);
+		else if (key == 0)
+			return false;
+		else
+		{
+			RaiseMonoException ("Invalid KeyCode enum.");
+			return false;
+		}
+	}
+
+	CUSTOM private static bool GetKeyUpString (string name)
+	{
+		string cname = name;
+		int key = StringToKey (cname);
+		if (key != 0)
+			return GetInputManager ().GetKeyUp (key);
+		else
+		{
+			RaiseMonoException ("Input Key named: %s is unknown", cname.c_str());
+			return false;
+		}
+	}
+
+	CUSTOM private static bool GetKeyDownInt (int key)
+	{
+		if (key > 0 && key < kKeyAndJoyButtonCount)
+			return GetInputManager ().GetKeyDown (key);
+		else if (key == 0)
+			return false;
+		else
+		{
+			RaiseMonoException ("Invalid KeyCode enum.");
+			return false;
+		}
+	}
+
+	CUSTOM private static bool GetKeyDownString (string name)
+	{
+		string cname = name;
+		int key = StringToKey (cname);
+		if (key != 0)
+			return GetInputManager ().GetKeyDown (key);
+		else
+		{
+			RaiseMonoException ("Input Key named: %s is unknown", cname.c_str());
+			return false;
+		}
+	}
+
+	C++RAW
+	static void CheckInputAxis (const string& name, bool button)
+	{
+		#if UNITY_EDITOR
+		if (!GetInputManager ().HasAxisOrButton (name))
+		{
+			if (button)
+				RaiseMonoException ("Input Button %s is not setup.\n To change the input settings use: Edit -> Settings -> Input", name.c_str());	
+			else
+				RaiseMonoException ("Input Axis %s is not setup.\n To change the input settings use: Edit -> Settings -> Input", name.c_str());	
+		}
+			
+		#endif
+	}
+
+
+	// Returns the value of the virtual axis identified by /axisName/.
+	CUSTOM static float GetAxis (string axisName)
+	{
+		string name = axisName;
+		CheckInputAxis (name, false);
+		return GetInputManager ().GetAxis (name);
+	}
+
+
+	// Returns the value of the virtual axis identified by /axisName/ with no smoothing filtering applied.
+	CUSTOM static float GetAxisRaw (string axisName)
+	{
+		string name = axisName;
+		CheckInputAxis (name, false);
+		return GetInputManager ().GetAxisRaw (name);
+	}
+
+	// Returns true while the virtual button identified by /buttonName/ is held down.
+	CUSTOM static bool GetButton (string buttonName)
+	{
+		string name = buttonName;
+		CheckInputAxis (name, true);
+		return GetInputManager ().GetButton (name);
+	}
+
+	// This property controls if input sensors should be compensated for screen orientation.
+	CUSTOM_PROP static bool compensateSensors { return IsCompensatingSensors(); } { SetCompensatingSensors(value); }	
+
+	OBSOLETE warning isGyroAvailable property is deprecated. Please use SystemInfo.supportsGyroscope instead.
+	CUSTOM_PROP static bool isGyroAvailable { return IsGyroAvailable(); }
+
+	// Returns default gyroscope.
+	CONDITIONAL ENABLE_MONO || PLATFORM_WINRT
+	CSRAW public static Gyroscope gyro { get { if (m_MainGyro == null) m_MainGyro = new Gyroscope(mainGyroIndex_Internal()); return m_MainGyro; } }
+
+	// Returns true during the frame the user pressed down the virtual button identified by /buttonName/.
+	CUSTOM static bool GetButtonDown (string buttonName)
+	{
+		string name = buttonName;
+		CheckInputAxis (name, true);
+		return GetInputManager ().GetButtonDown (name);
+	}
+
+	// Returns true the first frame the user releases the virtual button identified by /buttonName/.
+	CUSTOM static bool GetButtonUp (string buttonName)
+	{
+		string name = buttonName;
+		CheckInputAxis (name, true);
+		return GetInputManager ().GetButtonUp (name);
+	}
+
+	// Returns true while the user holds down the key identified by /name/. Think auto fire.
+	CSRAW public static bool GetKey (string name)
+	{
+		return GetKeyString(name);
+	}
+
+	// Returns true while the user holds down the key identified by the /key/ [[KeyCode]] enum parameter.
+	CSRAW public static bool GetKey (KeyCode key)
+	{
+		return GetKeyInt((int)key);
+	}
+
+	// Returns true during the frame the user starts pressing down the key identified by /name/.
+	CSRAW public static bool GetKeyDown (string name)
+	{
+		return GetKeyDownString(name);
+	}
+
+	// Returns true during the frame the user starts pressing down the key identified by the /key/ [[KeyCode]] enum parameter.
+	CSRAW public static bool GetKeyDown (KeyCode key)
+	{
+		return GetKeyDownInt((int)key);
+	}
+
+	// Returns true during the frame the user releases the key identified by /name/.
+	CSRAW public static bool GetKeyUp (string name)
+	{
+		return GetKeyUpString(name);
+	}
+
+	// Returns true during the frame the user releases the key identified by the /key/ [[KeyCode]] enum parameter.
+	CSRAW public static bool GetKeyUp (KeyCode key)
+	{
+		return GetKeyUpInt((int)key);
+	}
+
+	
+	// Returns an array of strings describing the connected joysticks.
+	CONDITIONAL ENABLE_MONO || PLATFORM_METRO
+	CUSTOM static string[] GetJoystickNames()
+	{
+		std::vector<std::string> names;
+		
+		#if !PLATFORM_IPHONE
+		GetJoystickNames(names);
+		#endif
+		return StringVectorToScripting(names);
+	}
+
+	// Returns whether the given mouse button is held down.
+	CUSTOM static bool GetMouseButton (int button)
+	{
+		return GetInputManager ().GetMouseButton (button);
+	}
+
+	// Returns true during the frame the user pressed the given mouse button.
+	CUSTOM static bool GetMouseButtonDown (int button)
+	{
+		return GetInputManager ().GetMouseButtonDown (button);
+	}
+
+	// Returns true during the frame the user releases the given mouse button.
+	CUSTOM static bool GetMouseButtonUp (int button)
+	{
+		return GetInputManager ().GetMouseButtonUp (button);
+	}
+	
+	// Resets all input. After ResetInputAxes all axes return to 0 and all buttons return to 0 for one frame. 
+	CUSTOM static void ResetInputAxes () { ResetInput(); }
+	
+	// The current mouse position in pixel coordinates. (RO)
+	CUSTOM_PROP static Vector3 mousePosition
+	{
+		Vector2f p = GetInputManager ().GetMousePosition();
+		return Vector3f (p.x, p.y, 0.0F);
+	}	
+	
+
+	CUSTOM_PROP static bool mousePresent
+	{
+		#if PLATFORM_METRO
+			return GetMousePresent();
+		#else
+			return true;
+		#endif
+	}
+	
+	CUSTOM_PROP static bool simulateMouseWithTouches
+	{
+		return GetInputManager ().GetSimulateMouseWithTouches();
+	}
+	{
+		GetInputManager ().SetSimulateMouseWithTouches(value);
+	}
+	// Is any key or mouse button currently held down? (RO)
+	CUSTOM_PROP static bool anyKey { return GetInputManager ().GetAnyKey (); }
+	
+	// Returns true the first frame the user hits any key or mouse button. (RO)
+	CUSTOM_PROP static bool anyKeyDown { return GetInputManager ().GetAnyKeyThisFrame (); }
+	
+	// Returns the keyboard input entered this frame. (RO)
+	CUSTOM_PROP static string inputString { return CreateScriptingString (GetInputManager ().GetInputString ()); }
+
+	// Last measured linear acceleration of a device in three-dimensional space. (RO)
+	
+	CUSTOM_PROP static Vector3 acceleration { return GetAcceleration (); }
+
+	// Returns list of acceleration measurements which occurred during the last frame. (RO) (Allocates temporary variables)
+	
+	CSRAW public static AccelerationEvent[] accelerationEvents { get {
+			int count = accelerationEventCount;
+			AccelerationEvent[] events = new AccelerationEvent[count];
+			for (int q = 0; q < count; ++q)
+				events[q] = GetAccelerationEvent (q);
+			return events;
+		}
+	}
+
+	// Returns specific acceleration measurement which occurred during last frame. (Does not allocate temporary variables)
+	
+	CUSTOM static AccelerationEvent GetAccelerationEvent (int index)
+	{
+		Acceleration acc;
+		if (index >= 0 && index < GetAccelerationCount ())
+			GetAcceleration (index, acc);
+		else
+			RaiseMonoException ("Index out of bounds.");
+		return acc;
+	}
+	// Number of acceleration measurements which occurred during last frame.
+	
+	CUSTOM_PROP static int accelerationEventCount { return GetAccelerationCount (); }
+
+	// Returns list of objects representing status of all touches during last frame. (RO) (Allocates temporary variables)
+	
+	CSRAW public static Touch[] touches { get {
+			int count = touchCount;
+			Touch[] touches = new Touch[count];
+			for (int q = 0; q < count; ++q)
+				touches[q] = GetTouch (q);
+			return touches;
+		}
+	}
+	
+	// Returns object representing status of a specific touch. (Does not allocate temporary variables)
+	CUSTOM static Touch GetTouch (int index)
+	{
+	#if ENABLE_NEW_EVENT_SYSTEM
+		if (index >= 0 && index < GetTouchCount ())
+		{
+			Touch* t = GetTouch(index);
+
+			if (t != NULL)
+			{
+				return *t;
+			}
+			else
+			{
+				RaiseMonoException ("GetTouch() failed!");
+			}
+		}
+		else
+		{
+			RaiseMonoException ("Index specified to GetTouch() is out of bounds! Must be less than Touch.touchCount.");
+		}
+		Touch dummy;
+		return dummy;
+	#else
+		Touch touch;
+
+		if (index >= 0 && index < GetTouchCount ())
+		{
+			if (!GetTouch (index, touch))
+				RaiseMonoException ("Internal error.");
+		}
+		else
+			RaiseMonoException ("Index out of bounds.");
+		return touch;
+	#endif //ENABLE_NEW_EVENT_SYSTEM
+	}
+	
+	// Number of touches. Guaranteed not to change throughout the frame. (RO)
+	
+	CUSTOM_PROP static int touchCount { return GetTouchCount (); }
+
+	OBSOLETE warning eatKeyPressOnTextFieldFocus property is deprecated, and only provided to support legacy behavior. 
+	// Property indicating whether keypresses are eaten by a textinput if it has focus (default true).
+	CUSTOM_PROP static bool eatKeyPressOnTextFieldFocus  { return GetInputManager().GetEatKeyPressOnTextFieldFocus(); } { return GetInputManager().SetEatKeyPressOnTextFieldFocus(value); }
+		
+	// Property indicating whether the system handles multiple touches.
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	CUSTOM_PROP static bool multiTouchEnabled { return IsMultiTouchEnabled (); } { return SetMultiTouchEnabled (value); }
+
+	CSRAW private static LocationService locationServiceInstance;
+	// Property for accessing device location (handheld devices only). (RO)
+	CSRAW public static LocationService location { get {
+			if (locationServiceInstance == null)
+				locationServiceInstance = new LocationService ();
+
+			return locationServiceInstance;
+		}
+	}
+
+	CSRAW private static Compass compassInstance;
+	// Property for accessing compass (handheld devices only). (RO)
+	CSRAW public static Compass compass { get {
+			if (compassInstance == null)
+				compassInstance = new Compass();
+			return compassInstance;
+		}
+	}
+
+	// Device physical orientation as reported by OS. (RO)
+	CUSTOM_PROP static DeviceOrientation deviceOrientation { return GetOrientation(); }
+	
+	// Controls enabling and disabling of IME input composition.
+	CUSTOM_PROP static IMECompositionMode imeCompositionMode 
+	{ return GetInputManager().GetIMECompositionMode(); }
+	{ GetInputManager().SetIMECompositionMode (value); }
+	
+	// The current IME composition string being typed by the user.
+	CUSTOM_PROP static string compositionString { return CreateScriptingString (GetInputManager ().GetCompositionString ()); }
+	
+	// Indicates if the user has an IME keyboard input source selected.
+	CUSTOM_PROP static bool imeIsSelected { return (GetInputManager().GetIMEIsSelected()); }
+
+	// The current text input position used by IMEs to open windows.
+	CUSTOM_PROP static Vector2 compositionCursorPos 
+	{ return GetInputManager().GetTextFieldCursorPos (); }
+	{ GetInputManager().GetTextFieldCursorPos () = value; }		
+	
+	// Information about the current mouse or touch event, available during OnInput* series of callbacks.
+	//CONDITIONAL ENABLE_NEW_EVENT_SYSTEM
+	//CUSTOM_PROP	static Touch currentTouch { return GetInputManager().GetCurrentTouch(); }
+END
+
+CSRAW }

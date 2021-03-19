@@ -1,0 +1,30 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Animation/Animation.h"
+#include "Runtime/Animation/AnimationClip.h"
+#include "Runtime/Animation/AnimationManager.h"
+#include "Runtime/Animation/AnimationState.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Animation/AnimationCurveUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Mono/MonoScript.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Math/Gradient.h"
+
+using namespace Unity;
+
+
+CSRAW
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// TODO: move Gradient here...
+
+CSRAW } // Namespace

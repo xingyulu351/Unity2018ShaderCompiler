@@ -1,0 +1,10 @@
+
+LICENSE SYSTEM [2016618 0:45:24] No start/stop license dates set
+
+C:\Windows\SYSTEM32\dbghelp.dll:dbghelp.dll (00007FFFCB100000), size: 1622016 (result: 0), SymType: '-exported-', PDB: 'C:\Windows\SYSTEM32\dbghelp.dll', fileVersion: 10.0.10586.0
+
+========== OUTPUTING STACK TRACE ==================
+0x1 (Unity) func1
+0x2 (Unity) func2
+========== END OF STACKTRACE ===========
+

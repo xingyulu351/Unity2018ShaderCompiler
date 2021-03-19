@@ -1,0 +1,157 @@
+{
+  "product-version": {
+    "unity_version": "2018.1.0a3",
+    "revision_date": 1510912387,
+    "branch": "toolsmiths/utr-to-csharp/test-report",
+    "revision": "549cca1a628e",
+    "revisionDateOffset": -3600
+  },
+  "tags": [],
+  "run-test-session-data": {
+    "args": [
+      "--suite=graphics",
+      "--artifacts_path=C:\\Users\\yan\\AppData\\Local\\Temp\\wa8buPAiz8",
+      "--resultsfolder=C:\\Users\\yan\\AppData\\Local\\Temp\\wa8buPAiz8\\Results",
+      "--no-stdout",
+      "--testfilter=001"
+    ]
+  },
+  "agent-info": {
+    "os": "MSWin32",
+    "osVersion": "Microsoft Windows NT 6.2.9200.0",
+    "host": null,
+    "build_agent": false
+  },
+  "build-info": null,
+  "summary": {
+    "suitesCount": 1,
+    "success": false,
+    "time": 4150,
+    "inconclusiveCount": 0,
+    "testsCount": 5,
+    "errorCount": 0,
+    "ignoredCount": 0,
+    "notRunCount": 0,
+    "failedCount": 5,
+    "skippedCount": 0,
+    "successCount": 0,
+    "result": 5
+  },
+  "utrPrefix": "perl utr.pl",
+  "suites": [
+    {
+      "partitionIndex": null,
+      "partitionsId": null,
+      "name": "graphics",
+      "description": "Runnig 'graphics' tests",
+      "artifacts": [
+        "EditorBuild_StandaloneWindows_Gamma-CleanLog.txt",
+        "EditorBuild_StandaloneWindows_Gamma-RawLog.txt",
+        "EditorBuild_StandaloneWindows_Linear-CleanLog.txt",
+        "EditorBuild_StandaloneWindows_Linear-RawLog.txt",
+        "PlayerRun_StandaloneWindows_SingleThreaded_Gamma-RawLog.txt",
+        "PlayerRun_StandaloneWindows_SingleThreaded_Gamma_10005073-PlayerConnectionHistory.txt",
+        "PlayerRun_StandaloneWindows_SingleThreaded_Gamma_Fullscreen-RawLog.txt",
+        "PlayerRun_StandaloneWindows_SingleThreaded_Gamma_Fullscreen_10005247-PlayerConnectionHistory.txt",
+        "PlayerRun_StandaloneWindows_MultiThreaded_Gamma-RawLog.txt",
+        "PlayerRun_StandaloneWindows_MultiThreaded_Gamma_10005294-PlayerConnectionHistory.txt",
+        "PlayerRun_StandaloneWindows_Jobified_Gamma-RawLog.txt",
+        "PlayerRun_StandaloneWindows_Jobified_Gamma_10005340-PlayerConnectionHistory.txt",
+        "PlayerRun_StandaloneWindows_SingleThreaded_Linear-RawLog.txt",
+        "PlayerRun_StandaloneWindows_SingleThreaded_Linear_10005386-PlayerConnectionHistory.txt"
+      ],
+      "tests": [
+        {
+          "time": 1629,
+          "name": "001-AnimProc-StandaloneWindows_SingleThreaded_Gamma",
+          "state": 5,
+          "message": "Images didn't match",
+          "durationMicroseconds": 1629000,
+          "stackTrace": "",
+          "classname": "",
+          "artifacts": [
+            "Results/Failed/d3d9/001-AnimProc.png",
+            "Results/Failed/d3d9/001-AnimProc-correct.png",
+            "Results/Failed/d3d9/001-AnimProc-diff.png"
+          ]
+        },
+        {
+          "time": 403,
+          "name": "001-AnimProc-StandaloneWindows_SingleThreaded_Gamma_Fullscreen",
+          "state": 5,
+          "message": "Images didn't match",
+          "durationMicroseconds": 403000,
+          "stackTrace": "",
+          "classname": "",
+          "artifacts": [
+            "Results/Failed/d3d9/001-AnimProc.png",
+            "Results/Failed/d3d9/001-AnimProc-correct.png",
+            "Results/Failed/d3d9/001-AnimProc-diff.png"
+          ]
+        },
+        {
+          "time": 404,
+          "name": "001-AnimProc-StandaloneWindows_MultiThreaded_Gamma",
+          "state": 5,
+          "message": "Images didn't match",
+          "durationMicroseconds": 404000,
+          "stackTrace": "",
+          "classname": "",
+          "artifacts": [
+            "Results/Failed/d3d9/001-AnimProc.png",
+            "Results/Failed/d3d9/001-AnimProc-correct.png",
+            "Results/Failed/d3d9/001-AnimProc-diff.png"
+          ]
+        },
+        {
+          "time": 404,
+          "name": "001-AnimProc-StandaloneWindows_Jobified_Gamma",
+          "state": 5,
+          "message": "Images didn't match",
+          "durationMicroseconds": 404000,
+          "stackTrace": "",
+          "classname": "",
+          "artifacts": [
+            "Results/Failed/d3d9/001-AnimProc.png",
+            "Results/Failed/d3d9/001-AnimProc-correct.png",
+            "Results/Failed/d3d9/001-AnimProc-diff.png"
+          ]
+        },
+        {
+          "time": 1310,
+          "name": "001-AnimProc-StandaloneWindows_SingleThreaded_Linear",
+          "state": 5,
+          "message": "Images didn't match",
+          "durationMicroseconds": 1310000,
+          "stackTrace": "",
+          "classname": "",
+          "artifacts": [
+            "Results/Failed/d3d9-linear/001-AnimProc.png"
+          ]
+        }
+      ],
+      "failures": [],
+      "summary": {
+        "failureReasons": [],
+        "success": false,
+        "time": 4150,
+        "inconclusiveCount": 0,
+        "testsCount": 5,
+        "errorCount": 0,
+        "ignoredCount": 0,
+        "notRunCount": 0,
+        "failedCount": 5,
+        "skippedCount": 0,
+        "successCount": 0,
+        "result": 5
+      },
+      "minimalCommandLine": [
+        "--resultsfolder=C:\\Users\\yan\\AppData\\Local\\Temp\\wa8buPAiz8\\Results",
+        "--no-stdout",
+        "--testfilter=001"
+      ],
+      "platform": "StandaloneWindows"
+    }
+  ],
+  "platform": null
+}

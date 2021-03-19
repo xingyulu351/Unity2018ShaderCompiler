@@ -1,0 +1,4 @@
+//System.Void UnityEngine.SimpleUnityBindingsType::AInternalCall()
+void Register_UnityEngine_SimpleUnityBindingsType_AInternalCall();
+Register_UnityEngine_SimpleUnityBindingsType_AInternalCall();
+

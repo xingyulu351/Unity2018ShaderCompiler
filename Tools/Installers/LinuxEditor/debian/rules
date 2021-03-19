@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+override_dh_shlibdeps:
+#	dh_shlibdeps -X*/PlaybackEngines/* -X*/BugReporter/* --dpkg-shlibdeps-params=--ignore-missing-info
+	echo "Not running shlibdeps as we've overridden dh_shlibdeps to do nothing."
+
+override_dh_strip:
+	echo "Not stripping anything as we've overridden dh_strip to do nothing."
+
+%:
+	dh $@

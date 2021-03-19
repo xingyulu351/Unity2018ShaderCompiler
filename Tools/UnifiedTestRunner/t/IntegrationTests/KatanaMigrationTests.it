@@ -1,0 +1,33 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath);
+use RunTests qw (runTests isEmptyFolder);
+
+MigrationMode_ConfigInTheWhiteList:
+{
+    $ENV{'KATANA_ORIGINAL_COMMAND'} = "[]";
+    my ($exitCode, $artifactsPath) = runTests('--suite=docmodel', '--testfilter=Enum', '-config-id=proj0-Test DOCModel - Windows');
+    killEnvVars();
+    is($exitCode, 0);
+    my $suiteRoot = canonpath("$artifactsPath");
+    ok(not isEmptyFolder($suiteRoot));
+}
+
+MigrationMode_ConfigNotInTheWhiteList:
+{
+    $ENV{'KATANA_ORIGINAL_COMMAND'} = '["perl", "-e", "exit (123)"]';
+    my ($exitCode, $artifactsPath) = runTests('--suite=notsupportedbyutr', '-config-id=NonExistingConfig');
+    killEnvVars();
+    is($exitCode >> 8, 123);
+}
+
+done_testing();
+
+sub killEnvVars
+{
+    delete $ENV{'KATANA_ORIGINAL_COMMAND'};
+    delete $ENV{'KATANA_RUNNER_DIR'};
+}

@@ -1,0 +1,13 @@
+The Debian Package unity-editor
+----------------------------
+
+Unity is a flexible and powerful development platform for creating
+multiplatform 3D and 2D games and interactive experiences. It's a
+complete ecosystem for anyone who aims to build a business on creating
+high-end content and connecting to their most loyal and enthusiastic
+players and customers.
+
+This is a package of the Unity Editor for 64-bit Ubuntu; it supports
+Ubuntu 12.04 or newer.
+
+ -- Linux Team <linux-team@unity3d.com>

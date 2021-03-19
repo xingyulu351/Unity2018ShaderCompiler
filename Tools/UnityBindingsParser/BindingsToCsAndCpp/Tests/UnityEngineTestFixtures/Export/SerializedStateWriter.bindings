@@ -1,0 +1,216 @@
+C++RAW
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#if ENABLE_SERIALIZATION_BY_CODEGENERATION
+#include "Runtime/Mono/MonoBehaviourSerialization_ByCodeGeneration.h"
+#endif
+
+CSRAW
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using Object=UnityEngine.Object;
+
+namespace UnityEngine.Serialization
+{
+
+CONDITIONAL ENABLE_SERIALIZATION_BY_CODEGENERATION
+CLASS public SerializedStateWriter : ISerializedStateWriter
+
+	CSRAW public static ISerializedStateWriter Instance = null;
+
+	CSRAW public static void Init()
+	{
+		if(Instance == null)
+			Instance = new SerializedStateWriter();
+	}
+
+	CSRAW public static void SetInstance(ISerializedStateWriter writer)
+	{
+		Instance = writer;
+	}
+
+	CSRAW public void Align()
+	{
+		INTERNAL_Align();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_Align()
+	{
+		NativeExt_MonoBehaviourSerialization_WriterAlign();
+	}
+
+	CSRAW public void WriteByte(byte value)
+	{
+		INTERNAL_WriteByte(value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteByte(byte value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteByte(value);
+	}
+
+	CSRAW public void WriteInt32(int value)
+	{
+		INTERNAL_WriteInt32(value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteInt32(int value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteInt(value);
+	}
+
+	CSRAW public void WriteSingle(float value)
+	{
+		INTERNAL_WriteSingle(value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteSingle(float value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteFloat(value);
+	}
+
+	CSRAW public void WriteDouble(double value)
+	{
+		INTERNAL_WriteDouble(value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteDouble(double value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteDouble(value);
+	}
+
+	CSRAW public void WriteBoolean(bool value)
+	{
+		INTERNAL_WriteBoolean(value ? 1 : 0);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteBoolean(int value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteBool(value);
+	}
+
+	CSRAW public void WriteString(string value)
+	{
+		INTERNAL_WriteString(value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteString(string value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteString(const_cast<char*>(value.ToUTF8().c_str()), value.Length());
+	}
+
+	CSRAW public void WriteUnityEngineObject(object value)
+	{
+		if(typeof(UnityEngine.Object).IsAssignableFrom(value.GetType()))
+			INTERNAL_WriteUnityEngineObject(((UnityEngine.Object)value).GetInstanceID());
+		else
+			throw new NotImplementedException("WriteUnityEngineObject on " + value.GetType().Name + " is not supported");
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteUnityEngineObject(int value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteUnityEngineObject(value);
+	}
+
+	CSRAW public void WriteIDeserializable(object value, Type type)
+	{
+		throw new NotImplementedException("WriteIDeserializable");
+	}
+
+	CSRAW public void WriteAnimationCurve(object value)
+	{
+		INTERNAL_WriteAnimationCurve((UnityEngine.AnimationCurve)value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteAnimationCurve(AnimationCurve value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteAnimationCurve(value);
+	}
+
+	CSRAW public void WriteGradient(object value)
+	{
+		INTERNAL_WriteGradient((UnityEngine.Gradient)value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteGradient(Gradient value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteGradient(value);
+	}
+
+	CSRAW public void WriteGUIStyle(object value)
+	{
+		INTERNAL_WriteGUIStyle((UnityEngine.GUIStyle)value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteGUIStyle(GUIStyle value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteGUIStyle(value);
+	}
+
+	CSRAW public void WriteRectOffset(object value)
+	{
+		INTERNAL_WriteRectOffset((UnityEngine.RectOffset)value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void INTERNAL_WriteRectOffset(RectOffset value)
+	{
+		NativeExt_MonoBehaviourSerialization_WriteRectOffset(value);
+	}
+		
+	CSRAW public void WriteArrayOfByte(byte[] value)
+	{
+		WriteArrayInternal(value, WriteByte);
+	}
+
+	CSRAW public void WriteListOfByte(List<byte> value)
+	{
+		WriteListInternal(value, WriteByte);
+	}
+
+	CSRAW private void WriteArrayInternal<T>(T[] value, Action<T> writer)
+	{
+		if(value != null)
+		{
+			WriteInt32(value.Length);
+			foreach(var item in value)
+				writer(item);
+		} else
+			WriteInt32(0);
+	}
+
+	CSRAW private void WriteListInternal<T>(List<T> value, Action<T> writer)
+	{
+		if(value != null)
+		{
+			WriteInt32(value.Count);
+			foreach(var item in value)
+				writer(item);
+		} else
+			WriteInt32(0);
+	}
+	
+END
+
+CONDITIONAL !ENABLE_SERIALIZATION_BY_CODEGENERATION && PLATFORM_WINRT
+CLASS public SerializedStateWriter
+	CSRAW public static void SetInstance(ISerializedStateWriter reader)
+	{
+	}
+END
+
+CSRAW
+}

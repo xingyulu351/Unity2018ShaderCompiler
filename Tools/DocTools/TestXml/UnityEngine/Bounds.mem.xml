@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Bounds" type="Struct" namespace="UnityEngine">
+    <section>
+      <summary>Represents an axis aligned bounding box.</summary>
+      <description>An axis-aligned bounding box, or AABB for short, is a box aligned with coordinate axes and fully enclosing
+some object. Because the box is never rotated with respect to the axes, it can be defined by just its
+::ref::center and ::ref::extents, or alternatively by ::ref::min and ::ref::max points.
+
+/Bounds/ is used by [[Collider.bounds]], [[Mesh.bounds]] and [[Renderer.bounds]].</description>
+    </section>
+    <member name="Bounds.SetMinMax" type="Method">
+      <section>
+        <signature><![CDATA[SetMinMax(Vector3,Vector3)]]></signature>
+        <summary>Sets the bounds to the /min/ and /max/ value of the box.</summary>
+        <description>Using this function is faster than assigning /min/ and /max/ separately.</description>
+      </section>
+    </member>
+  </member>
+</doc>

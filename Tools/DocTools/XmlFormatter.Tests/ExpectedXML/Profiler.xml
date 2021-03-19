@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <Section>
+    <Signature>
+      <Declaration name="Profiler" type="class" />
+      <ReturnType />
+    </Signature>
+    <Signature>
+      <Declaration name="Profiler" type="class" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[Controls the ]]><wikilink ref="Profiler">Profiler</wikilink><![CDATA[ from script.]]></Summary>
+    <Description><![CDATA[You can add custom Profiler sections in your scripts with Profiler.BeginSample and Profiler.EndSample.]]><p /><![CDATA[In standalone games, Profiler can dump all profiling information using Profiler.logFile and Profiler.enabled.]]><p /><![CDATA[Profiler is only available in ]]><b>Unity Pro</b><![CDATA[.]]></Description>
+  </Section>
+  <Children>
+    <member id="Profiler.ctor">
+      <name>ctor</name>
+      <summary><![CDATA[]]></summary>
+    </member>
+    <member id="Profiler.AddFramesFromFile">
+      <name>AddFramesFromFile</name>
+      <summary><![CDATA[Displays the recorded profiledata in the profiler.]]></summary>
+    </member>
+    <member id="Profiler.BeginSample">
+      <name>BeginSample</name>
+      <summary><![CDATA[Begin profiling a piece of code with a custom label.]]></summary>
+    </member>
+    <member id="Profiler.EndSample">
+      <name>EndSample</name>
+      <summary><![CDATA[End profiling a piece of code with a custom label.]]></summary>
+    </member>
+    <member id="Profiler.GetRuntimeMemorySize">
+      <name>GetRuntimeMemorySize</name>
+      <summary><![CDATA[Returns the runtime memory usage of the resource.]]></summary>
+    </member>
+    <member id="Profiler.GetMonoHeapSize">
+      <name>GetMonoHeapSize</name>
+      <summary><![CDATA[Returns the size of the mono heap.]]></summary>
+    </member>
+    <member id="Profiler.GetMonoUsedSize">
+      <name>GetMonoUsedSize</name>
+      <summary><![CDATA[Returns the used size from mono.]]></summary>
+    </member>
+    <member id="Profiler.GetTotalAllocatedMemory">
+      <name>GetTotalAllocatedMemory</name>
+      <summary><![CDATA[]]></summary>
+    </member>
+    <member id="Profiler.GetTotalUnusedReservedMemory">
+      <name>GetTotalUnusedReservedMemory</name>
+      <summary><![CDATA[]]></summary>
+    </member>
+    <member id="Profiler.GetTotalReservedMemory">
+      <name>GetTotalReservedMemory</name>
+      <summary><![CDATA[]]></summary>
+    </member>
+    <member id="Profiler._supported">
+      <name>supported</name>
+      <summary><![CDATA[Returns whether the profiler is enabled in the current build. (Read Only)]]></summary>
+    </member>
+    <member id="Profiler._logFile">
+      <name>logFile</name>
+      <summary><![CDATA[Sets profiler output file in built players.]]></summary>
+    </member>
+    <member id="Profiler._enableBinaryLog">
+      <name>enableBinaryLog</name>
+      <summary><![CDATA[Sets profiler output file in built players.]]></summary>
+    </member>
+    <member id="Profiler._enabled">
+      <name>enabled</name>
+      <summary><![CDATA[Enables the Profiler.]]></summary>
+    </member>
+    <member id="Profiler._usedHeapSize">
+      <name>usedHeapSize</name>
+      <summary><![CDATA[Heap size used by the program.]]></summary>
+    </member>
+  </Children>
+</Model>

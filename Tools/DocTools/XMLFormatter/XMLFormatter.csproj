@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4ECBC227-02AC-49E5-8AA7-94F735D7DD64}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XMLFormatter</RootNamespace>
+    <AssemblyName>XMLFormatter</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Cecil">
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net35\Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AncestorGetter.cs" />
+    <Compile Include="ClassMemberCategories.cs" />
+    <Compile Include="ClassPageXMLFormatter.cs" />
+    <Compile Include="MonoDocGenerator.cs" />
+    <Compile Include="DocGenSettings4.cs" />
+    <Compile Include="ElementOutputterXML.cs" />
+    <Compile Include="MemberItemXMLFormatter.cs" />
+    <Compile Include="MemDocOutputterXML.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TocOutputterXML.cs" />
+    <Compile Include="XMLFormatterAsmEntry.cs" />
+    <Compile Include="XMLFormatterExampleBlock.cs" />
+    <Compile Include="XMLFormatterMemberSubsection.cs" />
+    <Compile Include="XMLFormatters.cs" />
+    <Compile Include="XMLGenerator.cs" />
+    <Compile Include="XmlUtils4.cs" />
+    <Compile Include="AssemblyPageXMLFormatter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ScriptRefBase\ScriptRefBase.csproj">
+      <Project>{3944f06c-68f8-41af-8a5d-77a2cb4874c2}</Project>
+      <Name>ScriptRefBase</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnderlyingModel\UnderlyingModel.csproj">
+      <Project>{5888a64b-4e25-401b-8cef-f8692e919704}</Project>
+      <Name>UnderlyingModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnityExampleConverter\cssrc\UnityExampleConverter.csproj">
+      <Project>{7E4C56EB-92B6-41CF-985F-25BB16CBA3A6}</Project>
+      <Name>UnityExampleConverter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Test\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

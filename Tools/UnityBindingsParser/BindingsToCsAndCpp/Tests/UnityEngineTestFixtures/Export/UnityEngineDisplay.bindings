@@ -1,0 +1,125 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Graphics/RenderTexture.h"
+#include "Runtime/Graphics/DisplayManager.h"
+
+CSRAW
+using System;
+using System.Collections;
+
+namespace UnityEngine
+{
+CONDITIONAL !UNITY_FLASH
+CLASS Display
+
+    CSRAW
+    internal IntPtr  nativeDisplay;
+    internal Display(IntPtr nativeDisplay)   { this.nativeDisplay = nativeDisplay; }
+
+
+    CSRAW public int    renderingWidth
+    {
+        get
+        {
+            int w=0, h=0;
+            GetRenderingExtImpl(nativeDisplay, out w, out h);
+            return w;
+        }
+    }
+    CSRAW public int    renderingHeight
+    {
+        get
+        {
+            int w=0, h=0;
+            GetRenderingExtImpl(nativeDisplay, out w, out h);
+            return h;
+        }
+    }
+
+    CSRAW public int    systemWidth
+    {
+        get
+        {
+            int w=0, h=0;
+            GetSystemExtImpl(nativeDisplay, out w, out h);
+            return w;
+        }
+    }
+    CSRAW public int    systemHeight
+    {
+        get
+        {
+            int w=0, h=0;
+            GetSystemExtImpl(nativeDisplay, out w, out h);
+            return h;
+        }
+    }
+
+    CSRAW public RenderBuffer colorBuffer
+    {
+        get
+        {
+            RenderBuffer color, depth;
+            GetRenderingBuffersImpl(nativeDisplay, out color, out depth);
+            return color;
+        }
+    }
+    CSRAW public RenderBuffer depthBuffer
+    {
+        get
+        {
+            RenderBuffer color, depth;
+            GetRenderingBuffersImpl(nativeDisplay, out color, out depth);
+            return depth;
+        }
+    }
+
+    CSRAW public void SetRenderingResolution(int w, int h)
+    {
+        SetRenderingResolutionImpl(nativeDisplay, w, h);
+    }
+
+
+    public static Display[] displays    = new Display[1] { new Display((IntPtr)null) };
+
+    private static Display _mainDisplay = new Display((IntPtr)null);
+    public static Display   main        { get{return _mainDisplay;} }
+
+    CSRAW private static void RecreateDisplays( IntPtr[] nativeDisplay )
+    {
+        Display.displays = new Display[nativeDisplay.Length];
+        for(int i = 0 ; i < nativeDisplay.Length ; ++i)
+            Display.displays[i] = new Display(nativeDisplay[i]);
+
+        _mainDisplay = displays[0];
+    }
+
+
+
+    CUSTOM private static void GetSystemExtImpl(IntPtr nativeDisplay, out int w, out int h)
+    {
+        UnityDisplayManager_DisplaySystemResolution(nativeDisplay,w,h);
+    }
+
+    CUSTOM private static void GetRenderingExtImpl(IntPtr nativeDisplay, out int w, out int h)
+    {
+        UnityDisplayManager_DisplaySystemResolution(nativeDisplay,w,h);
+    }
+
+    CUSTOM private static void GetRenderingBuffersImpl(IntPtr nativeDisplay, out RenderBuffer color, out RenderBuffer depth)
+    {
+        UnityDisplayManager_DisplayRenderingBuffers(nativeDisplay, &color->m_BufferPtr, &depth->m_BufferPtr);
+    }
+
+    CUSTOM private static void SetRenderingResolutionImpl(IntPtr nativeDisplay, int w, int h)
+    {
+        UnityDisplayManager_SetRenderingResolution(nativeDisplay,w,h);
+    }
+
+END
+
+CSRAW }
+

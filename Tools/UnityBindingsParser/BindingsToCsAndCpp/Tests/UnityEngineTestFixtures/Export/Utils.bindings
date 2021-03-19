@@ -1,0 +1,1204 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Graphics/Texture2D.h"
+#include "Runtime/Graphics/ImageConversion.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/Export/WWW.h"
+#include "Runtime/Misc/WWWCached.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "Runtime/Scripting/ScriptingTypes.h"
+#include "Runtime/Scripting/ScriptingManager.h"
+
+#if WEBPLUG
+#include "PlatformDependent/CommonWebPlugin/UnityWebStream.h"
+#include "PlatformDependent/CommonWebPlugin/CompressedFileStreamMemory.h"
+#endif
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Serialize/PersistentManager.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/Utilities/GUID.h"
+#include "Runtime/Misc/CachingManager.h"
+#include "Runtime/Misc/AssetBundleUtility.h"
+
+#if UNITY_EDITOR
+#include "Editor/Src/LicenseInfo.h"
+#endif
+
+#if UNITY_FLASH
+#include "PlatformDependent/FlashSupport/cpp/WWWFlash.h"
+#endif
+
+#if ENABLE_MOVIES
+#include "Runtime/Graphics/MovieTexture.h"
+#endif
+#if ENABLE_AUDIO
+#include "Runtime/Audio/AudioClip.h"
+#endif
+#include "Runtime/Misc/Player.h"
+#include "Runtime/Utilities/PathNameUtility.h"
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace UnityEngine
+{
+#if ENABLE_WWW
+// Simple access to web pages.
+
+CONDITIONAL ENABLE_WWW
+CLASS WWW : IDisposable
+	// We are matching the WWW class here so we can directly access it.
+	CSRAW internal IntPtr m_Ptr;
+
+	C++RAW
+
+	#if ENABLE_WWW
+	inline WWW* GetWWWChecked (ScriptingObjectWithIntPtrField<WWW>& self)
+	{
+		WWW* www = self.GetPtr();
+		
+		if (!www)
+			RaiseNullException("WWW class has already been disposed.");
+
+		return www;
+	}
+	#endif
+
+	C++RAW
+ #define GET GetWWWChecked (self)
+
+	//*undocumented*
+	CSRAW public void Dispose ()
+	{
+		DestroyWWW(true);
+	}
+
+	CSRAW ~WWW() {
+		DestroyWWW(false);
+	}
+
+	//*undocumented*
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void DestroyWWW(bool cancel) {
+		WWW* www = self.GetPtr();
+
+    // no-op if already 0
+		self.SetPtr(0);
+
+		if (www)
+		{
+			if (cancel)
+				www->Cancel();
+			www->Release();
+		}
+	}
+
+	//*undocumented*
+	CUSTOM void InitWWW( string url , byte[] postData, string[] iHeaders ) {
+		string cpp_string = url;
+		map<string,string> headers;
+		// Copy in headers from the MonoArray if available
+		int headersSize = GetScriptingArraySize(iHeaders);
+		for(int i=0; i < headersSize-1 ; i += 2) {
+			headers[scripting_cpp_string_for(GetScriptingArrayElementNoRef<ScriptingStringPtr>(iHeaders,i))] = scripting_cpp_string_for(GetScriptingArrayElementNoRef<ScriptingStringPtr>(iHeaders,i+1));
+		}
+		int rawPostDataLength = -1;
+		char* rawPostDataPtr = NULL;
+		if(postData != SCRIPTING_NULL) {
+			rawPostDataPtr = GetScriptingArrayStart<char>(postData); // Will be copied by WWW::Create
+			rawPostDataLength = GetScriptingArraySize(postData);
+		}
+		WWW* www = WWW::Create (cpp_string.c_str(), rawPostDataPtr, rawPostDataLength, headers);
+		self.SetPtr(www);
+	}
+
+	// Creates a WWW request with the given URL.
+	CSRAW public WWW(string url) {
+		InitWWW(url, null, null);
+	}
+
+	// Creates a WWW request with the given URL.
+	CONDITIONAL !PLATFORM_WEBGL
+	CSRAW public WWW(string url, WWWForm form ) {
+		InitWWW(url, form.data, FlattenedHeadersFrom(form.headers));
+		}
+
+	// Creates a WWW request with the given URL.
+	CSRAW public WWW(string url, byte[] postData) {
+		InitWWW(url, postData, null);
+	}
+
+	// Creates a WWW request with the given URL.
+	CSRAW #if !UNITY_METRO_API && !UNITY_WP8_API
+	CSRAW public WWW(string url, byte[] postData, Hashtable headers ) {
+		InitWWW(url, postData, FlattenedHeadersFrom(headers));
+		}
+
+	CSRAW #else
+	CSRAW public WWW(string url, byte[] postData, Dictionary<string, string> headers ) {
+		InitWWW(url, postData, FlattenedHeadersFrom(headers));
+		}
+	CSRAW #endif
+
+	// Encodes string into an URL-friendly format.
+	
+	CSRAW
+#if !PLATFORM_WEBGL
+	public static string EscapeURL(string s, Encoding e=System.Text.Encoding.UTF8)
+	{
+		if (s == null)
+			return null;
+
+		if (s == "")
+			return "";
+
+		if (e == null)
+			return null;
+
+		return WWWTranscoder.URLEncode(s,e);
+	}
+#endif
+
+	// Decodes string from an URL-friendly format.
+	
+	CSRAW 
+#if !PLATFORM_WEBGL
+	public static string UnEscapeURL(string s, Encoding e=System.Text.Encoding.UTF8)
+	{
+		if (null == s)
+			return null;
+
+		if (s.IndexOf ('%') == -1 && s.IndexOf ('+') == -1)
+			return s;
+
+		return WWWTranscoder.URLDecode(s,e);
+
+	}
+#endif
+
+
+	// The headers from the HTTP response.
+	
+	CSRAW
+#if ENABLE_GENERICS && !PLATFORM_WEBGL
+	public System.Collections.Generic.Dictionary<string,string> responseHeaders
+	{
+		get {
+			#if UNITY_FLASH
+				UnityEngine.Flash.ActionScript.Import("System.UnityException");
+			#endif
+			if (!isDone) throw new UnityException("WWW is not finished downloading yet");
+			return ParseHTTPHeaderString(responseHeadersString);
+		}
+	}
+#endif
+	CUSTOM_PROP private string responseHeadersString
+	{
+		WWW& www = *GET;
+
+		ScriptingStringPtr res = CreateScriptingString(www.GetResponseHeaders().c_str());
+		return res;
+	}
+
+
+	// Returns the contents of the fetched web page as a string (RO).
+	CONDITIONAL !PLATFORM_WEBGL
+	CSRAW public string text { get {
+#if !UNITY_FLASH
+			if (!isDone) throw new UnityException("WWW is not ready downloading yet");
+			return GetTextEncoder().GetString(this.bytes, 0, this.bytes.Length);
+#else
+			//Flash can't access responsheaders correctly, so we always asume utf8 and use native parsing, directly from the bytearray, and let flash try and deal with it.
+			return stringFromByteArray;
+#endif
+		}
+	}
+	CSRAW internal static System.Text.Encoding DefaultEncoding
+	{
+		get
+		{
+		#if PLATFORM_WINRT
+			return System.Text.Encoding.UTF8;
+		#else
+			return System.Text.Encoding.ASCII;
+		#endif
+		}
+	}
+
+	CONDITIONAL UNITY_FLASH
+	CUSTOM_PROP internal string stringFromByteArray {
+		WWWFlash *wwwflash = (WWWFlash*)GET; 
+		ScriptingString* str = CreateScriptingString("");//We don't really care about the return string, as we'll emit as3 to parse bytearray below, no need to marshall the bytearray into native first.
+		__asm __volatile__("var heapPos:int = heap.position;");
+		__asm __volatile__("heap.position = %0;"::"r"(wwwflash->m_Buffer));
+		__asm __volatile__("returnString = heap.readUTFBytes(%0); "::"r"(wwwflash->m_SizeLoaded));	
+		__asm __volatile__("heap.position = heapPos;");
+		return str;
+	}
+	
+	
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	CSRAW private Encoding GetTextEncoder()
+	{
+#if ENABLE_GENERICS
+		// Check for charset type
+		string contentType=null;
+		if (responseHeaders.TryGetValue("CONTENT-TYPE",out contentType))
+		{
+			int charsetKeyIndex = contentType.IndexOf("charset", StringComparison.OrdinalIgnoreCase);
+			if (charsetKeyIndex > -1)
+			{
+				int charsetValueIndex = contentType.IndexOf('=', charsetKeyIndex);
+				if (charsetValueIndex > -1)
+				{
+					string encoding = contentType.Substring(charsetValueIndex + 1).Trim().Trim(new []{'\'', '"'}).Trim();
+					int semicolonIndex = encoding.IndexOf(';');
+					if (semicolonIndex > -1)
+						encoding = encoding.Substring(0, semicolonIndex);
+					try
+					{
+						return System.Text.Encoding.GetEncoding(encoding);
+					} catch (Exception) {
+						Debug.Log("Unsupported encoding: '" + encoding + "'");
+					}
+				}
+			}
+		}
+#endif
+		// Use default (utf8)
+		return System.Text.Encoding.UTF8;
+	}
+
+	FLUSHCONDITIONS
+
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	OBSOLETE warning Please use WWW.text instead
+	CSRAW public string data { get { return text; } }
+
+	// Returns the contents of the fetched web page as a byte array (RO).
+	CUSTOM_PROP byte[] bytes {
+		WWW& www = *GET;
+		if (www.GetType() == kWWWTypeCached)
+		{
+			ErrorString(kWWWCachedAccessError);
+			return SCRIPTING_NULL;
+		}
+		if (www.GetSecurityPolicy() != WWW::kSecurityPolicyAllowAccess)
+			RaiseSecurityException("No valid crossdomain policy available to allow access");
+
+		if (!www.HasDownloadedOrMayBlock ())
+			return CreateEmptyStructArray(GetScriptingManager().GetCommonClasses().byte);
+
+		return CreateScriptingArray<UInt8>( www.GetData(), www.GetSize(), GetScriptingManager().GetCommonClasses().byte );
+	}
+
+	//*undocumented* OBSOLETE Can do the same with bytes.Length
+	CUSTOM_PROP int size {
+		WWW& www = *GET;
+		if (!www.HasDownloadedOrMayBlock ())
+			return 0;
+		return www.GetSize();
+	}
+
+	// Returns an error message if there was an error during the download (RO).
+	CUSTOM_PROP string error {
+		WWW *www = GET; 
+		if (www)
+		{
+			const char* e = self->GetError();
+			if (e)
+				return CreateScriptingString(e);
+			else
+				return SCRIPTING_NULL;
+		}
+		else
+			return CreateScriptingString(kWWWErrCancelled);
+	}
+
+	//*undocumented*
+	CUSTOM private Texture2D GetTexture(bool markNonReadable)
+	{
+		WWW& www = *GET;
+		if (www.GetType() == kWWWTypeCached)
+		{
+			ErrorString(kWWWCachedAccessError);
+			return SCRIPTING_NULL;
+		}
+
+		// create the texture
+		Texture2D* tex = CreateObjectFromCode<Texture2D>();
+
+		if (www.HasDownloadedOrMayBlock ())
+		{
+			LoadMemoryBufferIntoTexture( *tex, self->GetData(), self->GetSize(), kLoadImageUncompressed, markNonReadable );
+			WWW::SecurityPolicy policy = self->GetSecurityPolicy();
+			if (policy != WWW::kSecurityPolicyAllowAccess)
+				tex->SetReadAllowed(false);
+		}
+		else
+		{
+			LoadMemoryBufferIntoTexture( *tex, NULL, 0, kLoadImageUncompressed, markNonReadable );
+		}
+
+		return Scripting::ScriptingWrapperFor(tex);
+	}
+
+	// Returns a [[Texture2D]] generated from the downloaded data (RO).
+	CSRAW public Texture2D texture { get { return GetTexture(false); } }
+
+	// Returns a non-readable [[Texture2D]] generated from the downloaded data (RO).
+	CSRAW public Texture2D textureNonReadable { get { return GetTexture(true); } }
+
+	// Returns a [[AudioClip]] generated from the downloaded data (RO).
+
+	CONDITIONAL !PLATFORM_WEBGL && ENABLE_AUDIO
+	CSRAW public AudioClip audioClip {
+		get { return GetAudioClip(true); }
+	}
+
+	FLUSHCONDITIONS
+
+	/// *listonly* 
+	CONDITIONAL !PLATFORM_WEBGL && ENABLE_AUDIO
+	CSRAW public AudioClip GetAudioClip(bool threeD)
+	{
+		return GetAudioClip(threeD, false);
+	}
+	
+	/// *listonly* 
+	CONDITIONAL !PLATFORM_WEBGL && ENABLE_AUDIO
+	CSRAW public AudioClip GetAudioClip(bool threeD, bool stream)
+	{
+		return GetAudioClip(threeD, stream, AudioType.UNKNOWN);
+	}
+
+	// Returns an [[AudioClip]] generated from the downloaded data (RO).
+	CONDITIONAL !PLATFORM_WEBGL && ENABLE_AUDIO
+	CUSTOM public AudioClip GetAudioClip(bool threeD, bool stream, AudioType audioType)
+	{
+	#if ENABLE_AUDIO
+
+		WWW& www = *GET;
+		if (www.GetType() == kWWWTypeCached)
+		{
+			ErrorString(kWWWCachedAccessError);
+			return SCRIPTING_NULL;
+		}
+
+
+		AudioClip* clip = NEW_OBJECT(AudioClip);
+
+		// only allow sample read if the security policy allows it
+		WWW::SecurityPolicy policy = www.GetSecurityPolicy();
+		if (policy != WWW::kSecurityPolicyAllowAccess)
+			clip->SetReadAllowed(false);
+		
+		clip->Reset();		
+		clip->Set3D(threeD);
+#if ENABLE_WWW
+#if !UNITY_FLASH
+		if (!clip->InitStream(GET, NULL, stream, audioType))
+#else
+		if (!clip->InitStream(GET, NULL, stream))
+#endif
+
+		{
+			DestroySingleObject(clip);
+			return SCRIPTING_NULL;
+		}
+#endif
+
+		return Scripting::ScriptingWrapperFor (clip);
+	#else
+		return 0;
+	#endif
+
+	}
+
+
+	// Returns a [[MovieTexture]] generated from the downloaded data (RO).
+	CONDITIONAL ENABLE_MOVIES
+	CUSTOM_PROP MovieTexture movie
+	{
+
+		WWW& www = *GET;
+		if (www.GetType() == kWWWTypeCached)
+		{
+			ErrorString(kWWWCachedAccessError);
+			return SCRIPTING_NULL;
+		}
+		#if UNITY_EDITOR
+		if (!LicenseInfo::Flag(lf_pro_version))
+		{
+			ErrorString("Movie playback is only possible with Unity Pro");
+			return SCRIPTING_NULL;
+		}
+		#endif
+		MovieTexture* tex = NEW_OBJECT(MovieTexture);
+		tex->Reset();
+
+		tex->InitStream(GET);
+
+		//Not applying any security restrictions here, because currently our API does not allow grabbing samples from the movieclip
+		//It's impossible for a hacker to get his hands on the data, or xfer it somewhere. When we start supporting this, we should
+		//add a crossdomain securitycheck here.
+		return Scripting::ScriptingWrapperFor (tex);
+	}
+
+	// Replaces the contents of an existing [[Texture2D]] with an image from the downloaded data.
+	CUSTOM void LoadImageIntoTexture(Texture2D tex) {
+		WWW& www = *GET;
+		if (www.GetType() == kWWWTypeCached)
+		{
+			ErrorString(kWWWCachedAccessError);
+			return;
+		}
+
+		if (!www.HasDownloadedOrMayBlock ())
+			return;
+
+		LoadMemoryBufferIntoTexture( *tex, www.GetData(), www.GetSize(), IsCompressedDXTTextureFormat(tex->GetTextureFormat())?kLoadImageDXTCompressDithered:kLoadImageUncompressed );
+		if (www.GetSecurityPolicy() != WWW::kSecurityPolicyAllowAccess) tex->SetReadAllowed(false);
+	}
+
+	// Is the download already finished? (RO)
+	CUSTOM_PROP bool isDone {
+		return (short)GET->IsDone();
+	}
+
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+	OBSOLETE error All blocking WWW functions have been deprecated, please use one of the asynchronous functions instead.
+	CUSTOM static string GetURL(string url) {
+		map<string,string> headers;
+		const char* c_string = url.ToUTF8().c_str();
+		WWW* fetcher = WWW::Create(c_string, NULL, -1, headers);
+
+		MonoString* result;
+
+		if (fetcher->GetSecurityPolicy() != WWW::kSecurityPolicyAllowAccess)
+		{
+			RaiseSecurityException("No valid crossdomain policy available to allow access");
+			return CreateScriptingString("");
+		}
+
+		if (!fetcher->HasDownloadedOrMayBlock ())
+			result = CreateScriptingString("");
+		else
+			result = CreateScriptingStringLength((char*)fetcher->GetData(), fetcher->GetSize());
+
+		fetcher->Release();
+		return result;
+	}
+
+	FLUSHCONDITIONS
+
+	CSRAW
+#if !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+	[System.Obsolete ("All blocking WWW functions have been deprecated, please use one of the asynchronous functions instead.", true)]
+#endif
+	public static Texture2D GetTextureFromURL(string url) {
+		return new WWW(url).texture;
+	}
+
+	// How far has the download progressed (RO).
+	CUSTOM_PROP float progress
+	{
+		return GET->GetProgress();
+	}
+
+	// How far has the upload progressed (RO).
+	CUSTOM_PROP float uploadProgress
+	{
+		return GET->GetUploadProgress();
+	}
+
+	// Loads the new web player data file.
+	CUSTOM void LoadUnityWeb ()
+	{
+		WWW& www = *GET;
+		if (!www.HasDownloadedOrMayBlock ())
+			return;
+
+		if (www.GetSecurityPolicy() != WWW::kSecurityPolicyAllowAccess)
+		{
+			RaiseSecurityException("No valid crossdomain policy available to allow access");
+			return; //is this return required?
+		}
+
+		#if WEBPLUG
+		QueuePlayerLoadWebData (www.GetUnityWebStream());
+		www.GetUnityWebStream()->RetainDownload (&www);
+		#else
+		LogString (Format("Requested loading unity web file %s. This will only be loaded in the web player.", www.GetUrl ()));
+		#endif
+	}
+
+	// Load an Ogg Vorbis file into the audio clip.
+	
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT && ENABLE_AUDIO
+	OBSOLETE warning .oggVorbis accessor is deprecated, use .audioClip or GetAudioClip() instead.
+	CUSTOM_PROP AudioClip oggVorbis
+	{
+#if ENABLE_AUDIO
+		if (AudioClip::IsFormatSupportedByPlatform("ogg"))
+		{
+			ErrorString("Streaming of 'ogg' on this platform is not supported");
+			return SCRIPTING_NULL;
+		}
+
+		WWW& www = *GET;
+		if (www.GetType() == kWWWTypeCached)
+		{
+			ErrorString(kWWWCachedAccessError);
+			return SCRIPTING_NULL;
+		}
+
+		if (!www.HasDownloadedOrMayBlock ())
+		{
+			return Scripting::ScriptingWrapperFor<AudioClip>(NULL);
+		}
+
+		AudioClip* clip = NEW_OBJECT (AudioClip);
+		clip->Reset();
+
+		clip->SetName(GetLastPathNameComponent(www.GetUrl()).c_str());
+
+		if (!clip->SetAudioData(www.GetData(), www.GetSize(), false, false,true, false, FMOD_SOUND_TYPE_OGGVORBIS, FMOD_SOUND_FORMAT_PCM16))
+		{
+			DestroySingleObject(clip);
+			clip = NULL;
+		}
+
+
+		return Scripting::ScriptingWrapperFor(clip);
+#else
+		return 0;
+#endif
+	}
+
+	
+	// The URL of this WWW request (RO).
+	CUSTOM_PROP string url { return CreateScriptingString(GET->GetUrl()); }
+
+	// Streams an AssetBundle that can contain any kind of asset from the project folder.
+	CUSTOM_PROP AssetBundle assetBundle
+	{
+		return Scripting::ScriptingWrapperFor (ExtractAssetBundle (*GET));
+	}
+
+	// Priority of [[AssetBundle]] decompression thread.
+	// SA: [[ThreadPriority]] enum.
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+	CUSTOM_PROP ThreadPriority threadPriority { return GET->GetThreadPriority(); }  { GET->SetThreadPriority(value); }
+
+	CUSTOM internal WWW (string url, int version, uint crc)
+	{
+		string cpp_string = url;
+		#if ENABLE_CACHING
+		WWW* www = new WWWCached(cpp_string.c_str(), version, crc);
+		#else
+		WWW* www = WWW::Create (cpp_string.c_str(), NULL, 0, WWW::WWWHeaders(), 0, crc);
+		#endif
+		self.SetPtr(www);
+	}
+
+	// Loads an AssetBundle with the specified version number from the cache. If the AssetBundle is not currently cached, it will automatically be downloaded and stored in the cache for future retrieval from local storage.
+
+
+	CSRAW public static WWW LoadFromCacheOrDownload( string url, int version, uint crc = 0) {
+		return new WWW(url, version, crc);
+	}
+	C++RAW
+ #undef GET
+END
+
+// Helper class to generate form data to post to web servers using the [[WWW]] class.
+
+
+
+CONDITIONAL !PLATFORM_WEBGL
+CLASS WWWForm
+
+CSRAW private List<byte[]> formData; // <byte[]>
+CSRAW private List<string> fieldNames; // <string>
+CSRAW private List<string> fileNames; // <string>
+CSRAW private List<string> types; // <string>
+CSRAW private byte[] boundary;
+CSRAW private bool containsFiles = false;
+
+// Creates an empty WWWForm object.
+CSRAW public WWWForm() {
+	formData = new List<byte[]>();
+	fieldNames = new List<string>();
+	fileNames = new List<string>();
+	types = new List<string>();
+
+	// Generate a random boundary
+	boundary=new byte[40];
+	for(int i=0; i<40; i++) {
+		int randomChar=Random.Range(48,110);
+		if(randomChar > 57) // skip unprintable chars between 57 and 64 (inclusive)
+			randomChar+=7;
+		if(randomChar > 90) // and 91 and 96 (inclusive)
+			randomChar+=6;
+		boundary[i]=(byte)randomChar;
+	}
+
+}
+
+// Add a simple field to the form.
+CSRAW public void AddField(string fieldName, string value, Encoding e=System.Text.Encoding.UTF8) {
+	fieldNames.Add(fieldName);
+	fileNames.Add(null);
+	formData.Add(e.GetBytes(value));
+	types.Add("text/plain; charset=\"" + e.WebName + "\"");
+}
+
+// Adds a simple field to the form.
+CSRAW public void AddField(string fieldName, int i) {
+	AddField(fieldName, i.ToString());
+}
+
+// Add binary data to the form.
+CSRAW public void AddBinaryData(string fieldName, byte[] contents, string fileName=null, string mimeType = null) {
+	containsFiles=true;
+
+	// We handle png files automatically as we suspect people will be uploading png files a lot due to the new
+	// screen shot feature. If we want to add support for detecting other file types, we will need to do it in a more extensible way.
+	bool isPng = contents.Length > 8 && contents[0] == 0x89 && contents[1] == 0x50 && contents[2] == 0x4e && contents[3] == 0x47
+									&& contents[4] == 0x0d && contents[5] == 0x0a && contents[6] == 0x1a && contents[7] == 0x0a;
+	if(fileName == null) {
+		fileName = fieldName + (isPng?".png":".dat");
+	}
+	if(mimeType == null) {
+		if(isPng)
+			mimeType="image/png";
+		else
+			mimeType="application/octet-stream";
+	}
+
+	fieldNames.Add(fieldName);
+	fileNames.Add(fileName);
+	formData.Add(contents);
+	types.Add(mimeType);
+}
+
+// (RO) Returns the correct request headers for posting the form using the [[WWW]] class.
+CSRAW #if !UNITY_METRO_API && !UNITY_WP8_API
+CSRAW public Hashtable headers { get {
+		Hashtable retval = new Hashtable();
+		if(containsFiles)
+			retval["Content-Type"]="multipart/form-data; boundary=\"" + System.Text.Encoding.UTF8.GetString(boundary) + "\"";
+		else
+			retval["Content-Type"]="application/x-www-form-urlencoded";
+		return retval;
+	}
+}
+
+CSRAW #else
+CSRAW public Dictionary<string, string> headers { get {
+		Dictionary<string, string> retval = new Dictionary<string, string>();
+		if(containsFiles)
+			retval["Content-Type"]="multipart/form-data; boundary=\"" + System.Text.Encoding.UTF8.GetString(boundary, 0, boundary.Length) + "\"";
+		else
+			retval["Content-Type"]="application/x-www-form-urlencoded";
+		return retval;
+	}
+}
+
+CSRAW #endif
+
+// (RO) The raw data to pass as the POST request body when sending the form.
+CSRAW public byte[] data { get {
+
+		if(containsFiles) {
+			byte[] dDash = WWW.DefaultEncoding.GetBytes("--");
+			byte[] crlf = WWW.DefaultEncoding.GetBytes("\r\n");
+			byte[] contentTypeHeader = WWW.DefaultEncoding.GetBytes("Content-Type: ");
+			byte[] dispositionHeader = WWW.DefaultEncoding.GetBytes("Content-disposition: form-data; name=\"");
+			byte[] endQuote = WWW.DefaultEncoding.GetBytes("\"");
+			byte[] fileNameField = WWW.DefaultEncoding.GetBytes("; filename=\"");
+
+
+			using(MemoryStream memStream = new MemoryStream(1024))
+			{
+				for(int i=0; i < formData.Count; i++) {
+					memStream.Write(crlf, 0, (int) crlf.Length);
+					memStream.Write(dDash, 0, (int) dDash.Length);
+					memStream.Write(boundary, 0, (int) boundary.Length);
+					memStream.Write(crlf, 0, (int) crlf.Length);
+					memStream.Write(contentTypeHeader, 0, (int) contentTypeHeader.Length);
+
+					byte[] type=System.Text.Encoding.UTF8.GetBytes((string)types[i]);
+					memStream.Write(type, 0, (int) type.Length);
+					memStream.Write(crlf, 0, (int) crlf.Length);
+					memStream.Write(dispositionHeader, 0, (int) dispositionHeader.Length);
+					
+					#if !UNITY_METRO_API && !UNITY_WP8_API
+					string headerName = System.Text.Encoding.UTF8.HeaderName;
+					#else
+					string headerName = "";
+					#endif
+					// Headers must be 7 bit clean, so encode as per rfc1522 using quoted-printable if needed.
+					string encodedFieldName=(string)fieldNames[i];
+					if(!WWWTranscoder.SevenBitClean(encodedFieldName, System.Text.Encoding.UTF8) || encodedFieldName.IndexOf("=?") > -1) {
+						encodedFieldName="=?"+headerName+"?Q?"+WWWTranscoder.QPEncode(encodedFieldName, System.Text.Encoding.UTF8) + "?=";
+					}
+					byte[] name=System.Text.Encoding.UTF8.GetBytes(encodedFieldName);
+					memStream.Write(name, 0, (int) name.Length);
+					memStream.Write(endQuote, 0, (int) endQuote.Length);
+
+					if(fileNames[i] != null) {
+						// Headers must be 7 bit clean, so encode as per rfc1522 using quoted-printable if needed.
+						string encodedFileName=(string)fileNames[i];
+						if(!WWWTranscoder.SevenBitClean(encodedFileName, System.Text.Encoding.UTF8) || encodedFileName.IndexOf("=?") > -1) {
+							encodedFileName="=?"+headerName+"?Q?"+WWWTranscoder.QPEncode(encodedFileName, System.Text.Encoding.UTF8) + "?=";
+						}
+						byte[] fileName=System.Text.Encoding.UTF8.GetBytes(encodedFileName);
+
+						memStream.Write(fileNameField, 0, (int) fileNameField.Length);
+						memStream.Write(fileName, 0, (int) fileName.Length);
+						memStream.Write(endQuote, 0, (int) endQuote.Length);
+
+					}
+					memStream.Write(crlf, 0, (int) crlf.Length);
+					memStream.Write(crlf, 0, (int) crlf.Length);
+
+					byte[] formBytes = (byte[])formData[i];
+					memStream.Write(formBytes, 0, (int) formBytes.Length);
+				}
+				memStream.Write(crlf, 0, (int) crlf.Length);
+				memStream.Write(dDash, 0, (int) dDash.Length);
+				memStream.Write(boundary, 0, (int) boundary.Length);
+				memStream.Write(dDash, 0, (int) dDash.Length);
+				memStream.Write(crlf, 0, (int) crlf.Length);
+
+				return memStream.ToArray();
+			}
+		}
+		else {
+			byte[] ampersand = WWW.DefaultEncoding.GetBytes("&");
+			byte[] equal = WWW.DefaultEncoding.GetBytes("=");
+
+			using(MemoryStream memStream = new MemoryStream(1024))
+			{
+				for(int i=0; i < formData.Count; i++) {
+					byte[] name=WWWTranscoder.URLEncode(System.Text.Encoding.UTF8.GetBytes((string)fieldNames[i]));
+					byte[] formBytes = (byte[])formData[i];
+					byte[] value=WWWTranscoder.URLEncode(formBytes);
+
+					if(i>0) memStream.Write(ampersand, 0, (int) ampersand.Length);
+					memStream.Write(name, 0, (int) name.Length);
+					memStream.Write(equal, 0, (int) equal.Length);
+					memStream.Write(value, 0, (int) value.Length);
+				}
+				return memStream.ToArray();
+			}
+		}
+	}
+}
+
+
+END
+//*undocumented*
+CONDITIONAL !PLATFORM_WEBGL
+CLASS internal WWWTranscoder
+
+	CSRAW private static byte [] ucHexChars = WWW.DefaultEncoding.GetBytes("0123456789ABCDEF");
+	CSRAW private static byte [] lcHexChars = WWW.DefaultEncoding.GetBytes("0123456789abcdef");
+	CSRAW private static byte urlEscapeChar=(byte)'%';
+	CSRAW private static byte urlSpace=(byte)'+';
+	CSRAW private static byte [] urlForbidden=WWW.DefaultEncoding.GetBytes("@&;:<>=?\"'/\\!#%+$,{}|^[]`");
+	CSRAW private static byte qpEscapeChar=(byte)'=';
+	CSRAW private static byte qpSpace=(byte)'_';
+	CSRAW private static byte [] qpForbidden=WWW.DefaultEncoding.GetBytes("&;=?\"'%+_");
+
+	CSRAW private static byte Hex2Byte (byte[] b, int offset) {
+		byte result=(byte)0;
+
+		for (int i = offset; i < offset+2; i++ ) {
+			result *= 16;
+			int d=b[i];
+
+			if (d >= 48 && d <= 57) // 0 - 9
+				d -= 48;
+			else if (d >= 65 && d <= 75) // A -F
+				d -= 55;
+			else if (d >= 97 && d <= 102) // a - f
+				d -= 87;
+			if (d>15) {
+				return 63; // ?
+			}
+
+			result += (byte)d;
+		}
+
+		return result;
+	}
+
+	CSRAW private static byte[] Byte2Hex (byte b, byte[] hexChars) {
+		byte[] dest= new byte[2];
+		dest[0]=hexChars[ b >> 4 ];
+		dest[1]=hexChars[ b &0xf ];
+		return dest;
+	}
+
+
+	CSRAW public static string URLEncode(string toEncode, Encoding e = Encoding.UTF8) {
+		byte[] data = Encode(e.GetBytes(toEncode), urlEscapeChar, urlSpace, urlForbidden, false);
+		return WWW.DefaultEncoding.GetString(data, 0, data.Length);
+	}
+
+	CSRAW public static byte[] URLEncode(byte[] toEncode) {
+		return Encode(toEncode, urlEscapeChar, urlSpace, urlForbidden, false);
+	}
+
+	CSRAW public static string QPEncode(string toEncode, Encoding e = Encoding.UTF8) {
+		byte[] data = Encode(e.GetBytes(toEncode), qpEscapeChar, qpSpace, qpForbidden, true);
+		return WWW.DefaultEncoding.GetString(data, 0, data.Length);
+	}
+
+	CSRAW public static byte[] QPEncode(byte[] toEncode) {
+		return Encode(toEncode, qpEscapeChar, qpSpace, qpForbidden, true);
+	}
+
+	CSRAW public static byte[] Encode(byte[] input, byte escapeChar, byte space, byte[] forbidden, bool uppercase) {
+		using(MemoryStream memStream = new MemoryStream(input.Length*2)) {
+			// encode
+			for(int i=0; i < input.Length; i++) {
+				if(input[i] == 32) {
+					memStream.WriteByte(space);
+				} else if(input[i] < 32 || input[i] > 126 || ByteArrayContains(forbidden, input[i])){
+					memStream.WriteByte(escapeChar);
+					memStream.Write(Byte2Hex(input[i],uppercase?ucHexChars:lcHexChars),0,2);
+				} else {
+					memStream.WriteByte(input[i]);
+				}
+			}
+
+			return memStream.ToArray();
+		}
+
+	}
+
+	CSRAW private static bool ByteArrayContains(byte[] array, byte b)
+	{
+#if !UNITY_FLASH
+		return (System.Array.IndexOf(array, b) != -1);
+#else
+		for(int i = 0; i<array.Length; i++){
+			if(array[i] == b)
+				return true;
+		}
+		return false;
+#endif
+	}
+	
+	CSRAW public static string URLDecode(string toEncode, Encoding e = Encoding.UTF8) {
+		byte []data = Decode(WWW.DefaultEncoding.GetBytes(toEncode), urlEscapeChar, urlSpace);
+		return e.GetString(data, 0, data.Length);
+	}
+
+	CSRAW public static byte[] URLDecode(byte[] toEncode) {
+		return Decode(toEncode, urlEscapeChar, urlSpace);
+	}
+
+	CSRAW public static string QPDecode(string toEncode, Encoding e = Encoding.UTF8) {
+		byte[] data = Decode(WWW.DefaultEncoding.GetBytes(toEncode), qpEscapeChar, qpSpace);
+		return e.GetString(data, 0, data.Length);
+	}
+
+	CSRAW public static byte[] QPDecode(byte[] toEncode){
+		return Decode(toEncode, qpEscapeChar, qpSpace);
+	}
+
+	CSRAW public static byte[] Decode(byte[] input, byte escapeChar, byte space) {
+		using(MemoryStream memStream = new MemoryStream(input.Length)) {
+			// decode
+			for(int i=0; i < input.Length; i++) {
+				if(input[i] == space) {
+					memStream.WriteByte((byte)32);
+				} else if(input[i] == escapeChar && i+2 < input.Length) {
+					i++;
+					memStream.WriteByte(Hex2Byte(input,i++));
+				} else {
+					memStream.WriteByte(input[i]);
+				}
+			}
+
+			return memStream.ToArray();
+		}
+
+	}
+
+	CSRAW public static bool SevenBitClean(string s, Encoding e = Encoding.UTF8) {
+		return SevenBitClean(e.GetBytes(s));
+	}
+
+	CSRAW public static bool SevenBitClean(byte[] input) {
+		for(int i= 0; i<input.Length; i++) {
+			if (input[i] < 32 || input[i] > 126 )
+				return false;
+		}
+
+		return true;
+	}
+
+
+END
+
+CSRAW
+[System.Obsolete ("this API is not for public use.")]
+public struct CacheIndex {
+	public string name;
+	public int bytesUsed;
+	public int expires;
+}
+
+C++RAW
+
+struct MonoCacheIndex {
+	ScriptingStringPtr name;
+	int bytesUsed;
+	int expires;
+};
+
+// The Caching class lets you manage cached AssetBundles, downloaded using WWW::ref::LoadFromCacheOrDownload.
+CONDITIONAL ENABLE_CACHING
+CLASS Caching
+
+// (This is a WebPlayer-only function)
+CSRAW public static bool Authorize (string name, string domain, long size, string signature)
+{
+	return Authorize(name, domain, size, -1, signature);
+}
+///*listonly*
+CUSTOM static bool Authorize(string name, string domain, long size, int expiration, string signature)
+{
+	return GetCachingManager().Authorize(name, domain, size, expiration, signature);
+}
+
+OBSOLETE warning Size is now specified as a long
+CSRAW public static bool Authorize(string name, string domain, int size, int expiration, string signature)
+{
+	return Authorize(name, domain, (long)size, expiration, signature);
+}
+
+OBSOLETE warning Size is now specified as a long
+CSRAW public static bool Authorize (string name, string domain, int size, string signature)
+{
+	return Authorize( name, domain, (long)size, signature);
+}
+
+// Delete all AssetBundle content that has been cached by the current application.
+CUSTOM static bool CleanCache ()
+{
+	if (GetCachingManager().GetAuthorizationLevel() >= CachingManager::kAuthorizationUser)
+		return GetCachingManager().GetCurrentCache().CleanCache();
+	else
+	{
+		ErrorString("Unauthorized use of Caching API.");
+		return false;
+	}
+}
+
+OBSOLETE warning this API is not for public use.
+CUSTOM static bool CleanNamedCache (string name)
+{
+	if (GetCachingManager().GetAuthorizationLevel() >= CachingManager::kAuthorizationAdmin)
+		return GetCachingManager().CleanCache(name);
+	else
+	{
+		ErrorString("Unauthorized use of Caching API.");
+		return false;
+	}
+}
+
+OBSOLETE warning This function is obsolete and has no effect.
+CUSTOM static bool DeleteFromCache (string url)
+{
+	return false;
+}
+
+OBSOLETE warning This function is obsolete and will always return -1. Use IsVersionCached instead.
+CUSTOM static int GetVersionFromCache (string url)
+{
+	return -1;
+}
+
+// Checks if an AssetBundle is cached.
+CUSTOM static bool IsVersionCached (string url, int version)
+{
+	return GetCachingManager().IsCached(url, version);
+}
+
+// Bumps the timestamp of a cached file to be the current time.
+CUSTOM static bool MarkAsUsed (string url, int version)
+{
+	return GetCachingManager().MarkAsUsed(url, version);
+}
+
+OBSOLETE warning this API is not for public use.
+CUSTOM_PROP static CacheIndex[] index
+{
+#if !PLATFORM_WINRT
+	if (GetCachingManager().GetAuthorizationLevel() < CachingManager::kAuthorizationAdmin)
+	{
+		ErrorString("Unauthorized use of Caching API.");
+		return NULL;
+	}
+	vector<Cache*> &indices = GetGlobalCachingManager().GetCacheIndices();
+	MonoArray *monoIndices = mono_array_new (mono_domain_get (), GetMonoManager().GetCommonClasses().cacheIndex, indices.size() );
+
+	for(int i=0; i<indices.size(); i++)
+	{
+		GetMonoArrayElement<MonoCacheIndex>(monoIndices, i).name = CreateScriptingString (indices[i]->m_Name);
+		GetMonoArrayElement<MonoCacheIndex>(monoIndices, i).bytesUsed = indices[i]->m_BytesUsed;
+		GetMonoArrayElement<MonoCacheIndex>(monoIndices, i).expires = indices[i]->m_Expires;
+	}
+	return monoIndices;
+#else
+	return SCRIPTING_NULL;
+#endif
+}
+
+// The number of currently unused bytes in the cache.
+CUSTOM_PROP static long spaceFree
+{
+	return GetCachingManager().GetCachingDiskSpaceFree();
+}
+
+// The total number of bytes that can potentially be allocated for caching.
+CUSTOM_PROP static long maximumAvailableDiskSpace
+{
+	return GetCachingManager().GetMaximumDiskSpaceAvailable();
+}
+{
+	GetCachingManager().SetMaximumDiskSpaceAvailable(value);
+}
+
+// Used disk space in bytes.
+CUSTOM_PROP static long spaceOccupied
+{
+	return GetCachingManager().GetCachingDiskSpaceUsed();
+}
+
+OBSOLETE warning Please use Caching.spaceFree instead
+CUSTOM_PROP static int spaceAvailable
+{
+	return GetCachingManager().GetCachingDiskSpaceFree();
+}
+
+OBSOLETE warning Please use Caching.spaceOccupied instead
+CUSTOM_PROP static int spaceUsed
+{
+	return GetCachingManager().GetCachingDiskSpaceUsed();
+}
+
+// The number of seconds that an AssetBundle may remain unused in the cache before it is automatically deleted.
+CUSTOM_PROP static int expirationDelay
+{
+	return GetCachingManager().GetExpirationDelay();
+}
+{
+	if (GetCachingManager().GetAuthorizationLevel() >= CachingManager::kAuthorizationUser)
+		GetCachingManager().GetCurrentCache().SetExpirationDelay(value);
+}
+
+// Is Caching enabled?
+CUSTOM_PROP static bool enabled
+{
+	return GetCachingManager().GetEnabled();
+}
+{
+	if (GetCachingManager().GetAuthorizationLevel() >= CachingManager::kAuthorizationAdmin)
+		GetCachingManager().SetEnabled(value);
+	else
+		ErrorString("Unable to assign a value to Caching.enabled. This property is read-only.");
+}
+
+// Is caching ready?
+CUSTOM_PROP static bool ready
+{
+	return GetCachingManager().GetIsReady();
+}
+
+CONDITIONAL UNITY_IPHONE_API
+CUSTOM static void SetNoBackupFlag (string url, int version)
+{
+#if PLATFORM_IPHONE
+	GetCachingManager().SetNoBackupFlag(url, version);
+#endif
+}
+
+CONDITIONAL UNITY_IPHONE_API
+CUSTOM static void ResetNoBackupFlag (string url, int version)
+{
+#if PLATFORM_IPHONE
+	GetCachingManager().ResetNoBackupFlag(url, version);
+#endif
+}
+
+END
+
+CSRAW
+
+#endif //ENABLE_WWW
+
+CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL && !PLATFORM_WINRT
+CLASS internal UnityLogWriter : System.IO.TextWriter
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM static void WriteStringToUnityLog(string s)
+	{
+		//this userstring could contains things like "%20", which we should make sure printf does not interpet
+		//as if we wanted to print some argument.
+		if (s.IsNull())
+			return;
+
+		std::string utf8 = s.ToUTF8();
+		printf_console("%s",utf8.c_str());
+	}
+
+	CSRAW
+	public static void Init()
+	{
+		System.Console.SetOut(new UnityLogWriter());
+	}
+	public override System.Text.Encoding Encoding
+	{
+			get { return System.Text.Encoding.UTF8; }
+	}
+	public override void Write(char value)
+	{
+			WriteStringToUnityLog(value.ToString());
+	}
+	public override void Write(string s)
+	{
+			WriteStringToUnityLog(s);
+	}
+
+END
+
+CLASS internal UnityString
+	CSRAW
+	public static string Format(string fmt, params object[] args)
+	{
+		return String.Format(fmt, args);
+	}
+END
+
+}
+
+
+

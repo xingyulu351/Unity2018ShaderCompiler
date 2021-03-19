@@ -1,0 +1,230 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Math/Gradient.h"
+#include "Runtime/Math/Color.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+using namespace Unity;
+
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using UnityEngine;
+
+namespace UnityEngine
+{
+
+// Color key used by Gradient
+STRUCT public GradientColorKey
+	
+	// Gradient color key
+	CSRAW public GradientColorKey (Color col, float time)
+	{
+		color = col;
+		this.time = time;
+	}
+	// color of key
+	CSRAW public Color color;
+
+	// time of the key (0 - 1)	
+	CSRAW public float time;
+END
+
+C++RAW
+
+struct MonoGradientColorKey
+{
+	ColorRGBAf color;
+	float time;
+};
+
+// Alpha key used by Gradient
+STRUCT public GradientAlphaKey
+
+	// Gradient alpha key
+	CSRAW public GradientAlphaKey (float alpha, float time)
+	{
+		this.alpha = alpha;
+		this.time = time;
+	}
+	
+	// alpha alpha of key
+	CSRAW public float alpha;
+	
+	// time of the key (0 - 1)
+	CSRAW public float time;
+END
+
+
+C++RAW
+
+struct MonoGradientAlphaKey
+{
+	float alpha;
+	float time;
+};
+
+C++RAW
+ static void CleanupGradient(void* gradient){ delete ((Gradient*)gradient); } ;
+
+// Gradient used for animating colors
+CSRAW  [StructLayout (LayoutKind.Sequential)]
+
+THREAD_AND_SERIALIZATION_SAFE
+CLASS public Gradient
+	CSRAW internal IntPtr m_Ptr;
+	
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void Init () { 
+		self.SetPtr(new Gradient(), CleanupGradient);
+	}
+		
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void Cleanup () { CleanupGradient(self.GetPtr()); }
+		
+	CSRAW public Gradient ()  { 
+		Init (); 
+	}
+
+	CSRAW ~Gradient() { 
+		Cleanup ();	
+	}
+
+
+	// Calculate color at a given time
+	CUSTOM Color Evaluate (float time)
+	{
+		time = clamp01(time);
+		return self->Evaluate (time);
+	}
+
+	// Returns num keys converted or -1 if invalid conversion
+	C++RAW
+	int ConvertColorKeyArray (ScriptingArrayPtr scriptColorKeys, Gradient::ColorKey* colorKeys)
+	{
+		if (scriptColorKeys == SCRIPTING_NULL)
+		{
+			ErrorString("SetKeys: Invalid input ColorKey array");
+			return -1;
+		}
+	
+		int size = GetScriptingArraySize (scriptColorKeys);
+		if (size > kGradientMaxNumKeys)
+		{
+			ErrorString(Format("Max number of color keys is %d (given %d)", kGradientMaxNumKeys, size));
+			return -1;
+		}
+			
+		for (int i=0; i < size ; i++)
+		{
+			MonoGradientColorKey &key = GetScriptingArrayElement<MonoGradientColorKey> (scriptColorKeys, i);
+			colorKeys[i].m_Color = key.color;
+			colorKeys[i].m_Time = key.time;
+		}
+		
+		return size;
+	}
+	
+	// Returns num keys converted or -1 if invalid conversion
+	C++RAW
+	int ConvertAlphaKeyArray (ScriptingArrayPtr scriptAlphaKeys, Gradient::AlphaKey* alphaKeys)
+	{
+		if (scriptAlphaKeys == SCRIPTING_NULL)
+		{
+			ErrorString("SetKeys: Invalid input AlphaKey array");
+			return -1;
+		}
+	
+		int size = GetScriptingArraySize (scriptAlphaKeys);
+		if (size > kGradientMaxNumKeys)
+		{
+			ErrorString(Format("Max number of alpha keys is %d (given %d)", kGradientMaxNumKeys, size));
+			return -1;
+		}
+			
+		for (int i=0; i < size ; i++)
+		{
+			MonoGradientAlphaKey &key = GetScriptingArrayElement<MonoGradientAlphaKey> (scriptAlphaKeys, i);
+			alphaKeys[i].m_Alpha = key.alpha;
+			alphaKeys[i].m_Time = key.time;
+		}
+		
+		return size;
+	}	
+
+	CUSTOM_PROP GradientColorKey[] colorKeys
+	{
+		int numColorKeys = self->GetNumColorKeys ();
+		Gradient::ColorKey colorKeys[kGradientMaxNumKeys];
+		ColorRGBA32& firstKey = self->GetKey(0);
+		UInt16& firstColorTime = self->GetColorTime(0);
+		for(int i = 0; i < kGradientMaxNumKeys; i++)
+		{
+			colorKeys[i].m_Color = (&firstKey)[i];
+			colorKeys[i].m_Color.a = 255; // See alphaKeys for alpha values
+			colorKeys[i].m_Time = WordToNormalized((&firstColorTime)[i]);
+		}
+		return CreateScriptingArray (colorKeys, numColorKeys, GetCommonScriptingClasses ().gradientColorKey);
+	}
+	{
+		Gradient::ColorKey colorKeys[kGradientMaxNumKeys];
+		int numColorKeys = ConvertColorKeyArray (value, colorKeys);
+		if (numColorKeys == -1)
+			return;
+		self->SetColorKeys(&colorKeys[0], numColorKeys);
+	}
+	
+	CUSTOM_PROP GradientAlphaKey[] alphaKeys
+	{
+		int numAlphaKeys = self->GetNumAlphaKeys ();
+		Gradient::AlphaKey alphaKeys[kGradientMaxNumKeys];
+		const ColorRGBA32& firstKey = self->GetKey(0);
+		const UInt16& firstAlphaTime = self->GetAlphaTime(0);
+		for(int i = 0; i < kGradientMaxNumKeys; i++)
+		{
+			alphaKeys[i].m_Alpha = ByteToNormalized((&firstKey)[i].a);
+			alphaKeys[i].m_Time = WordToNormalized((&firstAlphaTime)[i]);
+		}
+
+		return CreateScriptingArray (alphaKeys, numAlphaKeys, GetCommonScriptingClasses ().gradientAlphaKey);	
+	}
+	{
+		Gradient::AlphaKey alphaKeys[kGradientMaxNumKeys];
+		int numAlphaKeys = ConvertAlphaKeyArray (value, alphaKeys);
+		if (numAlphaKeys == -1)
+			return;	
+		self->SetAlphaKeys(&alphaKeys[0], numAlphaKeys);
+	}
+
+	CONDITIONAL UNITY_EDITOR
+	CUSTOM_PROP internal Color constantColor
+	{
+		return self->GetConstantColor ();
+	}
+	{
+		self->SetConstantColor (value);
+	}
+
+	// Setup Gradient with an array of color keys and alpha keys
+	CUSTOM void SetKeys (GradientColorKey[] colorKeys, GradientAlphaKey[] alphaKeys)
+	{
+		Gradient::ColorKey colors[kGradientMaxNumKeys];
+		int numColorKeys = ConvertColorKeyArray (colorKeys, colors);
+		if (numColorKeys == -1)
+			return;
+	
+		Gradient::AlphaKey alphas[kGradientMaxNumKeys];
+		int numAlphaKeys = ConvertAlphaKeyArray (alphaKeys, alphas);
+		if (numAlphaKeys == -1)
+			return;	
+		
+		return self->SetKeys (&colors[0], numColorKeys, &alphas[0], numAlphaKeys);
+	}	
+END
+
+CSRAW } // end of UnityEngine
+

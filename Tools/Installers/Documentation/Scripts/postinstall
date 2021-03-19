@@ -1,0 +1,9 @@
+#!/bin/sh
+
+base_dir="/Applications/Unity"
+
+if [ -e "$base_dir/Documentation/DocCombiner" ] ; then
+    "$base_dir/Documentation/DocCombiner" -autopaths "$base_dir"
+fi
+
+exit 0

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <StaticVars />
+  <Vars />
+  <Constructors />
+  <MemberFunctions />
+  <ProtectedFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+  <Events />
+  <Delegates />
+  <ImplementedInterfaces>
+    <member id="InterfaceA">
+      <name>InterfaceA</name>
+      <summary><![CDATA[summary for interface A]]></summary>
+    </member>
+    <member id="InterfaceAA">
+      <name>InterfaceAA</name>
+      <summary><![CDATA[summary for interface AA]]></summary>
+    </member>
+    <member id="NamespaceI.InterfaceB">
+      <name>InterfaceB</name>
+      <summary><![CDATA[summary for interface B]]></summary>
+    </member>
+    <member id="InterfaceC">
+      <name>InterfaceC</name>
+      <summary><![CDATA[]]></summary>
+    </member>
+  </ImplementedInterfaces>
+  <Section>
+    <Signature>
+      <Declaration name="ClassImplementingInterfaces" type="class" modifiers="public" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[This class implements InterfaceA, and InterfaceB]]></Summary>
+  </Section>
+  <BaseType id="AnotherClass">
+    <StaticVars />
+    <Vars />
+    <Constructors />
+    <MemberFunctions />
+    <ProtectedFunctions />
+    <StaticFunctions />
+    <Operators />
+    <Messages />
+    <Events />
+    <Delegates />
+  </BaseType>
+  <InheritsFrom>ClassImplementingInterfaces</InheritsFrom>
+</Model>

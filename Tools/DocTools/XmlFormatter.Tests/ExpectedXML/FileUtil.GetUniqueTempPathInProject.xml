@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>FileUtil</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="GetUniqueTempPathInProject" type="function" modifiers="public static" />
+      <ReturnType>string</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Returns a unique path in the Temp folder within your current project.]]></Summary>
+    <Description><![CDATA[The returned path is relative to the project folder.]]><br /><br /><![CDATA[The returned path is of a form ]]><monotype>Temp/UnityTempFile-</monotype><i>uniqueID</i><![CDATA[, where ]]><varname>uniqueID</varname><![CDATA[ is guaranteed to be
+unique over space and time.]]><br /><br /><![CDATA[You can use it to create temporary files/folders and be sure that
+you are not overriding somebody else's files, plus you don't have to
+keep track of the unique IDs yourself.]]></Description>
+    <Example nocheck="false" convertexample="false">
+      <Unconverted><![CDATA[	@MenuItem ("Example/Get Unique Path")
+	static function GetUniqueProjectPath () {
+		// Prints the unique path
+		]]><link ref="Debug.Log">Debug.Log</link><![CDATA[ (]]><link ref="FileUtil.GetUniqueTempPathInProject">FileUtil.GetUniqueTempPathInProject</link><![CDATA[ ());
+	}]]></Unconverted>
+    </Example>
+  </Section>
+</Model>

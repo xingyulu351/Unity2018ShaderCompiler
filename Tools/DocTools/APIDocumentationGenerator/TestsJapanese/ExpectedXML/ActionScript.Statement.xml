@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>ActionScript</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Statement" type="function" modifiers="static" />
+      <ParamElement name="formatString" type="string" />
+      <ParamElement name="arguments" type="object[]" modifier="params" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[メソッド名・変数名と引数として渡す値を設定する。戻り値なし。]]></Summary>
+    <ParamWithDoc>
+      <name>formatString</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>arguments</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	import UnityEngine.Flash;
+	
+	var v = 42;
+	ActionScript.Statement("trace({0})", v);
+]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine.Flash;
+using UnityEngine;
+using System.Collections;
+
+public class Example : MonoBehaviour {
+    public int v = 42;
+    void Example() {
+        ActionScript.Statement("trace({0})", v);
+    }
+}
+]]></CSharp>
+      <Boo><![CDATA[import UnityEngine.Flash
+import UnityEngine
+import System.Collections
+
+public class Example(MonoBehaviour):
+
+	public v as int = 42
+
+	def Example() as void:
+		ActionScript.Statement('trace({0})', v)
+
+]]></Boo>
+    </Example>
+  </Section>
+</Model>

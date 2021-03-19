@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AndroidJNI</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="SetShortField" type="function" modifiers="public static" />
+      <ParamElement name="obj" type="IntPtr" />
+      <ParamElement name="fieldID" type="IntPtr" />
+      <ParamElement name="val" type="short" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[This function sets the value of an instance (nonstatic) field of an object.]]></Summary>
+    <ParamWithDoc>
+      <name>obj</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>fieldID</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>val</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[See Also: ]]><a href="http://download.oracle.com/javase/1.5.0/docs/guide/jni/spec/jniTOC.html">Java Native Interface Specification (Oracle)</a></Description>
+  </Section>
+</Model>

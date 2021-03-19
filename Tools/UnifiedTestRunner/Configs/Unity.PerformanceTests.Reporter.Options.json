@@ -1,0 +1,10 @@
+[
+{"names":["testresultsxml"],"description":"Test result XML filename.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testresultsjson"],"description":"Specifies an output JSON file for test results. JSON contains performance test data, for baseline and current version, which is used to determine if performance has regressed.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testresultscsv"],"description":"Specifies an output CVS file for test results. CSV contains all the performance samples collected during test execution.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testsuite"],"description":"Test suite name used when reporting performance test data.","valueType":2,"defaultValue":null,"allowedValues":[],"hidden":"true"},
+{"names":["platform"],"description":"Platform used to run tests.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["forcebaselineupdate"],"description":"Force baseline update with current results.","valueType":0,"defaultValue":null,"allowedValues":[],"hidden":"true"},
+{"names":["outputjson"],"description":"Specifies an output JSON file for test results. JSON contains performance test data, for baseline and current version, which is used to determine if performance has regressed.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["saveoptions"],"description":"Will save all the option definitions to specified file. Used by external tools","valueType":2,"defaultValue":null,"allowedValues":[],"hidden":"true"}
+]

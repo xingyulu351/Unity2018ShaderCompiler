@@ -1,0 +1,49 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use RunTests qw (runTests isEmptyFolder createTestPlan getJSONReport);
+use File::Spec::Functions qw (canonpath);
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=runtime', '--testfilter=Array');
+    is($exitCode, 0);
+    my $suiteRoot = $artifactsPath;
+    ok(-e canonpath("$suiteRoot/AllInOneRunner/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/AllInOneRunner/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/AllInOneRunner/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/UnifiedTestRunner/TestPlan.txt"));
+    ok(-e canonpath("$suiteRoot/Editor.log"));
+    ok(not isEmptyFolder(canonpath("$suiteRoot/Artifacts")));
+}
+
+RunTest_ExistsWithNonZeroOnMemoryLeaks:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=runtime', '--testfilter=Array', '--memory-leaks-threshold=0');
+    isnt($exitCode, 0);
+}
+
+RunTest_TestList_Works:
+{
+    my @tests = ('CanAddEventsAtRuntime', 'CanAddComponentByType');
+    my $testPlan = createTestPlan(@tests);
+    diag("Test plan written to $testPlan");
+    my ($exitCode, $artifactsPath) = runTests('--suite=runtime', "--testlist=$testPlan");
+    my $report = getJSONReport($artifactsPath);
+    is($report->{summary}{testsCount}, 2);
+}
+
+if ($^O eq 'MSWin32')
+{
+RunTest_WindowsEnvironment_CompletesSuccesfully:
+    {
+        my ($exitCode) = runTests('--suite=runtime', '--env=win', '--testfilter=Array');
+        is($exitCode, 0);
+    }
+}
+
+done_testing();
+
+1;

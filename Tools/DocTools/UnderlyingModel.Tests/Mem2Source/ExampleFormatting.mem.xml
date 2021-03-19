@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc>
+    <member name="Color" type="Struct" namespace="UnityEngine">
+        <section>
+            <summary>color summary</summary>
+            <description>oneliner</description>
+            <example convertexample="true">
+                <code lang="js"><![CDATA[red example]]></code>
+            </example>
+            <description>multiliner</description>
+            <example convertexample="true">
+                <code lang="js"><![CDATA[
+red example
+more lines
+]]></code>
+            </example>
+            <description>description2</description>
+            <example convertexample="true">
+                <code lang="js"><![CDATA[
+green example
+{
+green function body
+}
+]]></code>
+            </example>
+            <description>description3</description>
+            <example convertexample="true">
+                <code lang="js"><![CDATA[
+blue example
+{
+blue function body
+}
+]]></code>
+            </example>
+            <description>description4</description>
+            <example convertexample="true">
+                <code lang="cs"><![CDATA[
+purple example
+{
+    purple function body
+}
+]]></code>
+            </example>
+        </section>
+    </member>
+</doc>

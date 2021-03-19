@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="NamespaceA.ClassWithFieldReferencingMovedClass" type="Class" namespace="NamespaceA">
+    <section>
+      <summary>This class references A</summary>
+      <description>Yes it does</description>
+    </section>
+    <member name="NamespaceA.ClassWithFieldReferencingMovedClass._fieldA" type="Field">
+      <section>
+        <summary>field points to class</summary>
+      </section>
+    </member>
+  </member>
+</doc>

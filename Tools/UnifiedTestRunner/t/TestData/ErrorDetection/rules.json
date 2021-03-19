@@ -1,0 +1,64 @@
+{
+    "enabled":1,
+    "fileTypes":["\\.txt$", "\\.log$"],
+    "skipMarkers":
+    [
+        {
+            "skipStart": "CompilerOutput:-stderr",
+            "skipEnd": "EndCompilerOutput"
+        }
+    ],
+    "markers":
+        [
+            {
+                "markerPattern":"= OUTPUTING STACK TRACE =",
+                "markerName":"WindowsUnityCrash",
+                "stopIfPattern":["= END OF STACKTRACE ="],
+                "includeCallStack":1,
+                "includingPattern":[],
+                "callStackPattern":["\\w+"],
+                "callStackSearchRetriesCount":5,
+                "skipIfCallStackNotFound":0
+            },
+            {
+                "markerPattern":"Obtained [0-9]+ stack frames\\.",
+                "markerName":"MacOSXUnityCrash",
+                "stopIfPattern":[],
+                "includeCallStack":1,
+                "includingPattern":[],
+                "callStackPattern":["^#[0-9]+\\s"],
+                "callStackSearchRetriesCount":5,
+                "skipIfCallStackNotFound":0
+            },
+            {
+                "markerPattern":"AssertionException:",
+                "markerName":"AssertionException",
+                "stopIfPattern":[],
+                "includeCallStack":1,
+                "includingPattern":["But was:"],
+                "callStackPattern":["(at\\s(\\(.+\\)\\s)?[A-Za-z][\\w]*(?:((?:\\.[A-Za-z][\\w]*)+)|((?:\\.[A-Za-z][\\w]*)*[:+`][.]*))([:+][A-Za-z][\\w]*)?)"],
+                "callStackSearchRetriesCount":5,
+                "skipIfCallStackNotFound":0
+            },
+            {
+                "markerPattern":"(^(?!Rethrow as ).+Exception(\\s\\(.+\\))?:)|(?:CommandInvokationFailure:)",
+                "stopIfPattern":[],
+                "markerName":".NET Exception",
+                "includeCallStack":1,
+                "callStackSearchRetriesCount":5,
+                "callStackPattern":["(at\\s(\\(.+\\)\\s)?[A-Za-z][\\w]*(?:((?:\\.[A-Za-z][\\w]*)+)|((?:\\.[A-Za-z][\\w]*)*[:+`][.]*))([:+][A-Za-z][\\w]*)?)"],
+                "includingPattern":["End of inner exception stack trace","Rethrow as"],
+                "skipIfCallStackNotFound":0
+            },
+            {
+                "markerPattern":"\\serror CS[0-9]{4}:\\s",
+                "markerName":"CSharp Compiler Error",
+                "stopIfPattern":[],
+                "includeCallStack":0,
+                "includingPattern":[],
+                "callStackPattern":["\\w+"],
+                "callStackSearchRetriesCount":5,
+                "skipIfCallStackNotFound":0
+            }
+        ]
+}

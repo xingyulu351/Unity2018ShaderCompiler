@@ -1,0 +1,48 @@
+CSRAW
+using System;
+
+namespace UnityEngine
+{
+
+// Base class to derive custom property attributes from. Use this to create custom attributes for script variables.
+[System.AttributeUsage (AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+NONSEALED_CLASS abstract PropertyAttribute : Attribute
+	CSRAW
+END
+
+// Attribute used to make a float or int variable in a script be restricted to a specific range.
+[System.AttributeUsage (AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+CLASS RangeAttribute : PropertyAttribute
+	CSRAW
+	public readonly float min;
+	public readonly float max;
+	
+	// Attribute used to make a float or int variable in a script be restricted to a specific range.
+	public RangeAttribute (float min, float max)
+	{
+		this.min = min;
+		this.max = max;
+	}
+END
+
+
+// Attribute to make a string be edited with a multi-line textfield
+[System.AttributeUsage (AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+CLASS MultilineAttribute : PropertyAttribute
+	CSRAW
+	public readonly int lines;
+	
+	/// *listonly*
+	public MultilineAttribute ()
+	{
+		this.lines = 3;
+	}
+	// Attribute used to make a string value be shown in a multiline textarea.
+	public MultilineAttribute (int lines)
+	{
+		this.lines = lines;
+	}
+	
+END
+
+CSRAW }

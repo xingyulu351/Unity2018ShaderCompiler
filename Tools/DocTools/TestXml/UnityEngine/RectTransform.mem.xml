@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="RectTransform" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>Position, size, anchor and pivot information for a rectangle.</summary>
+      <description>RectTransforms are used for GUI but can also be used for other things.
+It's used to store and manipulate the position, size, and anchoring of a rectangle and supports various forms of scaling based on a parent RectTransform.</description>
+    </section>
+    <member name="RectTransform._drivenByObject" type="Property">
+      <section>
+        <signature><![CDATA[drivenByObject]]></signature>
+        <summary>The object that is driving the values of this RectTransform. Value is null if not driven.</summary>
+        <description>Sometimes the values of a RectTransform can be driven by a script. When this is the case, the values should not be editable in the Inspector, and they should not be serialized either.</description>
+      </section>
+    </member>
+  </member>
+</doc>

@@ -1,0 +1,20 @@
+use warnings;
+use strict;
+
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+
+use RunTests runTests;
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=collab');
+    is($exitCode, 0);
+    ok(-e canonpath("$artifactsPath/Unity/stdout.txt"));
+}
+
+done_testing();

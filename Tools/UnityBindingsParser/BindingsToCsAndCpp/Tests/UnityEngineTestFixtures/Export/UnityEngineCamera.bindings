@@ -1,0 +1,494 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Camera/Camera.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Camera/Skybox.h"
+#include "Runtime/Graphics/LightmapSettings.h"
+#include "Runtime/Filters/Renderer.h"
+#include "Runtime/Camera/IntermediateRenderer.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Shaders/Material.h"
+#include "Runtime/Filters/Misc/TextMesh.h"
+#include "Runtime/Shaders/Shader.h"
+#include "External/shaderlab/Library/intshader.h"
+#include "Runtime/Camera/Renderqueue.h"
+#include "Runtime/Camera/Flare.h"
+#include "Runtime/GfxDevice/GfxDevice.h"
+#include "External/shaderlab/Library/texenv.h"
+#include "External/shaderlab/Library/properties.h"
+#include "Runtime/Geometry/Ray.h"
+#include "Runtime/Graphics/Texture2D.h"
+#include "Runtime/Graphics/CubemapTexture.h"
+#include "Runtime/Camera/Projector.h"
+#include "Runtime/Camera/RenderLayers/GUITexture.h"
+#include "Runtime/Camera/RenderLayers/GUIText.h"
+#include "Runtime/Camera/RenderLayers/GUILayer.h"
+#include "Runtime/Filters/Misc/LineRenderer.h"
+#include "Runtime/Graphics/DrawUtil.h"
+#include "Runtime/Math/Quaternion.h"
+#include "Runtime/Filters/Mesh/LodMesh.h"
+#include "Runtime/Filters/Mesh/LodMeshFilter.h"
+#include "Runtime/Graphics/RenderTexture.h"
+#include "Runtime/Graphics/MatrixStack.h"
+#include "Runtime/Graphics/MovieTexture.h"
+#include "Runtime/Filters/Misc/TrailRenderer.h"
+#include "Runtime/Graphics/RenderBufferManager.h"
+#include "Runtime/Camera/RenderManager.h"
+#include "Runtime/Shaders/GraphicsCaps.h"
+#include "Runtime/Graphics/ScreenManager.h"
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Geometry/Plane.h"
+#include "Runtime/Filters/Particles/ParticleAnimator.h"
+#include "Runtime/Filters/Particles/ParticleRenderer.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Filters/AABBUtility.h"
+#include <list>
+#include <vector>
+#include "Runtime/Misc/QualitySettings.h"
+#include "Runtime/Filters/Misc/Font.h"
+#include "Runtime/Camera/RenderSettings.h"
+#include "Runtime/Shaders/ShaderKeywords.h"
+#include "Runtime/Geometry/TextureAtlas.h"
+#include "Runtime/Misc/GameObjectUtility.h"
+#include "Runtime/Camera/CameraUtil.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/Graphics/ImageConversion.h"
+#include "Runtime/Filters/Mesh/MeshCombiner.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Camera/Culler.h"
+#include "Runtime/Threads/Mutex.h"
+#include "Runtime/Camera/PVSVolume.h"
+#include "Runtime/Graphics/DrawSplashScreenAndWatermarks.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+
+#if UNITY_EDITOR
+#include "Editor/Src/Gizmos/GizmoManager.h"
+#include "Editor/Src/Gizmos/GizmoUtil.h"
+#endif
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// Rendering path of a [[Camera]].
+ENUM RenderingPath
+	// Use Player Settings.
+	UsePlayerSettings = -1,
+
+	// Vertex Lit.
+	VertexLit = 0,
+
+	// Forward Rendering.
+	Forward = 1,
+
+	// Deferred Lighting.
+	DeferredLighting = 2
+END
+
+
+// Transparent object sorting mode of a [[Camera]].
+ENUM TransparencySortMode
+	// Default sorting mode.
+	Default = 0,
+
+	// Perspective sorting mode.
+	Perspective = 1,
+
+	// Orthographic sorting mode.
+	Orthographic = 2
+END
+
+
+// A Camera is a device through which the player views the world.
+CLASS Camera : Behaviour
+
+	// *undocumented* deprecated
+	OBSOLETE warning use Camera.fieldOfView instead.
+	CSRAW public float fov { get { return fieldOfView; } set { fieldOfView = value; } }
+	// *undocumented* deprecated
+	OBSOLETE warning use Camera.nearClipPlane instead.
+	CSRAW public float near { get { return nearClipPlane; } set { nearClipPlane = value; } }
+	// *undocumented* deprecated
+	OBSOLETE warning use Camera.farClipPlane instead.
+	CSRAW public float far { get { return farClipPlane; } set { farClipPlane = value; } }
+
+	// The field of view of the camera in degrees.
+	AUTO_PROP float fieldOfView GetFov SetFov
+
+	// The near clipping plane distance.
+	AUTO_PROP float nearClipPlane GetNear SetNear
+
+	// The far clipping plane distance.
+	AUTO_PROP float farClipPlane GetFar SetFar
+
+
+	// Rendering path.
+	AUTO_PROP RenderingPath renderingPath GetRenderingPath SetRenderingPath
+
+	// Actually used rendering path (RO).
+	CUSTOM_PROP RenderingPath actualRenderingPath { return self->CalculateRenderingPath(); }
+
+	// High dynamic range rendering
+	AUTO_PROP bool hdr CalculateUsingHDR SetHDR
+
+	// Camera's half-size when in orthographic mode.
+	AUTO_PROP float orthographicSize GetOrthographicSize SetOrthographicSize
+
+	// Is the camera orthographic (''true'') or perspective (''false'')?
+	AUTO_PROP bool orthographic GetOrthographic SetOrthographic
+
+
+	// Transparent object sorting mode.
+	AUTO_PROP TransparencySortMode transparencySortMode GetSortMode SetSortMode
+
+
+	OBSOLETE planned Use orthographic instead
+	CSRAW public bool isOrthoGraphic { get { return orthographic; } set { orthographic = value; } }
+
+	// Camera's depth in the camera rendering order.
+	AUTO_PROP float depth GetDepth SetDepth
+
+	// The aspect ratio (width divided by height).
+	AUTO_PROP float aspect GetAspect SetAspect
+
+	// This is used to render parts of the scene selectively.
+	AUTO_PROP int cullingMask GetCullingMask SetCullingMask
+
+	// The event mask used by the camera.
+	AUTO_PROP int eventMask GetEventMask SetEventMask
+
+	// The color with which the screen will be cleared.
+	AUTO_PROP Color backgroundColor GetBackgroundColor SetBackgroundColor
+
+
+	// Where on the screen is the camera rendered in normalized coordinates.
+	AUTO_PROP Rect rect GetNormalizedViewportRect SetNormalizedViewportRect
+
+	// Where on the screen is the camera rendered in pixel coordinates.
+	AUTO_PROP Rect pixelRect GetScreenViewportRect SetScreenViewportRect
+
+	// Destination render texture __(Unity Pro only)__.
+	AUTO_PTR_PROP RenderTexture targetTexture GetTargetTexture SetTargetTexture
+
+	CUSTOM private void SetTargetBuffersImpl(out RenderBuffer colorBuffer, out RenderBuffer depthBuffer)
+	{
+		RenderSurfaceHandle color = RenderSurfaceHandle(colorBuffer->m_BufferPtr);
+		RenderSurfaceHandle depth = RenderSurfaceHandle(depthBuffer->m_BufferPtr);
+
+		// check that we have matching exts
+		{
+			int colorW=0, colorH=0;
+			GetGfxDevice().GetRenderSurfaceExt(color, &colorW, &colorH);
+
+			int depthW=0, depthH=0;
+			GetGfxDevice().GetRenderSurfaceExt(depth, &depthW, &depthH);
+
+			if(colorW != depthW || colorH != depthH)
+			{
+				ErrorString ("Camera.SetTargetBuffers can only accept RenderBuffers with same ext.");
+				return;
+			}
+		}
+
+		RenderTexture* rtC = PPtr<RenderTexture>(colorBuffer->m_RenderTextureInstanceID);
+		RenderTexture* rtD = PPtr<RenderTexture>(depthBuffer->m_RenderTextureInstanceID);
+		if (rtC && !rtD)
+		{
+			ErrorString ("You're trying to set color buffer from the RenderTexture and depth buffer from the screen.");
+			return;
+		}
+		if (!rtC && rtD)
+		{
+			ErrorString ("You're trying to set color buffer from the screen and depth buffer from the RenderTexture.");
+			return;
+		}
+
+		self->SetTargetBuffers(color, depth, rtC);
+	}
+
+	CSRAW public void SetTargetBuffers(RenderBuffer colorBuffer, RenderBuffer depthBuffer)
+	{
+		SetTargetBuffersImpl(out colorBuffer, out depthBuffer);
+	}
+
+
+	// How wide is the camera in pixels (RO).
+	CUSTOM_PROP float pixelWidth { return self->GetScreenViewportRect ().Width(); }
+	// How tall is the camera in pixels (RO).
+	CUSTOM_PROP float pixelHeight { return self->GetScreenViewportRect ().Height(); }
+
+	// Matrix that transforms from camera space to world space (RO).
+	AUTO_PROP Matrix4x4 cameraToWorldMatrix GetCameraToWorldMatrix
+
+	// Matrix that transforms from world to camera space.
+	AUTO_PROP Matrix4x4 worldToCameraMatrix GetWorldToCameraMatrix SetWorldToCameraMatrix
+
+	// Make the rendering position reflect the camera's position in the scene.
+	AUTO void ResetWorldToCameraMatrix ();
+
+
+	// Set a custom projection matrix.
+	AUTO_PROP Matrix4x4 projectionMatrix GetProjectionMatrix SetProjectionMatrix
+
+	// Make the projection reflect normal camera's parameters.
+	AUTO void ResetProjectionMatrix ();
+
+	// Revert the aspect ratio to the screen's aspect ratio.
+	AUTO void ResetAspect ();
+
+	// Get the world-space speed of the camera (RO).
+	AUTO_PROP Vector3 velocity GetVelocity
+
+	// How the camera clears the background.
+	AUTO_PROP CameraClearFlags clearFlags GetClearFlags SetClearFlags
+
+	// Transforms /position/ from world space into screen space.
+	AUTO Vector3 WorldToScreenPoint (Vector3 position);
+
+	// Transforms /position/ from world space into viewport space.
+	AUTO Vector3 WorldToViewportPoint (Vector3 position);
+
+
+	// Transforms /position/ from viewport space into world space.
+	AUTO Vector3 ViewportToWorldPoint (Vector3 position);
+
+	// Transforms /position/ from screen space into world space.
+	AUTO Vector3 ScreenToWorldPoint (Vector3 position);
+
+
+	// Transforms /position/ from screen space into viewport space.
+	AUTO Vector3 ScreenToViewportPoint (Vector3 position);
+
+	// Transforms /position/ from viewport space into screen space.
+	AUTO Vector3 ViewportToScreenPoint (Vector3 position);
+
+
+	// Returns a ray going from camera through a viewport point.
+	CUSTOM Ray ViewportPointToRay (Vector3 position) { return self->ViewportPointToRay (Vector2f (position.x, position.y)); }
+
+	// Returns a ray going from camera through a screen point.
+	CUSTOM Ray ScreenPointToRay (Vector3 position) { return self->ScreenPointToRay (Vector2f (position.x, position.y)); }
+
+
+	// The first enabled camera tagged "MainCamera" (RO).
+	CUSTOM_PROP static Camera main
+	{
+		return Scripting::ScriptingWrapperFor(FindMainCamera());
+	}
+
+	// The camera we are currently rendering with, for low-level render control only (Read Only).
+	CUSTOM_PROP static Camera current { return Scripting::ScriptingWrapperFor (GetCurrentCameraPtr()); }
+
+	// Returns all enabled cameras in the scene.
+	CUSTOM_PROP static Camera[] allCameras
+	{
+		const RenderManager::CameraContainer& onscreen  = GetRenderManager ().GetOnscreenCameras ();
+		const RenderManager::CameraContainer& offscreen = GetRenderManager ().GetOffscreenCameras ();
+
+        unsigned camCount = onscreen.size () + offscreen.size();
+
+        int curCameraI = 0;
+
+		ScriptingArrayPtr scriptingcams = CreateScriptingArray<ScriptingObjectPtr>(GetScriptingManager ().GetCommonClasses ().camera, camCount);
+
+	    for (   RenderManager::CameraContainer::const_iterator camIter = onscreen.begin () ;
+	            camIter != onscreen.end() ;
+	            ++camIter, ++curCameraI
+	        )
+	    {
+		    SetScriptingArrayElement (scriptingcams, curCameraI, Scripting::ScriptingWrapperForImpl (*camIter));
+		}
+
+	    for (   RenderManager::CameraContainer::const_iterator camIter = offscreen.begin () ;
+	            camIter != offscreen.end() ;
+	            ++camIter, ++curCameraI
+	        )
+	    {
+		    SetScriptingArrayElement (scriptingcams, curCameraI, Scripting::ScriptingWrapperForImpl (*camIter));
+		}
+
+		return scriptingcams;
+	}
+
+
+	// *undocumented* DEPRECATED
+	OBSOLETE warning use Camera.main instead.
+	CSRAW public static Camera mainCamera { get { return Camera.main; } }
+	//*undocumented* DEPRECATED
+	OBSOLETE warning use Screen.width instead.
+	CUSTOM float GetScreenWidth () { return GetScreenManager ().GetWidth ();	}
+	//*undocumented* DEPRECATED
+	OBSOLETE warning use Screen.height instead.
+	CUSTOM float GetScreenHeight () { return GetScreenManager ().GetHeight (); }
+
+	//*undocumented* DEPRECATED
+	OBSOLETE warning Camera.DoClear is deprecated and may be removed in the future.
+	CUSTOM void DoClear () {
+		self->Clear ();
+	}
+
+
+	// OnPreCull is called before a camera culls the scene.
+	CSNONE void OnPreCull ();
+
+	// OnPreRender is called before a camera starts rendering the scene.
+	CSNONE void OnPreRender ();
+
+	// OnPostRender is called after a camera has finished rendering the scene.
+	CSNONE void OnPostRender ();
+
+	// OnRenderImage is called after all rendering is complete to render image
+	CSNONE void OnRenderImage (RenderTexture source, RenderTexture destination);
+
+
+	// OnRenderObject is called after camera has rendered the scene.
+	CSNONE void OnRenderObject ();
+
+
+	// OnWillRenderObject is called once for each camera if the object is visible.
+
+	CONVERTEXAMPLE
+	BEGIN EX
+	function OnWillRenderObject() {
+		// Tint the object red for identification if it is
+		// being shown on the overhead mini-map view.
+		if (Camera.current.name == "MiniMapcam") {
+			renderer.material.color = Color.red;
+		} else {
+			renderer.material.color = Color.white;
+		}
+	}
+	END EX
+	///
+	CSNONE void OnWillRenderObject();
+
+	// Render the camera manually.
+	CUSTOM void Render () {
+		self->StandaloneRender( Camera::kFlagSetRenderTarget, NULL, "" );
+	}
+
+	// Render the camera with shader replacement.
+	CUSTOM void RenderWithShader (Shader shader, string replacementTag) {
+		self->StandaloneRender( Camera::kFlagSetRenderTarget, shader, replacementTag );
+	}
+
+	// Make the camera render with shader replacement.
+	CUSTOM void SetReplacementShader (Shader shader, string replacementTag) {
+		self->SetReplacementShader( shader, replacementTag );
+	}
+	// Remove shader replacement from camera.
+	AUTO void ResetReplacementShader ();
+
+	AUTO_PROP bool useOcclusionCulling GetUseOcclusionCulling SetUseOcclusionCulling
+
+	// These are only used by terrain engine impostor rendering and should be used with care!
+	//*undoc*
+	CUSTOM void RenderDontRestore() {
+		self->StandaloneRender( Camera::kFlagDontRestoreRenderState | Camera::kFlagSetRenderTarget, NULL, "" );
+	}
+	//*undoc*
+	CUSTOM static void SetupCurrent (Camera cur)
+	{
+		if (cur)
+		{
+			cur->StandaloneSetup();
+		}
+		else
+		{
+			GetRenderManager ().SetCurrentCamera (NULL);
+			RenderTexture::SetActive(NULL);
+		}
+	}
+
+
+	// Render into a static cubemap from this camera.
+	CSRAW public bool RenderToCubemap (Cubemap cubemap, int faceMask = 63) {
+		return Internal_RenderToCubemapTexture( cubemap, faceMask );
+	}
+
+	// Render into a cubemap from this camera.
+	CSRAW public bool RenderToCubemap (RenderTexture cubemap, int faceMask = 63) {
+		return Internal_RenderToCubemapRT ( cubemap, faceMask );
+	}
+
+
+	CUSTOM private bool Internal_RenderToCubemapRT( RenderTexture cubemap, int faceMask )
+	{
+		RenderTexture* rt = cubemap;
+		if( !rt )
+		{
+			ErrorString( "Cubemap must not be null" );
+			return false;
+		}
+		return self->StandaloneRenderToCubemap( rt, faceMask );
+	}
+	CUSTOM private bool Internal_RenderToCubemapTexture( Cubemap cubemap, int faceMask )
+	{
+		Cubemap* cube = cubemap;
+		if( !cube )
+		{
+			ErrorString( "Cubemap must not be null" );
+			return false;
+		}
+		return self->StandaloneRenderToCubemap( cube, faceMask );
+	}
+
+	// Per-layer culling distances.
+	CUSTOM_PROP float[] layerCullDistances
+	{
+		return CreateScriptingArray(self->GetLayerCullDistances(), 32, GetScriptingManager().GetCommonClasses().floatSingle);
+	}
+	{
+#if ENABLE_MONO
+		MonoRaiseIfNull(value);
+#endif
+		if(GetScriptingArraySize(value) != 32)
+		{
+#if ENABLE_MONO
+			RaiseMonoException(" Array needs to contain exactly 32 floats for layerCullDistances.");
+#endif
+			return;
+		}
+		self->SetLayerCullDistances(GetScriptingArrayStart<float> (value));
+	}
+
+	// How to perform per-layer culling for a Camera.
+	CUSTOM_PROP bool layerCullSpherical { return self->GetLayerCullSpherical(); } { self->SetLayerCullSpherical(value); }
+
+	// Makes this camera's settings match other camera.
+	CUSTOM void CopyFrom (Camera other) {
+		const Camera* otherCam = other;
+		if(!otherCam)
+		{
+			ErrorString( "Camera to copy from must not be null" );
+			return;
+		}
+
+		self->CopyFrom (*otherCam);
+	}
+
+	// How and if camera generates a depth texture.
+	CUSTOM_PROP DepthTextureMode depthTextureMode { return self->GetDepthTextureMode(); } { self->SetDepthTextureMode (value); }
+	
+	// Should the camera clear the stencil buffer after the lighting stage of the deferred rendering path?
+	CUSTOM_PROP bool clearStencilAfterLightingPass { return self->GetClearStencilAfterLightingPass(); } { self->SetClearStencilAfterLightingPass (value); }
+
+	CUSTOM internal bool IsFiltered (GameObject go) {
+	#if UNITY_EDITOR
+		return self->GetCuller().IsFiltered(*go);
+	#else
+		return true;
+	#endif
+	}
+END
+
+
+CSRAW }

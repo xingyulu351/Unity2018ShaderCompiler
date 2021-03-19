@@ -1,0 +1,180 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Math/Vector3.h"
+#include "Runtime/Geometry/Ray.h"
+#include "Runtime/Math/Rect.h"
+#include "Runtime/Math/Matrix4x4.h"
+#include "Runtime/Graphics/Texture.h"
+#include "Runtime/Filters/Misc/Font.h"
+#include "Runtime/Shaders/Material.h"
+#include "Runtime/IMGUI/TextUtil.h"
+#include "Runtime/Camera/RenderLayers/GUITexture.h"
+#include "Runtime/Misc/InputEvent.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+
+#if UNITY_EDITOR
+#include "Editor/Src/Gizmos/GizmoManager.h"
+#include "Editor/Src/Gizmos/GizmoUtil.h"
+#include "Editor/Src/Gizmos/GizmoRenderer.h"
+#endif
+
+using namespace Unity;
+
+/*
+   Mono defines a bool as either 1 or 2 bytes.
+   On windows a bool on the C++ side needs to be 2 bytes.
+   We use the typemap to map bool's to short's.
+   When using the C++ keyword and you want to export a bool value 
+   to mono you have to use a short on the C++ side.
+*/
+
+
+void PauseEditor ();
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+
+// Gizmos are used to give visual debugging or setup aids in the scene view.
+CLASS Gizmos
+	
+	C++RAW
+ 
+	static void CheckGizmoDrawing ();
+	static void CheckGizmoDrawing ()
+	{
+		#if UNITY_EDITOR
+		if (!GizmoManager::Get ().IsDrawingGizmos ())
+			RaiseMonoException ("Gizmo drawing functions can only be used in OnDrawGizmos and OnDrawGizmosSelected.");
+		#endif
+	}
+
+
+	/// *listonly*
+	CSRAW public static void DrawRay (Ray r)
+	{
+		Gizmos.DrawLine (r.origin, r.origin + r.direction);
+	}
+	// Draws a ray starting at /from/ to /from/ + /direction/.
+	CSRAW public static void DrawRay (Vector3 from, Vector3 direction)
+	{
+		Gizmos.DrawLine (from, from + direction);
+	}
+	
+	
+
+	// Draws a line starting at /from/ towards /to/.
+	CUSTOM static void DrawLine (Vector3 from, Vector3 to)
+	{
+		CheckGizmoDrawing ();
+		#if UNITY_EDITOR
+		DrawLine (from, to);
+		#endif
+	}
+		
+	// Draws a wireframe sphere with /center/ and /radius/.
+	CUSTOM static void DrawWireSphere (Vector3 center, float radius)
+	{
+		#if UNITY_EDITOR
+		CheckGizmoDrawing ();
+		DrawWireSphere (center, radius);
+		#endif
+	}
+	
+	// Draws a solid sphere with /center/ and /radius/.
+	CUSTOM static void DrawSphere (Vector3 center, float radius)
+	{
+		#if UNITY_EDITOR
+		CheckGizmoDrawing ();
+		DrawSphere (center, radius);
+		#endif
+	}
+
+	// Draw a wireframe box with /center/ and /size/.
+	CUSTOM static void DrawWireCube (Vector3 center, Vector3 size)
+	{
+		#if UNITY_EDITOR
+		CheckGizmoDrawing ();
+		DrawWireCube (center, size);
+		#endif
+	}
+
+	// Draw a solid box with /center/ and /size/.
+	CUSTOM static void DrawCube (Vector3 center, Vector3 size)
+	{
+		#if UNITY_EDITOR
+		CheckGizmoDrawing ();
+		DrawCube (center, size);
+		#endif
+	}
+
+
+	// Draw an icon at a position in the scene view.
+	CUSTOM static void DrawIcon (Vector3 center, string name, bool allowScaling = true)
+	{
+		#if UNITY_EDITOR
+		CheckGizmoDrawing ();
+		DrawIcon (center, name, allowScaling);
+		#endif
+	}
+
+
+	/// *listonly*
+	CSRAW public static void DrawGUITexture (Rect screenRect, Texture texture, Material mat = null) { DrawGUITexture (screenRect, texture,0,0,0,0, mat); }
+	// Draw a texture in screen coordinates. Useful for GUI backgrounds.
+	CUSTOM static void DrawGUITexture (Rect screenRect, Texture texture, int leftBorder, int rightBorder, int topBorder, int bottomBorder, Material mat = null) {
+		#if UNITY_EDITOR
+		CheckGizmoDrawing ();
+		DrawGUITexture (screenRect, texture, leftBorder, rightBorder, topBorder, bottomBorder, ColorRGBA32(128,128,128,128), mat);
+		#endif	
+	}
+
+
+	// Sets the color for the gizmos that will be drawn next.
+	CUSTOM_PROP static Color color
+	{
+		#if UNITY_EDITOR
+		return gizmos::g_GizmoColor;
+		#endif
+		return ColorRGBAf (1,1,1,1);
+	}
+	{
+		#if UNITY_EDITOR
+		gizmos::g_GizmoColor = value;
+		#endif
+	}
+
+	// Set the gizmo matrix used to draw all gizmos.
+	CUSTOM_PROP static Matrix4x4 matrix
+	{
+		#if UNITY_EDITOR
+		return GetGizmoMatrix ();
+		#endif
+		return Matrix4x4f::identity;
+	}
+	{
+		#if UNITY_EDITOR
+		SetGizmoMatrix (value);
+		#endif
+	}
+
+	
+	CUSTOM static void DrawFrustum (Vector3 center, float fov, float maxRange, float minRange, float aspect) {
+		#if UNITY_EDITOR
+		DrawFrustum (center, fov, maxRange, minRange, aspect);
+		#endif
+	}
+END
+
+
+
+CSRAW }

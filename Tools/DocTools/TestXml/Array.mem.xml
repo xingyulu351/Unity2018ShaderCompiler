@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Array" type="Class" namespace="">
+    <section doconly="true">
+      <summary>Arrays allow you to store multiple objects in a single variable.</summary>
+      <description>The Array class is only available in Javascript.
+
+__Here is a basic example of what you can do with an array class: __</description>
+      <example>
+        <code lang="js"><![CDATA[function Start () {
+	var arr = new Array ();
+
+	// Add one element
+	arr.Push ("Hello");
+	
+	// print the first element ("Hello")
+	print(arr[0]);
+
+	// Resize the array
+	arr.length = 2;
+	// Assign "World" to the second element
+	arr[1] = "World";
+	
+	// iterate through the array
+	for (var value : String in arr) {
+		print(value);
+	}
+}]]></code>
+        <code lang="cs"><![CDATA[The Array class is only available in Javascript.]]></code>
+      </example>
+      <description>There are two types of arrays in Unity, builtin arrays and normal Javascript Arrays.
+__Builtin arrays (native .NET arrays), are extremely fast and efficient but they can not be resized__
+
+They are statically typed which allows them to be edited in the inspector. Here is a basic example of how you can use builtin arrays:</description>
+      <example>
+        <code lang="js"><![CDATA[// Exposes an float array in the inspector,
+// which you can edit there.
+var values : float[];
+
+function Start () {
+	// iterate through the array
+	for (var value in values) {
+		print(value);
+	}
+
+	// Since we can't resize builtin arrays
+	// we have to recreate the array to resize it
+	values = new float[10];
+
+	// assign the second element
+	values[1] = 5.0;
+}]]></code>
+        <code lang="cs"><![CDATA[using UnityEngine;
+using System.Collections;
+
+public class ExampleClass : MonoBehaviour {
+    // Exposes an float array in the inspector, which you can edit there.
+    public float[] values;
+    void Start() {
+        foreach (float value in values) {
+            print(value);
+        }
+
+        // Since we can't resize builtin arrays
+        // we have to recreate the array to resize it
+        values = new float[10];
+
+        // assign the second element
+        values[1] = 5.0F;
+    }
+}]]></code>
+      </example>
+      <description>Builtin arrays are useful in performance critical code (With Unity's javascript and builtin arrays you could easily process 2 million vertices using the [[Mesh|mesh interface]] in one second.)
+
+Normal Javascript Arrays on the other hand can be resized, sorted and can do all other operations you would expect from an array class.
+Javascript Arrays do not show up in the inspector.
+__You can easily convert between Javascript Arrays and builtin arrays. __</description>
+      <example>
+        <code lang="js"><![CDATA[function Start () {
+    var array = new Array (Vector3(0, 0, 0), Vector3(0, 0, 1));
+    array.Push(Vector3(0, 0, 2));
+    array.Push(Vector3(0, 0, 3));
+
+    // Copy the js array into a builtin array
+    var builtinArray : Vector3[] = array.ToBuiltin(Vector3) as Vector3[];
+    
+    // Assign the builtin array to a js Array
+    var newarr = new Array (builtinArray);
+    
+    // newarr contains the same elements as array
+    print (newarr);
+}]]></code>
+        <code lang="cs"><![CDATA[The Array class is only available in Javascript.]]></code>
+      </example>
+      <description>Note that Array's functions are upper case following Unity's naming convention.
+As a convenience for javascript users, Unity also accepts lower case functions for the array class.
+
+ __Note:__ Unity doesn't support serialization of a List of Lists, nor an Array of Arrays.</description>
+    </section>
+    <member name="Array.Add" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Add()]]></signature>
+        <summary>Adds /value/ to the end of the array.</summary>
+        <example>
+          <code lang="js"><![CDATA[var arr = new Array ("Hello");
+arr.Add("World");
+// prints "Hello", "World"
+print (arr);]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Clear" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Clear()]]></signature>
+        <summary>Empties the array. The length of the array will be zero.</summary>
+        <example>
+          <code lang="js"><![CDATA[var hello = new Array ("Hello", "World");
+hello.Clear();
+// hello now contains zero elements]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Concat" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Concat()]]></signature>
+        <summary>Concat joins two or more arrays.</summary>
+        <description>The method does not change the existing arrays and returns a copy of the joined array.</description>
+        <example>
+          <code lang="js"><![CDATA[function Start () {
+		var arr = new Array ("Hello", "World");
+		var arr2 = new Array ("!");
+	
+		// joined now contains all 3 strings		
+		var joined = arr.Concat(arr2);
+		
+		// prints "Hello","World","!"    
+		print(joined);
+}]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.ctor" type="Constructor">
+      <section doconly="true">
+        <signature><![CDATA[Array(int)]]></signature>
+        <summary>Creates an Array of a fixed size.</summary>
+        <description>The Array class is only available in Javascript.</description>
+        <example>
+          <code lang="js"><![CDATA[var arr = new Array(5);
+print(arr.length);]]></code>
+          <code lang="cs"><![CDATA[The Array class is only available in Javascript.]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Join" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Join()]]></signature>
+        <summary>Joins the contents of an array into one string.</summary>
+        <description>The elements are seperated by the /seperator/ string and returns a copy of the joined array.</description>
+        <example>
+          <code lang="js"><![CDATA[function Start () {
+		var arr = new Array ("Hello", "World");
+
+		// Prints "Hello, World"
+		print(arr.join(", "));
+}]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Pop" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Pop()]]></signature>
+        <summary>Removes the last element of the array and returns it.</summary>
+        <example>
+          <code lang="js"><![CDATA[var arr = new Array ("Hello", "World");
+arr.Pop();
+
+// Prints only "Hello"
+print (arr);]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Push" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Push()]]></signature>
+        <summary>Adds /value/ to the end of the array.</summary>
+        <description>And returns the new length of the array.</description>
+        <example>
+          <code lang="js"><![CDATA[var arr = new Array ("Hello");
+arr.Push("World");
+// Prints "Hello", "World"
+print(arr);]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.RemoveAt" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[RemoveAt()]]></signature>
+        <summary>Removes the element at /index/ from the array.</summary>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[var arr = new Array ("Hello", "and good morning", "World");
+
+// remove "and good morning"
+arr.RemoveAt(1);
+	
+// Prints "Hello,World"
+print (arr);]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Shift" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Shift()]]></signature>
+        <summary>Removes the first element of the array and returns it.</summary>
+        <example>
+          <code lang="js"><![CDATA[var arr = new Array ("Hello", "World");
+arr.Shift();
+// arr now only contains "World"
+print ("World");]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array.Sort" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Sort()]]></signature>
+        <summary>Sorts all Array elements.</summary>
+        <description>Var hello = new Array ("c", "a", "b");
+hello.Sort();
+print(hello);
+// prints a, b, c.</description>
+      </section>
+    </member>
+    <member name="Array.Unshift" type="Method">
+      <section doconly="true">
+        <signature><![CDATA[Shift()]]></signature>
+        <summary>Unshift adds one or more elements to the beginning of an array and returns the new length of the array.</summary>
+        <example>
+          <code lang="js"><![CDATA[var arr = new Array ("Hello", "World");
+arr.Unshift("This", "is");
+// Prints This, is, Hello, World
+print(arr);]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Array._length" type="Property">
+      <section doconly="true">
+        <signature><![CDATA[length]]></signature>
+        <summary>The length property of the array that returns or sets the number of elements in array.</summary>
+        <example>
+          <code lang="js"><![CDATA[function Start () {
+	var arr = Array ("Hello", "World");
+
+	// Prints "2"
+	print(arr.Length);
+	// resizes the array to a size of 5
+	arr.Length = 5;
+}]]></code>
+          <code lang="cs"><![CDATA[using UnityEngine;
+using System.Collections;
+
+public class ExampleClass : MonoBehaviour {
+    void Start() {
+		ArrayList arr = new Array("Hello", "World");
+
+		// Prints "2"
+		print(arr.Length);
+		// resizes the array to a size of 5
+		arr.Length = 5;
+    }
+}]]></code>
+        </example>
+      </section>
+    </member>
+  </member>
+</doc>

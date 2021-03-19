@@ -1,0 +1,367 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Utilities/Utility.h"
+#include <vector>
+
+#if ENABLE_GAMECENTER
+#include "External/GameKit/GameCenter.h"
+#endif
+
+
+CSRAW 
+using System;
+using System.Runtime.InteropServices;
+
+#if ENABLE_GAMECENTER
+namespace UnityEngine.SocialPlatforms.GameCenter
+{
+	using UnityEngine.SocialPlatforms.Impl;
+	
+	/// GameCenter implementation for network services.
+	/// An application bundle ID must be registered on iTunes Connect
+	/// before it can access GameCenter. This ID must be properly set in
+	/// the iOS player properties in Unity, or in the Info.plist file inside your
+	/// application bundle for OS X Standalone builds. When debugging you can use the GameCenter
+	/// sandbox (a text displaying this is shown when logging on). You
+	/// must log on in the application to get into sandbox mode, logging
+	/// on in the GameCenter application will always use the production version.
+	///
+
+	// Remove this note if apple gets to fix it!
+	/// Note: Mac OS X (as of version 10.8.2) has a bug where it will not allow you to enter 
+	/// Game Center sandbox mode unless you use the following workaround as suggested by Apple:
+	/// https://devforums.apple.com/message/763000
+	/// It does not seem to be possible to create Game Center sandbox accounts using this workaround,
+	/// though, so if you don't have an existing sandbox account, you need to create one using iOS.
+	///
+
+	/// For testing Game Center on OS X, you need to first set up your Info.plist file to contain
+	/// the correct application bundle ID and version to match the app set up in iTunes Connect.
+	/// Then, you need to set up the correct entitlements for Game Center. Create an entitlements file
+	/// with the following contents:
+	
+	BEGIN EX
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+	<dict>
+		<key>com.apple.security.app-sandbox</key>
+		<true/>
+		<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+		<array>
+			<string>com.apple.gamed.osx</string>
+			<string>com.apple.gamed.xpc</string>
+			<string>com.apple.developer.game-center</string>
+		</array>
+	</dict>
+	</plist>
+	END EX
+	
+	/// Finally, you need to sign you application using the entitlements file like this:
+
+	BEGIN EX
+	codesign -f -s "<Your code signing certificate>" --entitlements <path to your entitlements file> <path to your created unity standalone app> 
+	END EX
+
+	/// When using the GameCenterPlatform class in C# you need to include the 
+	/// UnityEngine.SocialPlatforms.GameCenter namespace.
+	///
+	/// Some things to be aware of when using the generic API:
+	///
+	/// __Authenticate()__ \\
+	/// If the user is not logged in, a standard GameKit UI is shown 
+	/// where he can log on or create a new user. It is recommended
+	/// this is done as early as possible.
+	/// 
+	/// __Achievement descriptions and Leaderboards__ \\
+	/// The achivements descriptions and leaderboard configurations can be configured in the 
+	/// iTunes Connect portal. Achievements get unique identifiers and the
+	/// leaderboards use category names as identifiers.
+	///
+	/// __GameCenter Sandbox__ \\
+	/// Development applications use the GameCenter Sandbox. This is a seperate GameCenter
+	/// than the live one, nothing is shared between them. It is recommended that you
+	/// create a seperate user for testing with the GameCenter Sandbox, you should not use
+	/// your real Apple ID for this. You can only log on to the sandbox through a development
+	/// application, make sure you are not logged into GameCenter using the GameCenter app before
+	/// testing begins. You should see ''*** Sandbox ***'' in the login dialog, if you don't see this
+	/// then you are logging on to the real one. Sometime it happens that the OS forgets that the
+	/// application is using the sandbox and you will be logged on to the real one. If the application
+	/// has not be submitted to Apple already then this will probably result in an error. To fix this
+	/// all that needs to be done is to delete the app and redeploy with Xcode. To make another apple 
+	/// ID a friend of a sandbox user it needs to be a sandbox user as well.
+	///
+	/// If you start getting errors when accessing GameCenter stating that the
+	/// application is not recognized you'll need to delete the application complately and re-deploy.
+	/// Make sure you are not logged on when starting the newly installed application again.
+	CONDITIONAL ENABLE_GAMECENTER
+	CLASS GameCenterPlatform : ISocialPlatform
+		
+		CUSTOM internal static void Internal_Authenticate()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcLocalUser::GetInstance()->Authenticate();
+			#endif
+		}
+		
+		CUSTOM internal static bool Internal_Authenticated()
+		{
+			#if ENABLE_GAMECENTER
+			return GameCenter::GcLocalUser::GetInstance()->GetAuthenticated();
+			#else
+			return false;
+			#endif
+		}
+		
+		CUSTOM internal static string Internal_UserName()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcLocalUser *user = GameCenter::GcLocalUser::GetInstance();
+			std::string name = user->GetUserName();
+			return CreateScriptingString(name);
+			#else
+			return CreateScriptingString("");
+			#endif
+		}
+		
+		CUSTOM internal static string Internal_UserID()
+		{
+			#if ENABLE_GAMECENTER
+			return CreateScriptingString(GameCenter::GcLocalUser::GetInstance()->GetUserID());
+			#else
+			return CreateScriptingString("");
+			#endif
+		}
+		
+		CUSTOM internal static bool Internal_Underage()
+		{
+			#if ENABLE_GAMECENTER
+			return GameCenter::GcLocalUser::GetInstance()->GetIsUnderage();
+			#else
+			return false;
+			#endif
+		}
+		
+		CUSTOM internal static Texture2D Internal_UserImage()
+		{
+			#if ENABLE_GAMECENTER
+			return GameCenter::GcLocalUser::GetInstance()->GetUserImage();
+			#else
+			return SCRIPTING_NULL;
+			#endif
+		}
+
+		CUSTOM internal static void Internal_LoadFriends()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcLocalUser::GetInstance()->LoadFriends();
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_LoadAchievementDescriptions()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcAchievementDescription::LoadAchievementDescriptions();
+			#endif
+		}
+	
+		CUSTOM internal static void Internal_LoadAchievements()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcAchievement::LoadAchievements();
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_ReportProgress(string id, double progress)
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcAchievement::ReportProgress(id, progress);
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_ReportScore(Int64 score, string category)
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcScore::ReportScore(score, category);
+			#endif
+		}
+				
+		CUSTOM internal static void Internal_LoadScores(string category)
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcScore::LoadScores(category);
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_ShowAchievementsUI()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcAchievementDescription::ShowAchievementsUI();
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_ShowLeaderboardUI()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcLeaderboard::ShowLeaderboardUI();
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_LoadUsers(string[] userIds)
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcLocalUser::LoadUsers(userIds);
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_ResetAllAchievements()
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcAchievement::ResetAllAchievements();
+			#endif
+		}
+		
+		CUSTOM internal static void Internal_ShowDefaultAchievementBanner(bool value)
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcAchievement::ShowDefaultAchievementBanner(value);
+			#endif
+		}
+		
+		// Reset all the achievements for the local user.
+		CSRAW static public void ResetAllAchievements(Action<bool> callback)
+		{
+			s_ResetAchievements = callback;
+			Internal_ResetAllAchievements();
+		}
+
+		// Show the default iOS banner when achievements are completed.
+		CSRAW static public void ShowDefaultAchievementCompletionBanner(bool value)
+		{
+			Internal_ShowDefaultAchievementBanner(value);
+		}
+		
+		// Show the leaderboard UI with a specific leaderboard shown initially with a specific time scope selected.
+		CSRAW static public void ShowLeaderboardUI(string leaderboardID, TimeScope timeScope)
+		{
+			Internal_ShowSpecificLeaderboardUI(leaderboardID, (int)timeScope);
+		}
+		
+		CUSTOM internal static void Internal_ShowSpecificLeaderboardUI(string leaderboardID, int timeScope)
+		{
+			#if ENABLE_GAMECENTER
+			GameCenter::GcLeaderboard::ShowLeaderboardUI(leaderboardID, timeScope);
+			#endif
+		}
+	END
+	
+	// This class cannot inherit from the generic Leaderboard class as it will break the marshaling of the pointer
+	// *undocumented*
+	CSRAW [StructLayout (LayoutKind.Sequential)]
+	CONDITIONAL ENABLE_GAMECENTER
+	CLASS internal GcLeaderboard
+		C++RAW
+		#if ENABLE_GAMECENTER
+		struct GcLeaderboardToMono
+		{
+			GameCenter::GcLeaderboard* leaderboard;
+			ScriptingObjectPtr genericLeaderboard;
+		};
+		#endif
+		
+		CSRAW
+		private IntPtr m_InternalLeaderboard;
+		Leaderboard m_GenericLeaderboard;
+
+		internal GcLeaderboard(Leaderboard board)
+		{
+			m_GenericLeaderboard = board;
+		}
+		
+		~GcLeaderboard()
+		{
+			Dispose();
+		}
+		
+		internal bool Contains(Leaderboard board)
+		{
+			return m_GenericLeaderboard == board;
+		}
+		
+		internal void SetScores(GcScoreData[] scoreDatas)
+		{
+			if (m_GenericLeaderboard != null)
+			{
+				Score[] scores = new Score[scoreDatas.Length];
+				for(int i = 0; i < scoreDatas.Length; ++i)
+					scores[i] = scoreDatas[i].ToScore();
+				m_GenericLeaderboard.SetScores(scores);
+			}
+		}
+		
+		internal void SetLocalScore(GcScoreData scoreData)
+		{
+			if (m_GenericLeaderboard != null)
+				m_GenericLeaderboard.SetLocalUserScore(scoreData.ToScore());
+		}
+		
+		internal void SetMaxRange(uint maxRange)
+		{
+			if (m_GenericLeaderboard != null)
+				m_GenericLeaderboard.SetMaxRange(maxRange);
+		}
+		
+		internal void SetTitle(string title)
+		{
+			if (m_GenericLeaderboard != null)
+				m_GenericLeaderboard.SetTitle(title);
+		}
+				
+		CUSTOM internal void Internal_LoadScores(string category, int from, int count, int playerScope, int timeScope)
+		{
+			#if ENABLE_GAMECENTER
+			GcLeaderboardToMono& monoBoard = ExtractMonoObjectData<GcLeaderboardToMono>(self);
+			monoBoard.leaderboard = new GameCenter::GcLeaderboard();
+			monoBoard.leaderboard->Create();
+			monoBoard.leaderboard->RegisterManagedSelf(self);
+			monoBoard.leaderboard->LoadScores(category, from, count, playerScope, timeScope);
+			#endif
+		}
+		
+		CUSTOM internal void Internal_LoadScoresWithUsers(string category, int timeScope, string[] userIDs)
+		{
+			#if ENABLE_GAMECENTER
+			GcLeaderboardToMono& monoBoard = ExtractMonoObjectData<GcLeaderboardToMono>(self);
+			monoBoard.leaderboard = new GameCenter::GcLeaderboard();
+			monoBoard.leaderboard->Create(userIDs);
+			monoBoard.leaderboard->RegisterManagedSelf(self);
+			monoBoard.leaderboard->LoadScores(category, 1, 10, 0, timeScope);
+			#endif
+		}
+		
+		CUSTOM internal bool Loading()
+		{
+			#if ENABLE_GAMECENTER
+			GcLeaderboardToMono& monoBoard = ExtractMonoObjectData<GcLeaderboardToMono>(self);
+			return monoBoard.leaderboard->Loading();
+			#else
+			return false;
+			#endif
+		}
+		
+		THREAD_AND_SERIALIZATION_SAFE
+		CUSTOM internal void Dispose()
+		{
+			#if ENABLE_GAMECENTER
+			GcLeaderboardToMono& monoBoard = ExtractMonoObjectData<GcLeaderboardToMono>(self);
+			delete monoBoard.leaderboard;
+			monoBoard.leaderboard = NULL;
+			#endif
+		}
+	END 
+	
+CSRAW
+}
+#endif

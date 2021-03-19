@@ -1,0 +1,21 @@
+use Test::More;
+
+plan skip_all => 'Not yet supported';
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+
+use RunTests runTests;
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=playmode');
+    is($exitCode, 0);
+    ok(-e canonpath("$artifactsPath/ExampleOfPlaymodeTests/Unity/log.txt"));
+    ok(-e canonpath("$artifactsPath/ExampleOfPlaymodeTests/Unity/TestResults.xml"));
+}
+
+done_testing();

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EC822A9C-57FB-AED8-2EB9-1CCAF227CBE4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>JamSharp.Runtime</RootNamespace>
+    <AssemblyName>JamSharp.Runtime</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>7</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\JamSharp.Runtime\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\JamSharp.Runtime\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="AssemblyInfo.cs">
+  </Compile>
+  <Compile Include="BuiltinRules.cs">
+  </Compile>
+  <Compile Include="CSharpVariableStorage.cs">
+  </Compile>
+  <Compile Include="GlobalVariables.cs">
+  </Compile>
+  <Compile Include="IJamStateBuilder.cs">
+  </Compile>
+  <Compile Include="Jam.cs">
+  </Compile>
+  <Compile Include="JamCoreVariableStorage.cs">
+  </Compile>
+  <Compile Include="JamList.cs">
+  </Compile>
+  <Compile Include="JamListExtensions.cs">
+  </Compile>
+  <Compile Include="JamTarget.cs">
+  </Compile>
+  <Compile Include="Rules.cs">
+  </Compile>
+  <Compile Include="RuntimeExpressionEvaluation.cs">
+  </Compile>
+  <Compile Include="RuntimeManager.cs">
+  </Compile>
+  <Compile Include="TemporaryTargetContext.cs">
+  </Compile>
+  <Compile Include="Parser\AST.cs">
+  </Compile>
+  <Compile Include="Parser\ConditionParser.cs">
+  </Compile>
+  <Compile Include="Parser\ParseMode.cs">
+  </Compile>
+  <Compile Include="Parser\Parser.cs">
+  </Compile>
+  <Compile Include="Parser\Scanner.cs">
+  </Compile>
+  <Compile Include="Parser\ScanResult.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.gen.csproj" >
+      <Project>{821B9927-8824-7A63-753A-B0722FEA2C3D}</Project>
+      <Name>NiceIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools\Bee.Tools.gen.csproj" >
+      <Project>{0A5A7B4F-EB80-9EEF-1943-D14B1AE24DB8}</Project>
+      <Name>Bee.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core\Bee.Core.gen.csproj" >
+      <Project>{7FB12158-1066-6DF7-CDB5-E7F236032555}</Project>
+      <Name>Bee.Core</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="ToString" type="function" modifiers="public" />
+      <ReturnType>string</ReturnType>
+    </Signature>
+    <Signature>
+      <Declaration name="ToString" type="function" modifiers="public" />
+      <ParamElement name="format" type="string" />
+      <ReturnType>string</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Returns a nicely formatted string for this vector.]]></Summary>
+    <ParamWithDoc>
+      <name>format</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+  </Section>
+</Model>

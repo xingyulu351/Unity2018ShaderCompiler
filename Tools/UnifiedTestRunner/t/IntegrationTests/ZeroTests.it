@@ -1,0 +1,23 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir);
+
+use RunTests runTests;
+
+RunTest_FailsIfSuiteContainsZeroTests:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=native', '--suite=cgbatch', '--testfilter=StringBuilder');
+    isnt($exitCode, 1);
+}
+
+RunTest_FailsIfSuiteContainsZeroTests:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=native', '--suite=cgbatch', '--zero-tests-are-ok=1', '--testfilter=StringBuilder');
+    is($exitCode, 0);
+}
+
+done_testing();

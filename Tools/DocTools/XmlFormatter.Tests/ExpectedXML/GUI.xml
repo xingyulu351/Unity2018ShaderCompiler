@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <Section>
+    <Signature>
+      <Declaration name="GUI" type="class" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[The GUI class is the interface for Unity's GUI with manual positioning.]]></Summary>
+    <Description>
+      <br /><![CDATA[See Also: ]]><link ref="../Components/GUIScriptingGuide">GUI tutorial</link><![CDATA[.]]></Description>
+  </Section>
+  <StaticVars />
+  <Vars>
+    <member id="GUI-backgroundColor">
+      <name>backgroundColor</name>
+      <summary><![CDATA[Global tinting color for all background elements rendered by the GUI.]]></summary>
+    </member>
+    <member id="GUI-changed">
+      <name>changed</name>
+      <summary><![CDATA[Returns true if any controls changed the value of the input data.]]></summary>
+    </member>
+    <member id="GUI-color">
+      <name>color</name>
+      <summary><![CDATA[Global tinting color for the GUI.]]></summary>
+    </member>
+    <member id="GUI-contentColor">
+      <name>contentColor</name>
+      <summary><![CDATA[Tinting color for all text rendered by the GUI.]]></summary>
+    </member>
+    <member id="GUI-depth">
+      <name>depth</name>
+      <summary><![CDATA[The sorting depth of the currently executing GUI behaviour.]]></summary>
+    </member>
+    <member id="GUI-enabled">
+      <name>enabled</name>
+      <summary><![CDATA[Is the GUI enabled?]]></summary>
+    </member>
+    <member id="GUI-matrix">
+      <name>matrix</name>
+      <summary><![CDATA[The GUI transform matrix.]]></summary>
+    </member>
+    <member id="GUI-skin">
+      <name>skin</name>
+      <summary><![CDATA[The global skin to use.]]></summary>
+    </member>
+    <member id="GUI-tooltip">
+      <name>tooltip</name>
+      <summary><![CDATA[The tooltip of the control the mouse is currently over, or which has keyboard focus. (Read Only).]]></summary>
+    </member>
+  </Vars>
+  <Constructors />
+  <MemberFunctions />
+  <StaticFunctions>
+    <member id="GUI.BeginGroup">
+      <name>BeginGroup</name>
+      <summary><![CDATA[Begin a group. Must be matched with a call to ]]><link ref="GUI.EndGroup">EndGroup</link><![CDATA[.]]></summary>
+    </member>
+    <member id="GUI.BeginScrollView">
+      <name>BeginScrollView</name>
+      <summary><![CDATA[Begin a scrolling view inside your GUI.]]></summary>
+    </member>
+    <member id="GUI.Box">
+      <name>Box</name>
+      <summary><![CDATA[Make a graphical box.]]></summary>
+    </member>
+    <member id="GUI.BringWindowToBack">
+      <name>BringWindowToBack</name>
+      <summary><![CDATA[Bring a specific window to back of the floating windows.]]></summary>
+    </member>
+    <member id="GUI.BringWindowToFront">
+      <name>BringWindowToFront</name>
+      <summary><![CDATA[Bring a specific window to front of the floating windows.]]></summary>
+    </member>
+    <member id="GUI.Button">
+      <name>Button</name>
+      <summary><![CDATA[Make a single press button. The user clicks them and something happens immediately.]]></summary>
+    </member>
+    <member id="GUI.DragWindow">
+      <name>DragWindow</name>
+      <summary><![CDATA[Make a window draggable.]]></summary>
+    </member>
+    <member id="GUI.DrawTexture">
+      <name>DrawTexture</name>
+      <summary><![CDATA[Draw a texture within a rectangle.]]></summary>
+    </member>
+    <member id="GUI.DrawTextureWithTexCoords">
+      <name>DrawTextureWithTexCoords</name>
+      <summary><![CDATA[Draw a texture within a rectangle with the given texture coordinates. Use this function for clipping or tiling the image within the given rectangle.]]></summary>
+    </member>
+    <member id="GUI.EndGroup">
+      <name>EndGroup</name>
+      <summary><![CDATA[End a group.]]></summary>
+    </member>
+    <member id="GUI.EndScrollView">
+      <name>EndScrollView</name>
+      <summary><![CDATA[Ends a scrollview started with a call to BeginScrollView.]]></summary>
+    </member>
+    <member id="GUI.FocusControl">
+      <name>FocusControl</name>
+      <summary><![CDATA[Move keyboard focus to a named control.]]></summary>
+    </member>
+    <member id="GUI.FocusWindow">
+      <name>FocusWindow</name>
+      <summary><![CDATA[Make a window become the active window.]]></summary>
+    </member>
+    <member id="GUI.GetNameOfFocusedControl">
+      <name>GetNameOfFocusedControl</name>
+      <summary><![CDATA[Get the name of named control that has focus.]]></summary>
+    </member>
+    <member id="GUI.HorizontalScrollbar">
+      <name>HorizontalScrollbar</name>
+      <summary><![CDATA[Make a horizontal scrollbar. Scrollbars are what you use to scroll through a document. Most likely, you want to use scrollViews instead.]]></summary>
+    </member>
+    <member id="GUI.HorizontalSlider">
+      <name>HorizontalSlider</name>
+      <summary><![CDATA[A horizontal slider the user can drag to change a value between a min and a max.]]></summary>
+    </member>
+    <member id="GUI.Label">
+      <name>Label</name>
+      <summary><![CDATA[Make a text or texture label on screen.]]></summary>
+    </member>
+    <member id="GUI.PasswordField">
+      <name>PasswordField</name>
+      <summary><![CDATA[Make a text field where the user can enter a password.]]></summary>
+    </member>
+    <member id="GUI.RepeatButton">
+      <name>RepeatButton</name>
+      <summary><![CDATA[Make a button that is active as long as the user holds it down.]]></summary>
+    </member>
+    <member id="GUI.ScrollTo">
+      <name>ScrollTo</name>
+      <summary><![CDATA[Scrolls all enclosing scrollviews so they try to make ]]><varname>position</varname><![CDATA[ visible.]]></summary>
+    </member>
+    <member id="GUI.SelectionGrid">
+      <name>SelectionGrid</name>
+      <summary><![CDATA[Make a grid of buttons.]]></summary>
+    </member>
+    <member id="GUI.SetNextControlName">
+      <name>SetNextControlName</name>
+      <summary><![CDATA[Set the name of the next control.]]></summary>
+    </member>
+    <member id="GUI.TextArea">
+      <name>TextArea</name>
+      <summary><![CDATA[Make a Multi-line text area where the user can edit a string.]]></summary>
+    </member>
+    <member id="GUI.TextField">
+      <name>TextField</name>
+      <summary><![CDATA[Make a single-line text field where the user can edit a string.]]></summary>
+    </member>
+    <member id="GUI.Toggle">
+      <name>Toggle</name>
+      <summary><![CDATA[Make an on/off toggle button.]]></summary>
+    </member>
+    <member id="GUI.Toolbar">
+      <name>Toolbar</name>
+      <summary><![CDATA[Make a toolbar.]]></summary>
+    </member>
+    <member id="GUI.UnfocusWindow">
+      <name>UnfocusWindow</name>
+      <summary><![CDATA[Remove focus from all windows.]]></summary>
+    </member>
+    <member id="GUI.VerticalScrollbar">
+      <name>VerticalScrollbar</name>
+      <summary><![CDATA[Make a vertical scrollbar. Scrollbars are what you use to scroll through a document. Most likely, you want to use scrollViews instead.]]></summary>
+    </member>
+    <member id="GUI.VerticalSlider">
+      <name>VerticalSlider</name>
+      <summary><![CDATA[A vertical slider the user can drag to change a value between a min and a max.]]></summary>
+    </member>
+    <member id="GUI.Window">
+      <name>Window</name>
+      <summary><![CDATA[Make a popup window.]]></summary>
+    </member>
+  </StaticFunctions>
+  <Operators />
+  <Messages />
+</Model>

@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BindingsToCsAndCpp", "BindingsToCsAndCpp.csproj", "{1C3E11D7-244A-43D9-89AE-7C19C06791D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.CommonTools", "..\..\Unity.CommonTools\Unity.CommonTools.csproj", "{882B3C08-618B-4D66-B45C-88853106F1AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityBindingsParser", "..\UnityBindingsParser\UnityBindingsParser.csproj", "{629F0D26-CF0E-4419-BAF2-2A2C9F8F9852}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGenerator", "Tests\TestGenerator\TestGenerator.csproj", "{2415D705-0E83-4157-AB77-768BE452C477}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests\Tests.csproj", "{F5635A6A-A0DF-4E8A-871F-CC4F80AEE4BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestData", "Tests\TestData\TestData.csproj", "{9900F6AA-6369-4A2E-8924-E9694C625A2A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C3E11D7-244A-43D9-89AE-7C19C06791D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C3E11D7-244A-43D9-89AE-7C19C06791D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C3E11D7-244A-43D9-89AE-7C19C06791D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C3E11D7-244A-43D9-89AE-7C19C06791D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2415D705-0E83-4157-AB77-768BE452C477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2415D705-0E83-4157-AB77-768BE452C477}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2415D705-0E83-4157-AB77-768BE452C477}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{2415D705-0E83-4157-AB77-768BE452C477}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{629F0D26-CF0E-4419-BAF2-2A2C9F8F9852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{629F0D26-CF0E-4419-BAF2-2A2C9F8F9852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{629F0D26-CF0E-4419-BAF2-2A2C9F8F9852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{629F0D26-CF0E-4419-BAF2-2A2C9F8F9852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{882B3C08-618B-4D66-B45C-88853106F1AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{882B3C08-618B-4D66-B45C-88853106F1AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{882B3C08-618B-4D66-B45C-88853106F1AF}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{882B3C08-618B-4D66-B45C-88853106F1AF}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{9900F6AA-6369-4A2E-8924-E9694C625A2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9900F6AA-6369-4A2E-8924-E9694C625A2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9900F6AA-6369-4A2E-8924-E9694C625A2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9900F6AA-6369-4A2E-8924-E9694C625A2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5635A6A-A0DF-4E8A-871F-CC4F80AEE4BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5635A6A-A0DF-4E8A-871F-CC4F80AEE4BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5635A6A-A0DF-4E8A-871F-CC4F80AEE4BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5635A6A-A0DF-4E8A-871F-CC4F80AEE4BB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Tests\TestGenerator\TestGenerator.csproj
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Preflight script for Unity plugin
+# Verify the current plugin and existing editor match
+
+PLIST="$DSTVOLUME/Applications/Unity/Unity.app/Contents/Info.plist"
+
+Echo Info.plist: ${PLIST}
+
+if [ ! -f ${PLIST} ]; then
+    echo "Unity.app not found"
+    exit 1
+fi
+
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${PLIST}")
+EXPECTED="REPLACE_UNITY_EDITOR_VERSION"
+
+echo Version: ${VERSION}
+echo Expected: ${EXPECTED}
+
+if [ "${VERSION}" != "${EXPECTED}" ]; then
+    echo "Unity version is not compatible with this component"
+    exit 1
+fi
+
+echo "Good version"
+
+if [ -d "$DSTVOLUME/Applications/Unity/REPLACE_PACKAGE_FOLDER" ] ; then
+    rm -rf "$DSTVOLUME/Applications/Unity/REPLACE_PACKAGE_FOLDER"
+fi
+
+exit 0

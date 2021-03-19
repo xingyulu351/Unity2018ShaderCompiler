@@ -1,0 +1,497 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/IMGUI/GUIStyle.h"
+#include "Runtime/Filters/Misc/Font.h"
+#include "Runtime/Misc/InputEvent.h"
+#include "Runtime/GfxDevice/GfxDevice.h"
+#include "Runtime/Camera/CameraUtil.h"
+#include "Runtime/IMGUI/GUIManager.h"
+#include "Runtime/Utilities/CopyPaste.h"
+#include "Runtime/IMGUI/GUIState.h"
+#include "Runtime/IMGUI/GUIClip.h"
+#include "Runtime/IMGUI/IMGUIUtils.h"
+#include "Runtime/Input/InputManager.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#if UNITY_EDITOR
+
+#include "Editor/Src/EditorHelper.h"
+#include "Editor/Mono/MonoEditorUtility.h"
+#include "Editor/Src/OptimizedGUIBlock.h"
+#include "Editor/Src/AssetPipeline/AssetDatabase.h"
+#include "Editor/Src/Undo.h"
+
+extern float s_GUIStyleIconSizeX;
+extern float s_GUIStyleIconSizeY;
+
+#include "Editor/Src/EditorResources.h"
+#endif
+
+using namespace Unity;
+using namespace std;
+
+CSRAW
+
+// Use this define to debug who grabs and releases hotcontrol
+//#define DEBUG_HOTCONTROL
+
+// Use this define to debug controlID consistency together with 's_LogControlID' (default false) to enable logging in 
+// a codepath thats needs tested for consistency. E.g:
+//	if (Event.current.rawType == EventType.MouseUp)
+//		GUIUtility.s_LogControlID = true;
+// And remember to set s_LogControlID to false at end of secion of interest.
+//#define DEBUG_CONTROLID
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+// Throw this to immediately exit from GUI code.
+// *undocumented*
+CLASS ExitGUIException : System.Exception
+END
+
+// Used by GUIUtility.GetcontrolID to inform the UnityGUI system if a given control can get keyboard focus.
+ENUM FocusType
+	// This control can get keyboard focus on Windows, but not on Mac. Used for buttons, checkboxes and other "pressable" things.
+	Native = 0,
+	// This is a proper keyboard control. It can have input focus on all platforms. Used for TextField and TextArea controls
+	Keyboard = 1,
+	// This control can never recieve keyboard focus.
+	Passive = 2
+END
+
+CSRAW
+
+// Utility class for making new GUI controls. 
+NONSEALED_CLASS GUIUtility 
+
+	/// *listonly* 
+	CSRAW public static int GetControlID (FocusType focus)						
+	{
+		return GetControlID (0, focus);
+	}
+	/// *listonly* 	
+	CUSTOM public static int GetControlID (int hint, FocusType focus)
+	{
+		return GetGUIState().GetControlID (hint, focus);
+	}
+	/// *listonly*
+	CSRAW public static int GetControlID (GUIContent contents,FocusType focus)	
+	{
+		return GetControlID (contents.hash, focus);
+	}
+	/// *listonly* 
+	CSRAW public static int GetControlID (FocusType focus, Rect position)
+	{
+		return Internal_GetNextControlID2 (0, focus, position); 
+	}
+	/// *listonly* 	
+	CSRAW public static int GetControlID (int hint, FocusType focus, Rect position)
+	{
+		return Internal_GetNextControlID2 (hint, focus, position);
+	}
+	// Get a unique ID for a control.
+	CSRAW static public int GetControlID (GUIContent contents, FocusType focus, Rect position)
+	{ 
+		return Internal_GetNextControlID2 (contents.hash, focus, position); 
+	}
+
+	CUSTOM private static int Internal_GetNextControlID2 (int hint, FocusType focusType, Rect rect)
+	{
+		return GetGUIState().GetControlID (hint, focusType, rect);
+	}
+
+	// Get a state object from a controlID.
+	CSRAW public static object GetStateObject (Type t, int controlID)		{ return GUIStateObjects.GetStateObject (t, controlID); }
+
+	// Get an existing state object from a controlID.
+	CSRAW public static object QueryStateObject (Type t, int controlID)		{ return GUIStateObjects.QueryStateObject (t, controlID); }
+
+	CUSTOM static internal int GetPermanentControlID ()
+	{
+		return GetGUIState().m_EternalGUIState->GetNextUniqueID ();
+	}
+	
+CSRAW
+	#if DEBUG_HOTCONTROL
+	static public string s_WhoGrabbedHotControl, s_WhoReleasedHotControl;
+	#endif
+	
+	#if DEBUG_CONTROLID
+	static public bool s_LogControlID = false;
+	#endif
+	
+
+	// The controlID of the current hot control.
+	CSRAW public static int hotControl { get { return Internal_GetHotControl(); } 
+	set { 
+		#if DEBUG_HOTCONTROL
+		if (value != 0)
+		{
+			s_WhoGrabbedHotControl = StackTraceUtility.ExtractStackTrace();
+			Debug.Log("GRABBED " + s_WhoGrabbedHotControl);
+		}
+		else
+		{
+			s_WhoReleasedHotControl = StackTraceUtility.ExtractStackTrace();
+			Debug.Log("RELEASE: " + s_WhoReleasedHotControl);
+		}
+		#endif
+
+		Internal_SetHotControl (value);
+	} }
+	
+	CUSTOM private static int Internal_GetHotControl () 
+	{
+		return IMGUI::GetHotControl (GetGUIState());
+	}
+	CUSTOM private static void Internal_SetHotControl (int value)
+	{
+		IMGUI::SetHotControl (GetGUIState(), value);
+	}
+	
+	CUSTOM internal static void UpdateUndoName ()
+	{
+		#if UNITY_EDITOR
+		GetUndoManager().UpdateUndoName ();
+		#endif
+	}
+	
+	// The controlID of the control that has keyboard focus.
+	CUSTOM_PROP static int keyboardControl
+		{ return IMGUI::GetKeyboardControl (GetGUIState()); }
+		{ IMGUI::SetKeyboardControl (GetGUIState(), value); }
+
+// Keep for debugging keyboardControl (prints the callstack when keyboardControl changes)
+// 	CSRAW public static int keyboardControl
+// 	{
+// 		get { return GetKeyboardControl (); }
+// 		set { Debug.Log ("Set keyboardControl " + value); SetKeyboardControl (value);}
+// 	}
+// 	CUSTOM static int GetKeyboardControl () 		{return IMGUI::GetKeyboardControl (GetGUIState());	}
+// 	CUSTOM static void SetKeyboardControl (int id) 	{IMGUI::SetKeyboardControl (GetGUIState(), id);	}
+
+	//*undocumented*
+	CSRAW public static void ExitGUI ()
+	{
+		// We have to always throw the ExitGUIException otherwise the exiting out of recursive on GUI will not work.
+		throw new ExitGUIException ();
+	}
+
+	CUSTOM internal static void SetDidGUIWindowsEatLastEvent (bool value) {
+		GUIManager::SetDidGUIWindowsEatLastEvent (value);
+	}
+
+	// Get access to the system-wide pasteboard.
+	CUSTOM_PROP static internal string systemCopyBuffer { return CreateScriptingString (GetCopyBuffer ()); } { SetCopyBuffer (value); }
+	
+	CUSTOM private static Object Internal_LoadSkin (int skinNo, Type type) {
+		static PPtr<MonoBehaviour> skinObject[3] = { NULL, NULL, NULL };
+
+		#if UNITY_EDITOR
+			// Load skins (editor version)
+			if (!skinObject[0] || !skinObject[1] || !skinObject[2])
+			{
+				// If this is a devel buildwe want to try and load the skins from the opened project
+				// (super useful when skinning the app).
+				if (IsDeveloperBuild ()) 
+				{
+					// Try to load the skins from the current project
+					skinObject[0] = dynamic_pptr_cast<MonoBehaviour*> (GetMainAsset ("Assets/DefaultResources/GameSkin/GameSkin.GUISkin"));
+					skinObject[1] = dynamic_pptr_cast<MonoBehaviour*> (GetMainAsset (AppendPathName ("Assets/Editor Default Resources/", EditorResources::kLightSkinPath)));
+					skinObject[2] = dynamic_pptr_cast<MonoBehaviour*> (GetMainAsset (AppendPathName ("Assets/Editor Default Resources/", EditorResources::kDarkSkinPath)));
+				}
+				
+				// Load the game skin.
+				// We can not mark this object as dont save, because that will make it not be unloaded when unloading the player.
+				// When that happens in the player the serialized state will be lost. So instead we let it be unloaded and on next
+				// load it will be reloaded from disk.
+				if (!skinObject[0]) 
+				{
+					Object *obj = GetBuiltinResourceManager ().GetResource (ClassID(MonoBehaviour), "GameSkin/GameSkin.guiskin");
+					skinObject[0] = static_cast<MonoBehaviour*> (obj);
+				}
+				
+				// Load the light inspector skin.
+				if (!skinObject[1])
+					skinObject[1] = GetEditorAssetBundle()->Get<MonoBehaviour>(EditorResources::kLightSkinPath);
+				
+				// Load the dark inspector skin.
+				if (!skinObject[2])
+					skinObject[2] = GetEditorAssetBundle()->Get<MonoBehaviour>(EditorResources::kDarkSkinPath);
+			}
+			
+			// remap the light skin to be dark if active skin is dark
+			if (skinNo == 1 && GetEditorResources().GetSkinIdx () == 1) 
+				skinNo = 2;
+		#else
+			// Players are much easier: we just load the game skin.
+			if (!skinObject[0]) 
+			{
+				Object *obj = GetBuiltinResourceManager ().GetResource (ClassID(MonoBehaviour), "GameSkin/GameSkin.guiskin");
+				skinObject[0] = static_cast<MonoBehaviour*> (obj);
+			}
+		#endif
+		return skinObject[skinNo]->GetInstance ();
+	}
+
+	CSRAW internal static GUISkin GetDefaultSkin() {
+		return GetBuiltinSkin (s_SkinMode);
+	}
+
+	// internal so we can get to it from EditorGUIUtility.GetBuiltinSkin
+	CSRAW internal static GUISkin GetBuiltinSkin (int skin) {
+		return Internal_LoadSkin (skin, typeof (GUISkin)) as GUISkin;
+	}
+
+	[NotRenamed] static int s_SkinMode;
+	[NotRenamed] static internal int s_OriginalID;
+	CSRAW internal static void BeginGUI (int skinMode, int instanceID, int useGUILayout ) {
+		s_SkinMode = skinMode;
+		s_OriginalID = instanceID;
+		GUI.skin = null;
+
+		// Switch to the correct ID list & clear keyboard loop if we're about to layout (we rebuild it during layout, so we want it cleared beforehand)
+		if (useGUILayout != 0)
+		{
+			GUILayoutUtility.SelectIDList (instanceID, false);
+			GUILayoutUtility.Begin (instanceID);
+		}
+
+		GUI.changed = false;
+	}
+
+	CUSTOM private static void Internal_ExitGUI () 
+	{
+		#if UNITY_EDITOR	
+		OptimizedGUIBlock::Abandon ();
+		s_GUIStyleIconSizeX = 0.0f;
+		s_GUIStyleIconSizeY = 0.0f;
+		#endif
+	}
+
+	// End the 2D GUI.
+	CSRAW internal static void EndGUI (int layoutType) {
+		try {
+			if (Event.current.type == EventType.Layout)
+			{
+				switch (layoutType)
+	{
+				case 0: // kNoLayout
+					break;
+				case 1: // kGameLayout
+					GUILayoutUtility.Layout ();
+					break;
+				case 2: // kEditorLayout
+					GUILayoutUtility.LayoutFromEditorWindow ();
+					break;
+	}
+			}
+			GUILayoutUtility.SelectIDList (s_OriginalID, false);
+		} 
+		finally {
+			Internal_ExitGUI();
+		}
+	}
+	
+	// End the 2D GUI.
+	CSRAW internal static bool EndGUIFromException (System.Exception exception) {
+		// Check if the exception is a ExitGUIException
+		if (exception == null)
+			return false;
+		if (exception as ExitGUIException == null
+#if !UNITY_FLASH && !PLATFORM_WEBGL
+		 && exception.InnerException as ExitGUIException == null
+#endif		 
+		 )
+			return false;
+
+			Internal_ExitGUI ();
+
+		return true;
+	}
+	
+	// Only allow calling GUI functions from inside OnGUI
+	CSRAW static internal void CheckOnGUI() { 
+		if (Internal_GetGUIDepth () <= 0)
+		{
+			throw new ArgumentException("You can only call GUI functions from inside OnGUI."); 
+		}
+	}
+
+	CUSTOM static internal int Internal_GetGUIDepth ()
+	{
+		return GetGUIState().m_OnGUIDepth;
+	}
+	
+	CUSTOM_PROP static internal bool mouseUsed
+		{ return GetGUIState().m_CanvasGUIState.m_IsMouseUsed != 0; } 
+		{ GetGUIState().m_CanvasGUIState.m_IsMouseUsed = value ? 1 : 0; } 
+	
+	CSRAW
+	
+	static internal Vector2 s_EditorScreenPointOffset = Vector2.zero;
+	static internal bool s_HasKeyboardFocus = false;
+	
+	// Convert a point from GUI position to screen space.
+	CSRAW public static Vector2 GUIToScreenPoint (Vector2 guiPoint)
+	{
+		return GUIClip.Unclip (guiPoint) + s_EditorScreenPointOffset;
+	}
+	
+	// Convert a point from GUI position to screen space.
+	CSRAW internal static Rect GUIToScreenRect (Rect guiRect)
+	{
+		Vector2 screenPoint = GUIToScreenPoint (new Vector2 (guiRect.x, guiRect.y));
+		guiRect.x = screenPoint.x;
+		guiRect.y = screenPoint.y;
+		return guiRect;
+	}
+
+	// Convert a point from screen space to GUI position.
+	public static Vector2 ScreenToGUIPoint (Vector2 screenPoint ) {
+		return GUIClip.Clip (screenPoint) - s_EditorScreenPointOffset;
+	}
+	
+	// Helper function to rotate the GUI around a point.
+	public static void RotateAroundPivot (float angle, Vector2 pivotPoint) {
+		Matrix4x4 mat = GUI.matrix;
+		GUI.matrix = Matrix4x4.identity;
+		Vector2 point = GUIClip.Unclip(pivotPoint);
+ 		Matrix4x4 newMat =  Matrix4x4.TRS (point, Quaternion.Euler (0,0,angle), Vector3.one) * Matrix4x4.TRS (-point, Quaternion.identity, Vector3.one);
+		GUI.matrix = newMat *mat;
+	}
+
+	// Helper function to scale the GUI around a point.
+	public static void ScaleAroundPivot (Vector2 scale, Vector2 pivotPoint) {
+		Matrix4x4 mat = GUI.matrix;
+		Vector2 point = GUIClip.Unclip(pivotPoint);
+ 		Matrix4x4 newMat =  Matrix4x4.TRS (point, Quaternion.identity, new Vector3 (scale.x, scale.y, 1)) * Matrix4x4.TRS (-point, Quaternion.identity, Vector3.one);
+		GUI.matrix = newMat * mat;
+	}
+	
+	//*undocumented*
+	CUSTOM_PROP static internal bool textFieldInput 
+	{ return GetInputManager().GetTextFieldInput (); }
+	{ GetInputManager().SetTextFieldInput (value); }
+END
+
+
+CLASS internal GUIClip
+	// Push a clip rect to the stack with pixel offsets.
+	CUSTOM internal static void Push (Rect screenRect, Vector2 scrollOffset, Vector2 renderOffset, bool resetOffset)
+	{
+		GetGUIState().m_CanvasGUIState.m_GUIClipState.Push (IMGUI::GetCurrentEvent(GetGUIState()), screenRect, scrollOffset, renderOffset, resetOffset);
+	}
+
+	// Removes the topmost clipping rectangle, undoing the effect of the latest GUIClip.Push
+	CUSTOM internal static void Pop ()
+	{
+		GetGUIState().m_CanvasGUIState.m_GUIClipState.Pop (IMGUI::GetCurrentEvent(GetGUIState()));
+	}
+
+	// Get the topmost rectangle
+	CUSTOM internal static Rect GetTopRect ()
+	{
+		return GetGUIState().m_CanvasGUIState.m_GUIClipState.GetTopRect ();
+	}
+
+
+	CUSTOM_PROP static bool enabled
+		{ return GetGUIState().m_CanvasGUIState.m_GUIClipState.GetEnabled(); }
+
+
+	// Unclips /pos/ to physical device coordinates.
+	CSRAW static public Vector2 Unclip (Vector2 pos)
+	{
+		Unclip_Vector2(ref pos);
+		return pos;	
+	} 
+	
+	CUSTOM private static void Unclip_Vector2 (ref Vector2 pos)
+	{
+		pos = GetGUIState().m_CanvasGUIState.m_GUIClipState.Unclip (pos);
+	}
+
+	// The topmost physical rect in unclipped coordinates
+	// Used in editor to clip cursor rects inside scrollviews
+	CUSTOM_PROP static Rect topmostRect
+		{ return GetGUIState().m_CanvasGUIState.m_GUIClipState.GetTopMostPhysicalRect (); }
+
+
+	// Unclips /rect/ to physical device coordinates.
+	CSRAW public static Rect Unclip (Rect rect)
+	{
+		Unclip_Rect(ref rect);
+		return rect;	
+	} 
+	CUSTOM private static void Unclip_Rect (ref Rect rect)
+	{
+		rect = GetGUIState().m_CanvasGUIState.m_GUIClipState.Unclip(rect);
+	}
+
+	// Clips /absolutePos/ to drawing coordinates
+	CSRAW static public Vector2 Clip (Vector2 absolutePos)
+	{
+		Clip_Vector2 (ref absolutePos);
+		return absolutePos;
+	}
+	
+	CUSTOM private static void Clip_Vector2 (ref Vector2 absolutePos)
+	{
+		absolutePos = GetGUIState().m_CanvasGUIState.m_GUIClipState.Clip(absolutePos);
+	}
+
+	// Convert /absoluteRect/ to drawing coordinates
+	CSRAW static public Rect Clip (Rect absoluteRect)
+	{
+		Internal_Clip_Rect (ref absoluteRect);
+		return absoluteRect;
+	}
+	
+	CUSTOM static private void Internal_Clip_Rect (ref Rect absoluteRect)
+	{
+		absoluteRect = GetGUIState().m_CanvasGUIState.m_GUIClipState.Clip (absoluteRect);
+	}
+
+	// Reapply the clipping info.
+	CUSTOM internal static void Reapply ()
+	{
+		GetGUIState().m_CanvasGUIState.m_GUIClipState.Reapply (IMGUI::GetCurrentEvent(GetGUIState()));
+	}
+
+	// Set the GUIMatrix. This is here as this class handles all coordinate transforms anyways.
+	CUSTOM internal static Matrix4x4 GetMatrix()
+	{ 
+		return GetGUIState().m_CanvasGUIState.m_GUIClipState.GetMatrix(); 
+	}
+	
+	CUSTOM internal static void SetMatrix (Matrix4x4 m)
+	{
+		GetGUIState().m_CanvasGUIState.m_GUIClipState.SetMatrix(IMGUI::GetCurrentEvent(GetGUIState()), m); 
+	}
+	
+	// The visible rectangle.
+	CUSTOM_PROP static Rect visibleRect
+		{ return GetGUIState().m_CanvasGUIState.m_GUIClipState.GetVisibleRect (); }
+	
+	CSRAW public static Vector2 GetAbsoluteMousePosition ()
+	{
+		Vector2 vec;
+		Internal_GetAbsoluteMousePosition(out vec);
+		return vec;
+	}
+	CUSTOM private static void Internal_GetAbsoluteMousePosition (out Vector2 output)
+	{
+		*output = GetGUIState().m_CanvasGUIState.m_GUIClipState.GetAbsoluteMousePosition();
+	}
+END
+
+CSRAW }

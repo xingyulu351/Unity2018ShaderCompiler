@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="DragAndDrop" type="Class" namespace="UnityEditor">
+    <section>
+      <summary>Editor drag &amp; drop operations.</summary>
+    </section>
+    <member name="DragAndDrop.AcceptDrag" type="Method">
+      <section>
+        <signature><![CDATA[AcceptDrag()]]></signature>
+        <summary>Accept a drag operation.</summary>
+      </section>
+    </member>
+  </member>
+</doc>

@@ -1,0 +1,22 @@
+use warnings;
+use strict;
+
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use SuiteRunners;
+
+my @runners = SuiteRunners::getRunners();
+my $userAgent = new LWP::UserAgent();
+my $uri = 'http://testlogger.qa.hq.unity3d.com/api/errorfinder/getconfig';
+my $response = $userAgent->get($uri);
+
+# due to the bug https://github.com/libwww-perl/net-http/pull/11
+# we might get an `A non-blocking socket operation'
+# this happens if UTR's @INC is messed up (there is another test for it)
+# This test is a last line of defense
+unlike($response->message(), qr/A non-blocking socket operation.*/i, 'response should not contain');
+
+done_testing();

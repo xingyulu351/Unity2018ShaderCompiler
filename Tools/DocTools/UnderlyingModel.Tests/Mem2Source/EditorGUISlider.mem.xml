@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc>
+    <member name="EditorGUI" type="Class" namespace="UnityEditor">
+        <section>
+            <summary><![CDATA[top summary]]></summary>
+        </section>
+        <member name="EditorGUI.Slider" type="Method">
+            <section>
+                <signature>sig1</signature>
+                <signature>sig2</signature>
+                <signature>sig3</signature>
+                <summary><![CDATA[summary slider]]></summary>
+                <param name="position"><![CDATA[position doc]]></param>
+                <param name="label"><![CDATA[label doc]]></param>
+                <param name="value"><![CDATA[value doc]]></param>
+                <returns><![CDATA[return doc]]></returns>
+                <description><![CDATA[section description]]></description>
+                <example><![CDATA[example doc]]></example>
+            </section>
+            <section>
+                <signature>sig4</signature>
+                <signature>sig5</signature>
+                <signature>sig6</signature>
+                <summary><![CDATA[summary slider2]]></summary>
+                <param name="position"><![CDATA[position doc]]></param>
+            </section>
+        </member>
+    </member>
+</doc>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <Section>
+    <Signature>
+      <Declaration name="ADErrorCode" type="enumeration" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[This enumeration is used to identify an advertisement error.]]></Summary>
+  </Section>
+  <Vars>
+    <member id="ADErrorCode.Unknown">
+      <name>Unknown</name>
+      <summary><![CDATA[Indicates that an unknown or unexpected error occurred.]]></summary>
+    </member>
+    <member id="ADErrorCode.ServerFailure">
+      <name>ServerFailure</name>
+      <summary><![CDATA[Indicates that the connection to the advertisements server failed.]]></summary>
+    </member>
+    <member id="ADErrorCode.LoadingThrottled">
+      <name>LoadingThrottled</name>
+      <summary><![CDATA[Indicates that the download from the advertisements server is currently being throttled.]]></summary>
+    </member>
+    <member id="ADErrorCode.InventoryUnavailable">
+      <name>InventoryUnavailable</name>
+      <summary><![CDATA[Indicates that no advertisements are currently available to download.]]></summary>
+    </member>
+    <member id="ADErrorCode.ConfigurationError">
+      <name>ConfigurationError</name>
+      <summary><![CDATA[Indicates that your application has not been configured to receive advertisements.]]></summary>
+    </member>
+    <member id="ADErrorCode.BannerVisibleWithoutContent">
+      <name>BannerVisibleWithoutContent</name>
+      <summary><![CDATA[Indicates that the banner is visible, but no advertisement is shown.]]></summary>
+    </member>
+    <member id="ADErrorCode.ApplicationInactive">
+      <name>ApplicationInactive</name>
+      <summary><![CDATA[Indicates that ad content is not available because the application is not currently active.]]></summary>
+    </member>
+  </Vars>
+</Model>

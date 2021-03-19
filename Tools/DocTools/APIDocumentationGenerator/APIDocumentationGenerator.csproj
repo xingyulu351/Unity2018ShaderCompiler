@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3485E90E-3431-4C5D-A316-5281169512E2}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>APIDocumentationGenerator</RootNamespace>
+    <AssemblyName>APIDocumentationGenerator</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Cecil">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net35\Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\External\NUnit\framework\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="ScriptRefBase">
+      <HintPath>..\ScriptRefBase\bin\Debug\ScriptRefBase.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="SearchIndexJsonOutput.cs" />
+    <Compile Include="SearchIndexRepresentation.cs" />
+    <Compile Include="DirectoryProcessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HtmlGenerator.cs" />
+    <Compile Include="SearchPopulator.cs" />
+    <Compile Include="SearchWordsPlainText.cs" />
+    <Compile Include="SearchIndexJSOutput.cs" />
+    <Compile Include="SearchWordsFinder.cs" />
+    <Compile Include="Tests\SearchTests.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlHtmlWriter.cs" />
+    <Compile Include="XsltUtils.cs" />
+    <Compile Include="..\..\..\External\TinySegmenter\TinySegmenter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HistoryGenerator\HistoryGenerator.csproj">
+      <Project>{B2CF5B4A-BC1F-4F47-ACDD-1E6887D971DB}</Project>
+      <Name>HistoryGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnderlyingModel\UnderlyingModel.csproj">
+      <Project>{5888A64B-4E25-401B-8CEF-F8692E919704}</Project>
+      <Name>UnderlyingModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XMLFormatter\XMLFormatter.csproj">
+      <Project>{4ECBC227-02AC-49E5-8AA7-94F735D7DD64}</Project>
+      <Name>XMLFormatter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnityExampleConverter\cssrc\UnityExampleConverter.csproj">
+      <Project>{7E4C56EB-92B6-41CF-985F-25BB16CBA3A6}</Project>
+      <Name>UnityExampleConverter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="XSLT\bodyContent.xsl" />
+    <Content Include="XSLT\classListing.xsl" />
+    <Content Include="XSLT\history.xsl">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="XSLT\makeClassList.xsl" />
+    <Content Include="XSLT\memberPage.xsl" />
+    <Content Include="XSLT\searchResults.xsl" />
+    <Content Include="XSLT\staticMemberPage.xsl" />
+    <Content Include="XSLT\staticRoot.xsl" />
+    <Content Include="XSLT\styling.xsl" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

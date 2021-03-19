@@ -1,0 +1,2211 @@
+C++RAW
+
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoManager.h"
+#include "Runtime/Graphics/Transform.h"
+#include "Runtime/Utilities/PathNameUtility.h"
+#include "Runtime/Input/InputManager.h"
+#include "Runtime/Input/TimeManager.h"
+#include "Runtime/Misc/ResourceManager.h"
+#include "Runtime/Profiler/ProfilerHistory.h"
+#include "Runtime/Profiler/ProfilerPrivate.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/BaseClasses/Tags.h"
+#include "Runtime/Misc/DebugUtility.h"
+#include "Runtime/Misc/PlayerSettings.h"
+#include "Runtime/GameCode/CloneObject.h"
+#include "Runtime/Math/Random/Random.h"
+#include "Runtime/Misc/PreloadManager.h"
+#include "Runtime/Allocator/MemoryManager.h"
+#include "Runtime/Audio/AudioClip.h"
+#if ENABLE_AUDIO
+#include "Runtime/Audio/AudioSource.h"
+#include "Runtime/Audio/AudioListener.h"
+#include "Runtime/Audio/AudioManager.h"
+#include "Runtime/Audio/AudioReverbZone.h"
+#include "Runtime/Audio/AudioReverbFilter.h"
+#include "Runtime/Audio/AudioHighPassFilter.h"
+#include "Runtime/Audio/AudioLowPassFilter.h"
+#include "Runtime/Audio/AudioChorusFilter.h"
+#include "Runtime/Audio/AudioDistortionFilter.h"
+#include "Runtime/Audio/AudioEchoFilter.h"
+#endif
+#include "Runtime/Animation/Animation.h"
+#include "Runtime/Math/Color.h"
+#include "Runtime/Utilities/PlayerPrefs.h"
+#include "Runtime/Camera/Camera.h"
+#include "Runtime/Dynamics/Rigidbody.h"
+#include "Runtime/Utilities/Word.h"
+#include "Runtime/Camera/Light.h"
+#include "Runtime/Filters/Misc/TextMesh.h"
+#include "Runtime/Dynamics/ConstantForce.h"
+#include "Runtime/Filters/Renderer.h"
+#include "Runtime/Misc/SaveAndLoadHelper.h"
+#include "Runtime/Network/NetworkView.h"
+#include "Runtime/Network/NetworkManager.h"
+#include "Runtime/Camera/RenderLayers/GUIText.h"
+#include "Runtime/Camera/RenderLayers/GUITexture.h"
+#include "Runtime/Dynamics/Collider.h"
+#include "Runtime/Dynamics/HingeJoint.h"
+#include "Runtime/Misc/AssetBundleUtility.h"
+#include "Runtime/Misc/Player.h"
+#include "Runtime/BaseClasses/IsPlaying.h"
+#include "Runtime/Misc/CaptureScreenshot.h"
+#include "Runtime/Misc/GameObjectUtility.h"
+#include "Runtime/Misc/Plugins.h"
+#include "Runtime/Utilities/PathNameUtility.h"
+#include "Runtime/Utilities/File.h"
+#include <ctime>
+#include "Runtime/Input/GetInput.h"
+#include "Runtime/NavMesh/NavMeshAgent.h"
+#include "Runtime/NavMesh/NavMesh.h"
+#include "Runtime/NavMesh/OffMeshLink.h"
+#include "Runtime/Misc/BuildSettings.h"
+#include "Runtime/Animation/AnimationManager.h"
+#include "Runtime/Animation/AnimationClip.h"
+#include "Runtime/BaseClasses/RefCounted.h"
+#include "Runtime/Misc/GOCreation.h"
+#include "Runtime/Utilities/URLUtility.h"
+#include "Runtime/Graphics/ScreenManager.h"
+#include "Runtime/Serialize/PersistentManager.h"
+#include "Runtime/Shaders/GraphicsCaps.h"
+#include "Runtime/Misc/SystemInfo.h"
+#include "Runtime/Utilities/FileUtilities.h"
+#include "Runtime/Misc/GraphicsDevicesDB.h"
+#include "artifacts/generated/Configuration/UnityConfigureVersion.gen.h"
+#include "Runtime/Profiler/CollectProfilerStats.h"
+#include "Runtime/File/ApplicationSpecificPersistentDataPath.h"
+#include "Runtime/Mono/Coroutine.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "Runtime/Scripting/GetComponent.h"
+#include "Runtime/ScriptingBackend/ScriptingApi.h"
+#include "Runtime/ScriptingBackend/ScriptingTypeRegistry.h"
+
+#if SUPPORT_REPRODUCE_LOG
+#include "Runtime/Misc/ReproductionLog.h"
+#endif
+
+#if WEBPLUG
+	#include "PlatformDependent/CommonWebPlugin/UnityWebStream.h"
+	#include "PlatformDependent/CommonWebPlugin/WebScripting.h"
+#endif
+
+#if UNITY_EDITOR
+	#include "Editor/Src/EditorSettings.h"
+	#include "Editor/Src/EditorUserBuildSettings.h"
+	#include "Editor/Mono/MonoEditorUtility.h"
+#endif
+
+using namespace Unity;
+
+/*
+   Mono defines a bool as either 1 or 2 bytes.
+   On windows a bool on the C++ side needs to be 2 bytes.
+   We use the typemap to map bool's to short's.
+   When using the C++ keyword and you want to export a bool value
+   to mono you have to use a short on the C++ side.
+*/
+
+
+void PauseEditor ();
+using namespace std;
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngineInternal;
+
+namespace UnityEngine
+{
+
+[StructLayout (LayoutKind.Sequential)]
+internal struct ReferenceData
+{
+	public int instanceID;
+	public IntPtr cachedPtr;
+}
+
+// Bit mask that controls object destruction and visibility in inspectors
+CSRAW [Flags]
+ENUM HideFlags
+	// A normal, visible object. This is the default.
+	None = 0,
+
+	// The object will not appear in the hierarchy and will not show up in the project view if it is stored in an asset.
+	HideInHierarchy = 1,
+
+	// It is not possible to view it in the inspector
+	HideInInspector = 2,
+
+	// The object will not be saved to the scene. __It will not be destroyed when a new scene is loaded__.
+	DontSave = 4,
+
+	// The object is not be editable in the inspector
+	NotEditable = 8,
+
+	// A combination of not shown in the hierarchy and not saved to to scenes.
+	HideAndDontSave = 13
+END
+
+// Options for how to send a message.
+ENUM SendMessageOptions
+	// A receiver is required for SendMessage.
+	RequireReceiver = 0,
+
+	// No receiver is required for SendMessage.
+	DontRequireReceiver = 1
+END
+
+// The various primitives that can be created using the GameObject.CreatePrimitive function.
+CSRAW
+ENUM PrimitiveType
+	// A sphere primitive
+	Sphere = 0,
+
+	// A capsule primitive
+	Capsule = 1,
+
+	// A cylinder primitive
+	Cylinder = 2,
+
+	// A cube primitive
+	Cube = 3,
+
+	// A plane primitive
+	Plane = 4,
+
+	// A quad primitive
+	Quad = 5
+END
+
+// The coordinate space in which to operate.
+ENUM Space
+	// Applies transformation relative to the world coordinate system
+	World = 0,
+	// Applies transformation relative to the local coordinate system
+	Self = 1
+END
+
+
+
+// LayerMask allow you to display the LayerMask popup menu in the inspector
+STRUCT LayerMask
+	CSRAW
+	private int m_Mask;
+
+	//*undocumented* TODO: make this actually work
+	CSRAW public static implicit operator int (LayerMask mask) { return mask.m_Mask; }
+
+	// implicitly converts an integer to a LayerMask
+	public static implicit operator LayerMask (int intVal) { LayerMask mask; mask.m_Mask = intVal; return mask; }
+
+	// Converts a layer mask value to an integer value.
+	CSRAW public int value { get { return m_Mask; } set { m_Mask = value; } }
+
+	// Given a layer number, returns the name of the layer as defined in either a Builtin or a User Layer in the [[wiki:class-TagManager|Tag Manager]]
+	CUSTOM static string LayerToName (int layer) { return CreateScriptingString(LayerToString(layer)); }
+
+	// Given a layer name, returns the layer index as defined by either a Builtin or a User Layer in the [[wiki:class-TagManager|Tag Manager]]
+	CUSTOM static int NameToLayer (string layerName) { return StringToLayer(layerName); }
+END
+
+
+// The platform application is running. Returned by Application.platform.
+ENUM RuntimePlatform
+	// In the Unity editor on Mac OS X.
+	OSXEditor = 0,
+
+	// In the player on Mac OS X.
+	OSXPlayer = 1,
+
+	// In the player on Windows.
+	WindowsPlayer = 2,
+
+	// In the web player on Mac OS X.
+	OSXWebPlayer = 3,
+
+	// In the Dashboard widget on Mac OS X.
+	OSXDashboardPlayer = 4,
+
+	// In the web player on Windows.
+	WindowsWebPlayer = 5,
+
+	// In the Unity editor on Windows.
+	WindowsEditor = 7,
+
+	// In the player on the iPhone.
+	IPhonePlayer = 8,
+
+	// In the player on Android devices.
+	Android = 11,
+
+	//Google Native Client
+	NaCl = 12,
+
+	//*undocumented*
+	LinuxPlayer = 13,
+
+	//Flash Player
+	FlashPlayer = 15,
+
+	//*undocumented*
+	MetroPlayerX86 = 18,
+
+	//*undocumented*
+	MetroPlayerX64 = 19,
+
+	//*undocumented*
+	MetroPlayerARM = 20,
+
+	//*undocumented*
+	WP8Player = 21,
+
+	//*undocumented* Removed in 5.4
+	BlackBerryPlayer = 22,
+
+END
+
+// The language the user's operating system is running in. Returned by Application.systemLanguage.
+ENUM SystemLanguage
+	//Afrikaans
+	Afrikaans = 0,
+	//Arabic
+	Arabic = 1,
+	//Basque
+	Basque = 2,
+	//Belarusian
+	Belarusian = 3,
+	//Bulgarian
+	Bulgarian = 4,
+	//Catalan
+	Catalan = 5,
+	//Chinese
+	Chinese = 6,
+	//Czech
+	Czech = 7,
+	//Danish
+	Danish = 8,
+	//Dutch
+	Dutch = 9,
+	//English
+	English = 10,
+	//Estonian
+	Estonian = 11,
+	//Faroese
+	Faroese = 12,
+	//Finnish
+	Finnish = 13,
+	//French
+	French = 14,
+	//German
+	German = 15,
+	//Greek
+	Greek = 16,
+	//Hebrew
+	Hebrew = 17,
+	//*undocumented*
+	Hugarian = 18,
+	//Icelandic
+	Icelandic = 19,
+	//Indonesian
+	Indonesian = 20,
+	//Italian
+	Italian = 21,
+	//Japanese
+	Japanese = 22,
+	//Korean
+	Korean = 23,
+	//Latvian
+	Latvian = 24,
+	//Lithuanian
+	Lithuanian = 25,
+	//Norwegian
+	Norwegian = 26,
+	//Polish
+	Polish = 27,
+	//Portuguese
+	Portuguese = 28,
+	//Romanian
+	Romanian = 29,
+	//Russian
+	Russian = 30,
+	//Serbo-Croatian
+	SerboCroatian = 31,
+	//Slovak
+	Slovak = 32,
+	//Slovenian
+	Slovenian = 33,
+	//Spanish
+	Spanish = 34,
+	//Swedish
+	Swedish = 35,
+	//Thai
+	Thai = 36,
+	//Turkish
+	Turkish = 37,
+	//Ukrainian
+	Ukrainian = 38,
+	//Vietnamese
+	Vietnamese = 39,
+	//Unknown
+	Unknown = 40,
+	//Hungarian
+	Hungarian = 18
+END
+
+// The type of the log message in the delegate registered with Application.RegisterLogCallback.
+ENUM LogType
+	// LogType used for Errors.
+    Error = 0,
+    // LogType used for Asserts. (These indicate an error inside Unity itself.)
+    Assert = 1,
+    // LogType used for Warnings.
+    Warning = 2,
+    // LogType used for regular log messages.
+    Log = 3,
+    // LogType used for Exceptions.
+    Exception = 4
+END
+
+// These are speaker types defined for use with [[AudioSettings.speakerMode]].
+CONDITIONAL ENABLE_AUDIO_FMOD
+ENUM AudioSpeakerMode
+	// Channel count is unaffected.
+	Raw = 0,
+	// Channel count is set to 1. The speakers are monaural.
+	Mono = 1,
+	// Channel count is set to 2. The speakers are stereo. This is the editor default.
+	Stereo = 2,
+	// Channel count is set to 4. 4 speaker setup. This includes front left, front right, rear left, rear right.
+	Quad = 3,
+	// Channel count is set to 5. 5 speaker setup. This includes front left, front right, center, rear left, rear right.
+	Surround = 4,
+	// Channel count is set to 6. 5.1 speaker setup. This includes front left, front right, center, rear left, rear right and a subwoofer.
+	Mode5point1 = 5,
+	// Channel count is set to 8. 7.1 speaker setup. This includes front left, front right, center, rear left, rear right, side left, side right and a subwoofer.
+	Mode7point1 = 6,
+	// Channel count is set to 2. Stereo output, but data is encoded in a way that is picked up by a Prologic/Prologic2 decoder and split into a 5.1 speaker setup.
+	Prologic = 7
+END
+
+// Controls the global audio settings from script.
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioSettings
+	// Returns the speaker mode capability of the current audio driver. (RO)
+	CUSTOM_PROP static AudioSpeakerMode driverCaps
+	{
+		return GetAudioManager().GetSpeakerModeCaps();
+	}
+
+	// Sets or gets the current speaker mode. Default is 2 channel stereo.
+	CUSTOM_PROP static AudioSpeakerMode speakerMode
+	{
+		return GetAudioManager().GetSpeakerMode();
+	}
+	{
+		GetAudioManager().SetSpeakerMode(value);
+	}
+
+	// Returns the current time of the audio system. This is based on the number of samples the audio system processes and is therefore more exact than the time obtained via the Time.time property.
+	// It is constant while Unity is paused.
+	THREAD_AND_SERIALIZATION_SAFE CUSTOM_PROP static double dspTime
+	{
+		return GetAudioManager().GetDSPTime();
+	}
+
+	// Get and set the mixer's current output rate.
+	CUSTOM_PROP static int outputSampleRate
+	{
+		int sampleRate;
+		GetAudioManager().GetFMODSystem()->getSoftwareFormat(
+			&sampleRate,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			NULL
+		);
+		return sampleRate;
+	}
+	{
+		int currentSampleRate = AudioSettings_Get_Custom_PropOutputSampleRate();
+		if (currentSampleRate != value)
+		{
+			GetAudioManager().CloseFMOD();
+			FMOD_RESULT result = GetAudioManager().GetFMODSystem()->setSoftwareFormat(
+				value,
+				FMOD_SOUND_FORMAT_PCM16,
+				0,
+				8,
+				FMOD_DSP_RESAMPLER_LINEAR
+			);
+			if (result != FMOD_OK)
+			{
+				ErrorString(Format("%dHz is an invalid output samplerate for this platform", value));
+			}
+
+			GetAudioManager().ReloadFMODSounds();
+		}
+	}
+
+	// Get or set the mixer's buffer size in samples.
+	CUSTOM static void SetDSPBufferSize(int bufferLength, int numBuffers)
+	{
+		bufferLength = clamp(bufferLength, 64, 4096);
+
+		GetAudioManager().CloseFMOD();
+		FMOD_RESULT result = GetAudioManager().GetFMODSystem()->setDSPBufferSize(bufferLength, numBuffers);
+		if (result != FMOD_OK)
+		{
+			ErrorString(Format("DSP ringbuffer of %d samples (x %d) is invalid for this platform", bufferLength, numBuffers));
+		}
+		GetAudioManager().ReloadFMODSounds();
+	}
+
+	// Get or set the mixer's buffer size in samples.
+	CUSTOM static void GetDSPBufferSize(out int bufferLength, out int numBuffers)
+	{
+		FMOD_RESULT result = GetAudioManager().GetFMODSystem()->getDSPBufferSize((unsigned int*)bufferLength, numBuffers);
+		FMOD_ASSERT( result );
+	}
+
+
+END
+
+// Type of the imported(native) data
+ENUM public AudioType
+	// 3rd party / unknown plugin format.
+    UNKNOWN = 0,
+	//acc - not supported
+	ACC = 1,			 /* [Unity] Not supported/used. But kept here to keep the order of the enum in sync. */
+	//aiff
+    AIFF = 2,
+//  ASF = 3,             /* Microsoft Advanced Systems Format (ie WMA/ASF/WMV). */
+//  AT3 = 4,             /* Sony ATRAC 3 format */
+//  CDDA = 5,            /* Digital CD audio. */
+//  DLS = 6,             /* Sound font / downloadable sound bank. */
+//  FLAC = 7,            /* FLAC lossless codec. */
+//  FSB = 8,             /* FMOD Sample Bank. */
+	//game cube ADPCM
+    GCADPCM = 9,
+	//impulse tracker
+    IT = 10,
+//  MIDI = 11,            /* MIDI. */
+	//Protracker / Fasttracker MOD.
+    MOD = 12,
+	//MP2/MP3 MPEG.
+    MPEG = 13,
+	//ogg vorbis
+    OGGVORBIS = 14,
+//  PLAYLIST = 15,        /* Information only from ASX/PLS/M3U/WAX playlists */
+//  RAW = 16,             /* Raw PCM data. */
+	// ScreamTracker 3.
+    S3M = 17,
+//  SF2 = 18,             /* Sound font 2 format. */
+//  USER = 19,            /* User created sound. */
+	//Microsoft WAV.
+    WAV = 20,
+	// FastTracker 2 XM.
+    XM = 21,
+	// XboxOne XMA
+    XMA = 22,
+//  VAG = 23,             /* PlayStation 2 / PlayStation Portable adpcm VAG format. */
+	//iPhone hardware decoder, supports AAC, ALAC and MP3. Extracodecdata is a pointer to an FMOD_AUDIOQUEUE_EXTRACODECDATA structure.
+	AUDIOQUEUE = 24,
+//  XWMA = 25,            /* Xbox360 XWMA */
+//  BCWAV = 26,           /* 3DS BCWAV container format for DSP ADPCM and PCM */
+//  AT9 = 27,             /* NGP ATRAC 9 format */
+END
+
+// A container for audio data.
+CONDITIONAL ENABLE_AUDIO
+CLASS AudioClip : Object
+
+	// Check if reading of the audioclip is allowed by crossdomain security and throw if not
+	C++RAW
+ static void CheckReadAllowedAndThrow(AudioClip *clip)
+	{
+#if ENABLE_MONO && ENABLE_SECURITY
+		if ( clip&&!clip->GetReadAllowed() )
+			RaiseSecurityException("No read access to the audioclip data: %s", clip->GetName());
+#endif
+	}
+
+	// The length of the audio clip in seconds (RO)
+	AUTO_PROP float length GetLengthSec
+
+	// The length of the audio clip in samples (RO)
+	// Prints how many samples the attached audio source has
+	//
+	AUTO_PROP int samples GetSampleCount
+
+	// Channels in audio clip (RO)
+	AUTO_PROP int channels GetChannelCount
+
+	// Sample frequency (RO)
+	AUTO_PROP int frequency GetFrequency
+
+	// Is a streamed audio clip ready to play? (RO)
+	AUTO_PROP bool isReadyToPlay ReadyToPlay
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	// Fills an array with sample data from the clip. The samples are floats ranging from -1.0f to 1.0f. The sample count is determined by the length of the float array.
+	CUSTOM void GetData(float[] data, int offsetSamples)
+	{
+		CheckReadAllowedAndThrow(self);
+		self->GetData(&GetScriptingArrayElement<float>(data, 0), GetScriptingArraySize (data) / self->GetChannelCount(), offsetSamples);
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	// Set sample data in a clip. The samples should be floats ranging from 0.0f to 1.0f (exceeding these limits will lead to artifacts and undefined behaviour).
+	CUSTOM void SetData(float[] data, int offsetSamples)
+	{
+		self->SetData(&GetScriptingArrayElement<float>(data, 0), GetScriptingArraySize (data) / self->GetChannelCount(), offsetSamples);
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	/// *listonly*
+	CSRAW public static AudioClip Create(string name, int lengthSamples, int channels, int frequency, bool _3D, bool stream)
+	{
+		AudioClip clip = Create (name, lengthSamples, channels, frequency, _3D, stream, null, null);
+		return clip;
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	/// *listonly*
+	CSRAW public static AudioClip Create(string name, int lengthSamples, int channels, int frequency, bool _3D, bool stream, PCMReaderCallback pcmreadercallback)
+	{
+		AudioClip clip = Create (name, lengthSamples, channels, frequency, _3D, stream, pcmreadercallback, null);
+		return clip;
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	// Creates a user AudioClip with a name and with the given length in samples, channels and frequency.
+	CSRAW public static AudioClip Create(string name, int lengthSamples, int channels, int frequency, bool _3D, bool stream, PCMReaderCallback pcmreadercallback, PCMSetPositionCallback pcmsetpositioncallback)
+	{
+		if(name == null) throw new NullReferenceException();
+
+		AudioClip clip = Construct_Internal();
+		if ( pcmreadercallback != null)
+			clip.m_PCMReaderCallback += pcmreadercallback;
+		if ( pcmsetpositioncallback != null)
+			clip.m_PCMSetPositionCallback += pcmsetpositioncallback;
+
+		clip.Init_Internal( name, lengthSamples, channels, frequency, _3D, stream );
+
+		return clip;
+	}
+
+	/// *listonly*
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW public delegate void PCMReaderCallback(float[] data);
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW private event PCMReaderCallback m_PCMReaderCallback = null;
+	/// *listonly*
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW public delegate void PCMSetPositionCallback(int position);
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW private event PCMSetPositionCallback m_PCMSetPositionCallback = null;
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW private void InvokePCMReaderCallback_Internal(float[] data)
+	{
+		if (m_PCMReaderCallback != null)
+			m_PCMReaderCallback( data );
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW private void InvokePCMSetPositionCallback_Internal(int position)
+	{
+		if (m_PCMSetPositionCallback != null)
+			m_PCMSetPositionCallback( position );
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CUSTOM private static AudioClip Construct_Internal()
+	{
+		AudioClip* clip = NEW_OBJECT(AudioClip);
+		return Scripting::ScriptingWrapperFor ( clip );	
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CUSTOM private void Init_Internal(string name, int lengthSamples, int channels, int frequency, bool _3D, bool stream)
+	{
+		self->CreateUserSound( name, lengthSamples, channels, frequency, _3D, stream );
+	}
+
+END
+
+// Describes when an [[AudioSource]] or [[AudioListener]] is updated.
+ENUM AudioVelocityUpdateMode
+	// Updates the source or listener in the fixed update loop if it is attached to a [[Rigidbody]], dynamic otherwise.
+	Auto = 0,
+	// Updates the source or listener in the fixed update loop.
+	Fixed = 1,
+	// Updates the source or listener in the dynamic update loop.
+	Dynamic = 2,
+END
+
+
+// Representation of a listener in 3D space.
+CONDITIONAL ENABLE_AUDIO
+CLASS AudioListener : Behaviour
+	// Controls the game sound volume (0.0 to 1.0)
+	CUSTOM_PROP static float volume { return GetAudioManager ().GetVolume (); } { GetAudioManager ().SetVolume (value); }
+
+	// The paused state of the audio. If set to True, the listener will not generate sound.
+	CUSTOM_PROP static bool pause { return GetAudioManager ().GetPause (); } { GetAudioManager ().SetPause (value); }
+
+	// This lets you set whether the Audio Listener should be updated in the fixed or dynamic update.
+
+	AUTO_PROP AudioVelocityUpdateMode velocityUpdateMode GetVelocityUpdateMode SetVelocityUpdateMode
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CUSTOM static private void GetOutputDataHelper(float[] samples, int channel)
+	{
+		FMOD::ChannelGroup* channelGroup;
+		FMOD_RESULT result = GetAudioManager().GetFMODSystem()->getMasterChannelGroup(&channelGroup);
+
+		if (result == FMOD_OK && channelGroup)
+		{
+			channelGroup->getWaveData(GetScriptingArrayStart<float>(samples), GetScriptingArraySize(samples), channel);
+		}
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CUSTOM static private void GetSpectrumDataHelper(float[] samples, int channel, FFTWindow window)
+	{
+		FMOD::ChannelGroup* channelGroup;
+		FMOD_RESULT result = GetAudioManager().GetFMODSystem()->getMasterChannelGroup(&channelGroup);
+
+		if (result == FMOD_OK && channelGroup)
+		{
+			channelGroup->getSpectrum(GetScriptingArrayStart<float>(samples), GetScriptingArraySize(samples), channel, (FMOD_DSP_FFT_WINDOW)window);
+		}
+	}
+
+	// Returns a block of the listener (master)'s output data
+	CSRAW
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	OBSOLETE warning GetOutputData returning a float[] is deprecated, use GetOutputData and pass a pre allocated array instead.
+	public static float[] GetOutputData(int numSamples, int channel)
+	{
+		float[] samples = new float[numSamples];
+		GetOutputDataHelper(samples, channel);
+		return samples;
+	}
+
+	// Returns a block of the listener (master)'s output data
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW static public void GetOutputData(float[] samples, int channel)
+	{
+		GetOutputDataHelper(samples, channel);
+	}
+
+	// Returns a block of the listener (master)'s spectrum data
+	CSRAW
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	OBSOLETE warning GetSpectrumData returning a float[] is deprecated, use GetOutputData and pass a pre allocated array instead.
+	public static float[] GetSpectrumData(int numSamples, int channel, FFTWindow window)
+	{
+		float[] samples = new float[numSamples];
+		GetSpectrumDataHelper(samples, channel, window);
+		return samples;
+	}
+
+	// Returns a block of the listener (master)'s spectrum data
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW static public void GetSpectrumData(float[] samples, int channel, FFTWindow window)
+	{
+		GetSpectrumDataHelper(samples, channel, window);
+	}
+
+END
+
+CONDITIONAL ENABLE_MICROPHONE
+// Use this class to record to an [[AudioClip|audio clip]] using a connected microphone.
+CLASS Microphone
+	// Start Recording with device
+
+	CUSTOM static AudioClip Start(string deviceName, bool loop, int lengthSec, int frequency)
+	{
+		return Scripting::ScriptingWrapperFor( GetAudioManager().StartRecord( GetAudioManager().GetMicrophoneDeviceIDFromName ( deviceName ) , loop, lengthSec, frequency ) );
+	}
+
+	// Stops recording
+	CUSTOM static void End(string deviceName)
+	{
+		GetAudioManager().EndRecord( GetAudioManager().GetMicrophoneDeviceIDFromName ( deviceName ) );
+	}
+
+	// Gives you a list microphone devices, identified by name.
+	CUSTOM_PROP static string[] devices
+	{
+		std::vector<std::string> names;
+		names = GetAudioManager().GetRecordDevices();
+
+		ScriptingArrayPtr array = CreateScriptingArray<ScriptingStringPtr> (GetMonoManager().GetCommonClasses().string, names.size ());
+		for (int i=0;i<names.size ();i++)
+			SetScriptingArrayElement (array, i, CreateScriptingString ( (const char*)names[i].c_str() ));
+
+		return array;
+	}
+
+	// Query if a device is currently recording.
+	CUSTOM static bool IsRecording(string deviceName)
+	{
+		return GetAudioManager().IsRecording( GetAudioManager().GetMicrophoneDeviceIDFromName ( deviceName ) );
+	}
+
+	// Get the position in samples of the recording.
+	THREAD_AND_SERIALIZATION_SAFE CUSTOM static int GetPosition(string deviceName)
+	{
+		return GetAudioManager().GetRecordPosition( GetAudioManager().GetMicrophoneDeviceIDFromName ( deviceName ) );
+	}
+
+	// Get the frequency capabilities of a device.
+	CUSTOM static void GetDeviceCaps(string deviceName, out int minFreq, out int maxFreq)
+	{
+		GetAudioManager().GetDeviceCaps( GetAudioManager().GetMicrophoneDeviceIDFromName ( deviceName ), minFreq, maxFreq );
+	}
+
+END
+
+// Spectrum analysis windowing types
+CONDITIONAL ENABLE_AUDIO_FMOD
+ENUM FFTWindow
+	// w[n] = 1.0
+	Rectangular = 0,
+	// w[n] = TRI(2n/N)
+	Triangle = 1,
+	// w[n] = 0.54 - (0.46 * COS(n/N) )
+	Hamming = 2,
+	// w[n] = 0.5 * (1.0 - COS(n/N) )
+	Hanning = 3,
+	// w[n] = 0.42 - (0.5 * COS(n/N) ) + (0.08 * COS(2.0 * n/N) )
+	Blackman = 4,
+	// w[n] = 0.35875 - (0.48829 * COS(1.0 * n/N)) + (0.14128 * COS(2.0 * n/N)) - (0.01168 * COS(3.0 * n/N))
+	BlackmanHarris = 5
+END
+
+// Rolloff modes that a 3D sound can have in an audio source.
+CONDITIONAL ENABLE_AUDIO
+ENUM AudioRolloffMode
+	// Use this mode when you want a real-world rolloff.
+	Logarithmic = 0,
+
+
+	// Use this mode when you want to lower the volume of your sound over the distance
+	Linear = 1,
+
+
+	// Use this when you want to use a custom rolloff.
+	Custom = 2
+END
+
+// A representation of audio sources in 3D.
+CONDITIONAL ENABLE_AUDIO
+CLASS AudioSource : Behaviour
+	// The volume of the audio source (0.0 to 1.0)
+	AUTO_PROP float volume GetVolume SetVolume
+
+	// The pitch of the audio source.
+	CUSTOM_PROP float pitch
+	{
+		return self->GetPitch();
+	}
+	{
+		if(!IsFinite(value))
+		{
+			WarningStringObject("Attempt to set pitch to infinite value from script ignored!", self);
+			return;
+		}
+		if(IsNAN(value))
+		{
+			WarningStringObject("Attempt to set pitch to NaN value from script ignored!", self);
+			return;
+		}
+		self->SetPitch(value);
+	}
+
+	// Playback position in seconds.
+	CONDITIONAL ENABLE_AUDIO
+	AUTO_PROP float time GetSecPosition SetSecPosition
+
+	// Playback position in PCM samples.
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	THREAD_AND_SERIALIZATION_SAFE AUTO_PROP int timeSamples GetSamplePosition SetSamplePosition
+
+	// The default [[AudioClip]] to play
+	AUTO_PTR_PROP AudioClip clip GetAudioClip SetAudioClip
+
+	// Plays the ::ref::clip with a certain delay (the optional delay argument is deprecated since 4.1a3) and the functionality has been replated by PlayDelayed.
+
+	CUSTOM void Play (UInt64 delay=0)
+	{
+		if (delay > 0 && IS_CONTENT_NEWER_OR_SAME (kUnityVersion4_1_a3))
+		{
+			WarningStringObject("Delayed playback via the optional argument of Play is deprecated. Use PlayDelayed instead!", self);	
+		}
+		self->Play((double)delay * (const double)(-1.0 / 44100.0));		
+	}
+
+	// Plays the ::ref::clip with a delay specified in seconds. Users are advised to use this function instead of the old Play(delay) function that took a delay specified in samples relative to a reference rate of 44.1 kHz as an argument.
+	CUSTOM void PlayDelayed (float delay)
+	{
+		self->Play((delay < 0.0f) ? 0.0 : -(double)delay);		
+	}
+
+	// Schedules the ::ref::clip to play at the specified absolute time. This is the preferred way to stitch AudioClips in music players because it is independent of the frame rate and gives the audio system enough time to prepare the playback of the sound to fetch it from media where the opening and buffering takes a lot of time (streams) without causing sudden performance peaks.
+	CUSTOM void PlayScheduled (double time)
+	{
+		self->Play((time < 0.0) ? 0.0 : time);
+	}
+
+	// Changes the time at which a sound that has already been scheduled to play will start. Notice that depending on the timing not all rescheduling requests can be fulfilled.
+	CUSTOM void SetScheduledStartTime (double time)
+	{
+		self->SetScheduledStartTime(time);		
+	}
+
+	// Changes the time at which a sound that has already been scheduled to play will end. Notice that depending on the timing not all rescheduling requests can be fulfilled.
+	CUSTOM void SetScheduledEndTime (double time)
+	{
+		self->SetScheduledEndTime(time);		
+	}
+
+	// Stops playing the ::ref::clip.
+	CUSTOM void Stop()
+	{
+		self->Stop(true);
+	}
+
+	// Pauses playing the ::ref::clip.
+	AUTO void Pause ();
+
+	// Is the ::ref::clip playing right now (RO)?
+	AUTO_PROP bool isPlaying IsPlayingScripting
+
+	// Plays an [[AudioClip]], and scales the [[AudioSource]] volume by volumeScale.
+	CONDITIONAL ENABLE_AUDIO
+	CUSTOM void PlayOneShot (AudioClip clip, float volumeScale = 1.0F)	{ if (clip) self->PlayOneShot (*clip, volumeScale); }
+
+	// Plays the clip at position. Automatically cleans up the audio source after it has finished playing.
+
+	CONDITIONAL ENABLE_AUDIO
+	CSRAW public static void PlayClipAtPoint (AudioClip clip, Vector3 position, float volume = 1.0F)
+	{
+		GameObject go = new GameObject ("One shot audio");
+		go.transform.position = position;
+		AudioSource source = (AudioSource)go.AddComponent (typeof(AudioSource));
+		source.clip = clip;
+		source.volume = volume;
+		source.Play ();
+		// Note: timeScale > 1 means that game time is accelerated. However, the sounds play at their normal speed, so we need to postpone the point in time, when the sound is stopped.
+		Destroy (go, clip.length * Time.timeScale);
+	}
+
+	// Is the audio clip looping?
+	AUTO_PROP bool loop GetLoop SetLoop
+
+	// This makes the audio source not take into account the volume of the audio listener.
+	CUSTOM_PROP bool ignoreListenerVolume
+	{
+		return self->GetIgnoreListenerVolume();
+	}
+	{
+		self->SetIgnoreListenerVolume(value);
+	}
+
+	// If set to true, the audio source will automatically start playing on awake
+	AUTO_PROP bool playOnAwake GetPlayOnAwake SetPlayOnAwake
+
+	// If set to true, the audio source will be playable while the AudioListener is paused
+	AUTO_PROP bool ignoreListenerPause GetIgnoreListenerPause SetIgnoreListenerPause
+
+	// Whether the Audio Source should be updated in the fixed or dynamic update.
+	AUTO_PROP AudioVelocityUpdateMode velocityUpdateMode GetVelocityUpdateMode SetVelocityUpdateMode
+
+
+	// Sets how much the 3d engine has an effect on the channel.
+	AUTO_PROP float panLevel GetPanLevel SetPanLevel
+
+	// Bypass effects
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	AUTO_PROP bool bypassEffects GetBypassEffects SetBypassEffects
+
+	// Bypass listener effects
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	AUTO_PROP bool bypassListenerEffects GetBypassListenerEffects SetBypassListenerEffects
+	// Bypass reverb zones
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	AUTO_PROP bool bypassReverbZones GetBypassReverbZones SetBypassReverbZones
+
+	// Sets the Doppler scale for this AudioSource
+	AUTO_PROP float dopplerLevel GetDopplerLevel SetDopplerLevel
+
+	// Sets the spread angle a 3d stereo or multichannel sound in speaker space.
+	AUTO_PROP float spread GetSpread SetSpread
+
+	// Sets the priority of the [[AudioSource]]
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	AUTO_PROP int priority GetPriority SetPriority
+
+	// Un- / Mutes the AudioSource. Mute sets the volume=0, Un-Mute restore the original volume.
+	AUTO_PROP bool mute GetMute SetMute
+
+	// Within the Min distance the AudioSource will cease to grow louder in volume.
+	AUTO_PROP float minDistance GetMinDistance SetMinDistance
+
+	// (Logarithmic rolloff) MaxDistance is the distance a sound stops attenuating at.
+	AUTO_PROP float maxDistance GetMaxDistance SetMaxDistance
+
+	// Sets a channels pan position linearly. Only works for 2D clips.
+	AUTO_PROP float pan GetPan SetPan
+
+	// Sets/Gets how the AudioSource attenuates over distance
+
+	AUTO_PROP AudioRolloffMode rolloffMode GetRolloffMode SetRolloffMode
+
+	CUSTOM private void GetOutputDataHelper(float[] samples, int channel)
+	{
+#if ENABLE_AUDIO_FMOD
+		self->GetOutputData(GetScriptingArrayStart<float>(samples), GetScriptingArraySize(samples), channel);
+#endif
+	}
+
+	// Returns a block of the currently playing source's output data
+	CSRAW
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	OBSOLETE warning GetOutputData return a float[] is deprecated, use GetOutputData passing a pre allocated array instead.
+	public float[] GetOutputData(int numSamples, int channel)
+	{
+		float[] samples = new float[numSamples];
+		GetOutputDataHelper(samples, channel);
+		return samples;
+	}
+
+	// Returns a block of the currently playing source's output data
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW public void GetOutputData(float[] samples, int channel)
+	{
+		GetOutputDataHelper(samples, channel);
+	}
+
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CUSTOM private void GetSpectrumDataHelper(float[] samples, int channel, FFTWindow window)
+	{
+		self->GetSpectrumData(GetScriptingArrayStart<float>(samples), GetScriptingArraySize(samples), channel, (FMOD_DSP_FFT_WINDOW) window);
+	}
+
+	// Returns a block of the currently playing source's spectrum data
+	CSRAW
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	OBSOLETE warning GetSpectrumData returning a float[] is deprecated, use GetSpectrumData passing a pre allocated array instead.
+	public float[] GetSpectrumData(int numSamples, int channel, FFTWindow window)
+	{
+		float[] samples = new float[numSamples];
+		GetSpectrumDataHelper(samples, channel, window);
+		return samples;
+	}
+
+	// Returns a block of the currently playing source's spectrum data
+	CONDITIONAL ENABLE_AUDIO_FMOD
+	CSRAW public void GetSpectrumData(float[] samples, int channel, FFTWindow window)
+	{
+		GetSpectrumDataHelper(samples, channel, window);
+	}
+
+	FLUSHCONDITIONS
+
+	OBSOLETE error minVolume is not supported anymore. Use min-, maxDistance and rolloffMode instead.
+	CUSTOM_PROP float minVolume
+	{
+		ErrorString("minVolume is not supported anymore. Use min-, maxDistance and rolloffMode instead.");
+		return 0.0f;
+	}
+	{
+		ErrorString("minVolume is not supported anymore. Use min-, maxDistance and rolloffMode instead.");
+	}
+	OBSOLETE error maxVolume is not supported anymore. Use min-, maxDistance and rolloffMode instead.
+	CUSTOM_PROP float maxVolume
+	{
+		ErrorString("maxVolume is not supported anymore. Use min-, maxDistance and rolloffMode instead.");
+		return 0.0f;
+	}
+	{
+		ErrorString("maxVolume is not supported anymore. Use min-, maxDistance and rolloffMode instead.");
+	}
+	OBSOLETE error rolloffFactor is not supported anymore. Use min-, maxDistance and rolloffMode instead.
+	CUSTOM_PROP float rolloffFactor
+	{
+		ErrorString("rolloffFactor is not supported anymore. Use min-, maxDistance and rolloffMode instead.");
+		return 0.0f;
+	}
+	{
+		ErrorString("rolloffFactor is not supported anymore. Use min-, maxDistance and rolloffMode instead.");
+	}
+END
+// Reverb presets used by the Reverb Zone class and the audio reverb filter
+ENUM AudioReverbPreset
+	// No reverb preset selected
+	Off = 0,
+
+	// Generic preset.
+	Generic = 1,
+
+	// Padded cell preset.
+	PaddedCell = 2,
+
+	// Room preset.
+	Room = 3,
+
+	// Bathroom preset.
+	Bathroom = 4,
+
+	// Livingroom preset
+	Livingroom = 5,
+
+	// Stoneroom preset
+	Stoneroom = 6,
+
+	// Auditorium preset.
+	Auditorium = 7,
+
+	// Concert hall preset.
+	Concerthall = 8,
+
+	// Cave preset.
+	Cave = 9,
+
+	// Arena preset.
+	Arena = 10,
+
+	// Hangar preset.
+	Hangar = 11,
+
+	// Carpeted hallway preset.
+	CarpetedHallway = 12,
+
+	// Hallway preset.
+	Hallway = 13,
+
+	// Stone corridor preset.
+	StoneCorridor = 14,
+
+	// Alley preset.
+	Alley = 15,
+
+	// Forest preset.
+	Forest = 16,
+
+	// City preset.
+	City = 17,
+
+	// Mountains preset.
+	Mountains = 18,
+
+	// Quarry preset.
+	Quarry = 19,
+
+	// Plain preset.
+	Plain = 20,
+
+	// Parking Lot preset
+	ParkingLot = 21,
+
+	// Sewer pipe preset.
+	SewerPipe = 22,
+
+	// Underwater presset
+	Underwater = 23,
+
+	// Drugged preset
+	Drugged = 24,
+
+	// Dizzy preset.
+	Dizzy = 25,
+
+	// Psychotic preset.
+	Psychotic = 26,
+
+	// User defined preset.
+	User = 27
+END
+
+// Reverb Zones are used when you want to gradually change from a point
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioReverbZone : Behaviour
+	//  The distance from the centerpoint that the reverb will have full effect at. Default = 10.0.
+	AUTO_PROP float minDistance GetMinDistance SetMinDistance
+
+	//  The distance from the centerpoint that the reverb will not have any effect. Default = 15.0.
+	AUTO_PROP float maxDistance GetMaxDistance SetMaxDistance
+
+	// Set/Get reverb preset properties
+	AUTO_PROP AudioReverbPreset reverbPreset GetReverbPreset SetReverbPreset
+
+	// room effect level (at mid frequencies)
+	AUTO_PROP  int room GetRoom SetRoom
+	// relative room effect level at high frequencies
+	AUTO_PROP  int roomHF GetRoomHF SetRoomHF
+	// relative room effect level at low frequencies
+	AUTO_PROP  int roomLF GetRoomLF SetRoomLF
+	// reverberation decay time at mid frequencies
+	AUTO_PROP  float decayTime GetDecayTime SetDecayTime
+	//  high-frequency to mid-frequency decay time ratio
+	AUTO_PROP  float decayHFRatio GetDecayHFRatio SetDecayHFRatio
+	// early reflections level relative to room effect
+	AUTO_PROP  int reflections GetReflections SetReflections
+	//  initial reflection delay time
+	AUTO_PROP  float reflectionsDelay GetReflectionsDelay SetReflectionsDelay
+	// late reverberation level relative to room effect
+	AUTO_PROP  int reverb GetReverb SetReverb
+	//  late reverberation delay time relative to initial reflection
+	AUTO_PROP  float reverbDelay GetReverbDelay SetReverbDelay
+	//  reference high frequency (hz)
+	AUTO_PROP  float HFReference GetHFReference SetHFReference
+	// reference low frequency (hz)
+	AUTO_PROP  float LFReference GetLFReference SetLFReference
+	// like rolloffscale in global settings, but for reverb room size effect
+	AUTO_PROP  float roomRolloffFactor GetRoomRolloffFactor SetRoomRolloffFactor
+	//  Value that controls the echo density in the late reverberation decay
+	AUTO_PROP  float diffusion GetDiffusion SetDiffusion
+	// Value that controls the modal density in the late reverberation decay
+	AUTO_PROP  float density GetDensity SetDensity
+END
+
+
+// The Audio Low Pass Filter filter passes low frequencies of an
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioLowPassFilter : Behaviour
+	// Lowpass cutoff frequency in hz. 10.0 to 22000.0. Default = 5000.0.
+	AUTO_PROP float cutoffFrequency GetCutoffFrequency SetCutoffFrequency
+
+	// Determines how much the filter's self-resonance is dampened.
+	AUTO_PROP float lowpassResonaceQ GetLowpassResonanceQ SetLowpassResonanceQ
+END
+// The Audio High Pass Filter passes high frequencies of an AudioSource and
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioHighPassFilter : Behaviour
+	// Highpass cutoff frequency in hz. 10.0 to 22000.0. Default = 5000.0.
+	AUTO_PROP float cutoffFrequency GetCutoffFrequency SetCutoffFrequency
+
+
+	// Determines how much the filter's self-resonance isdampened.
+	AUTO_PROP float highpassResonaceQ GetHighpassResonanceQ SetHighpassResonanceQ
+END
+// The Audio Distortion Filter distorts the sound from an AudioSource or
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioDistortionFilter : Behaviour
+	// Distortion value. 0.0 to 1.0. Default = 0.5.
+	AUTO_PROP float distortionLevel GetDistortionLevel SetDistortionLevel
+END
+
+// The Audio Echo Filter repeats a sound after a given Delay, attenuating
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioEchoFilter : Behaviour
+	// Echo delay in ms. 10 to 5000. Default = 500.
+	AUTO_PROP float delay GetDelay SetDelay
+
+
+	// Echo decay per delay. 0 to 1. 1.0 = No decay, 0.0 = total decay (i.e. simple 1 line delay). Default = 0.5.
+	AUTO_PROP float decayRatio GetDecayRatio SetDecayRatio
+
+
+	// Volume of original signal to pass to output. 0.0 to 1.0. Default = 1.0.
+	AUTO_PROP float dryMix GetDryMix SetDryMix
+
+
+	// Volume of echo signal to pass to output. 0.0 to 1.0. Default = 1.0.
+	AUTO_PROP float wetMix GetWetMix SetWetMix
+END
+
+// The Audio Chorus Filter takes an Audio Clip and processes it creating a chorus effect.
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioChorusFilter : Behaviour
+	// Volume of original signal to pass to output. 0.0 to 1.0. Default = 0.5.
+	AUTO_PROP float dryMix GetDryMix SetDryMix
+
+
+	// Volume of 1st chorus tap. 0.0 to 1.0. Default = 0.5.
+	AUTO_PROP float wetMix1 GetWetMix1 SetWetMix1
+
+
+	// Volume of 2nd chorus tap. This tap is 90 degrees out of phase of the first tap. 0.0 to 1.0. Default = 0.5.
+	AUTO_PROP float wetMix2 GetWetMix2 SetWetMix2
+
+
+	// Volume of 3rd chorus tap. This tap is 90 degrees out of phase of the second tap. 0.0 to 1.0. Default = 0.5.
+	AUTO_PROP float wetMix3 GetWetMix3 SetWetMix3
+
+
+	// Chorus delay in ms. 0.1 to 100.0. Default = 40.0 ms.
+	AUTO_PROP float delay GetDelay SetDelay
+
+
+	// Chorus modulation rate in hz. 0.0 to 20.0. Default = 0.8 hz.
+	AUTO_PROP float rate GetRate SetRate
+
+
+	//  Chorus modulation depth. 0.0 to 1.0. Default = 0.03.
+	AUTO_PROP float depth GetDepth SetDepth
+
+	/// Chorus feedback. Controls how much of the wet signal gets fed back into the chorus buffer. 0.0 to 1.0. Default = 0.0.
+	OBSOLETE warning feedback is deprecated, this property does nothing.
+	CUSTOM_PROP float feedback
+	{
+		return 0.0f;
+	}
+	{}
+
+END
+// The Audio Reverb Filter takes an Audio Clip and distortionates it in a
+CONDITIONAL ENABLE_AUDIO_FMOD
+CLASS AudioReverbFilter : Behaviour
+	// Set/Get reverb preset properties
+	AUTO_PROP AudioReverbPreset reverbPreset GetReverbPreset SetReverbPreset
+	// Mix level of dry signal in output in mB. Ranges from -10000.0 to 0.0. Default is 0.
+	AUTO_PROP float dryLevel GetDryLevel SetDryLevel
+	// Room effect level at low frequencies in mB. Ranges from -10000.0 to 0.0. Default is 0.0.
+	AUTO_PROP float room GetRoom SetRoom
+	// Room effect high-frequency level re. low frequency level in mB. Ranges from -10000.0 to 0.0. Default is 0.0.
+	AUTO_PROP float roomHF GetRoomHF SetRoomHF
+	// Rolloff factor for room effect. Ranges from 0.0 to 10.0. Default is 10.0
+	AUTO_PROP float roomRolloff GetRoomRolloff SetRoomRolloff
+	// Reverberation decay time at low-frequencies in seconds. Ranges from 0.1 to 20.0. Default is 1.0.
+	AUTO_PROP float decayTime GetDecayTime SetDecayTime
+	// Decay HF Ratio : High-frequency to low-frequency decay time ratio. Ranges from 0.1 to 2.0. Default is 0.5.
+	AUTO_PROP float decayHFRatio GetDecayHFRatio SetDecayHFRatio
+	//  Early reflections level relative to room effect in mB. Ranges from -10000.0 to 1000.0. Default is -10000.0.
+	AUTO_PROP float reflectionsLevel GetReflectionsLevel SetReflectionsLevel
+	// Late reverberation level relative to room effect in mB. Ranges from -10000.0 to 2000.0. Default is 0.0.
+	AUTO_PROP float reflectionsDelay GetReflectionsDelay SetReflectionsDelay
+	//  Late reverberation level relative to room effect in mB. Ranges from -10000.0 to 2000.0. Default is 0.0.
+	AUTO_PROP float reverbLevel GetReverbLevel SetReverbLevel
+	// Late reverberation delay time relative to first reflection in seconds. Ranges from 0.0 to 0.1. Default is 0.04.
+	AUTO_PROP float reverbDelay GetReverbDelay SetReverbDelay
+	// Reverberation diffusion (echo density) in percent. Ranges from 0.0 to 100.0. Default is 100.0.
+	AUTO_PROP float diffusion GetDiffusion SetDiffusion
+	// Reverberation density (modal density) in percent. Ranges from 0.0 to 100.0. Default is 100.0.
+	AUTO_PROP float density GetDensity SetDensity
+	// Reference high frequency in Hz. Ranges from 20.0 to 20000.0. Default is 5000.0.
+	AUTO_PROP float hfReference GetHFReference SetHFReference
+	// Room effect low-frequency level in mB. Ranges from -10000.0 to 0.0. Default is 0.0.
+	AUTO_PROP float roomLF GetRoomLF SetRoomLF
+	// Reference low-frequency in Hz. Ranges from 20.0 to 1000.0. Default is 250.0.
+	AUTO_PROP float lFReference GetLFReference SetLFReference
+END
+
+
+// Stores and accesses player preferences between game sessions.
+CLASS PlayerPrefs
+	CUSTOM private static bool TrySetInt (string key, int value) { return (int)PlayerPrefs::SetInt (key, value); }
+	CUSTOM private static bool TrySetFloat (string key, float value) { return (int)PlayerPrefs::SetFloat (key, value); }
+	CUSTOM private static bool TrySetSetString (string key, string value) { return (int)PlayerPrefs::SetString (key, value); }
+
+	// Sets the value of the preference identified by /key/.
+	CSRAW public static void SetInt (string key, int value) { if( ! TrySetInt(key, value) ) throw new PlayerPrefsException("Could not store preference value"); }
+
+
+	// Returns the value corresponding to /key/ in the preference file if it exists.
+	CUSTOM static int GetInt (string key, int defaultValue = 0) { return PlayerPrefs::GetInt (key, defaultValue); }
+
+	// Sets the value of the preference identified by /key/.
+	CSRAW public static void SetFloat (string key, float value) { if( ! TrySetFloat(key, value) ) throw new PlayerPrefsException("Could not store preference value"); }
+
+	// Returns the value corresponding to /key/ in the preference file if it exists.
+	CUSTOM static float GetFloat (string key, float defaultValue = 0.0F) { return PlayerPrefs::GetFloat (key, defaultValue); }
+
+	// Sets the value of the preference identified by /key/.
+	CSRAW public static void SetString (string key, string value) { if( ! TrySetSetString(key, value) ) throw new PlayerPrefsException("Could not store preference value"); }
+
+
+	// Returns the value corresponding to /key/ in the preference file if it exists.
+	CUSTOM static string GetString (string key, string defaultValue = "") { return CreateScriptingString (PlayerPrefs::GetString (key, defaultValue)); }
+
+	// Returns true if /key/ exists in the preferences.
+	CUSTOM static bool HasKey(string key) { return (int)PlayerPrefs::HasKey(key); }
+
+	// Removes /key/ and its corresponding value from the preferences.
+	CUSTOM static void DeleteKey(string key) { PlayerPrefs::DeleteKey(key); }
+
+	// Removes all keys and values from the preferences. Use with caution.
+	CUSTOM static void DeleteAll() { PlayerPrefs::DeleteAll(); }
+
+	// Writes all modified preferences to disk.
+	CUSTOM static void Save() { PlayerPrefs::Sync(); }
+END
+
+
+// This exception is thrown by the [[PlayerPrefs]] class in the Web player if the preference file would exceed the allotted storage space when setting a value.
+CLASS PlayerPrefsException : Exception
+
+	//*undocumented*
+	CSRAW public PlayerPrefsException(string error) : base(error) {}
+END
+
+// Enumeration for [[SystemInfo.deviceType]], denotes a coarse grouping of kinds of devices.
+ENUM DeviceType
+	// Device type is unknown. You should never see this in practice.
+	Unknown = 0,
+
+	// A handheld device like mobile phone or a tablet.
+	Handheld = 1,
+
+	// A stationary gaming console.
+	Console = 2,
+
+	// Desktop or laptop computer.
+	Desktop = 3,
+END
+
+// Access system information.
+CLASS SystemInfo
+
+	// Operating system name with version (RO).
+	CUSTOM_PROP static string operatingSystem { return CreateScriptingString( systeminfo::GetOperatingSystem() ); }
+
+	// Processor name (RO).
+	CUSTOM_PROP static string processorType { return CreateScriptingString( systeminfo::GetProcessorType() ); }
+
+	// Number of processors present (RO).
+	CUSTOM_PROP static int processorCount { return systeminfo::GetProcessorCount(); }
+
+	// Amount of system memory present (RO).
+	CUSTOM_PROP static int systemMemorySize { return systeminfo::GetPhysicalMemoryMB(); }
+
+
+	// Amount of video memory present (RO).
+	CUSTOM_PROP static int graphicsMemorySize { return (int)gGraphicsCaps.videoMemoryMB; }
+
+
+	// The name of the graphics device (RO).
+	CUSTOM_PROP static string graphicsDeviceName { return CreateScriptingString(gGraphicsCaps.rendererString.c_str()); }
+
+
+	// The vendor of the graphics device (RO).
+	CUSTOM_PROP static string graphicsDeviceVendor { return CreateScriptingString(gGraphicsCaps.vendorString.c_str()); }
+
+
+	// The identifier code of the graphics device (RO).
+	CUSTOM_PROP static int graphicsDeviceID { return gGraphicsCaps.rendererID; }
+
+
+	// The identifier code of the graphics device vendor (RO).
+	CUSTOM_PROP static int graphicsDeviceVendorID { return gGraphicsCaps.vendorID; }
+
+
+	// The graphics API version supported by the graphics device (RO).
+	CUSTOM_PROP static string graphicsDeviceVersion { return CreateScriptingString(gGraphicsCaps.fixedVersionString.c_str()); }
+
+
+
+	// Graphics device shader capability level (RO).
+	CUSTOM_PROP static int graphicsShaderLevel { return gGraphicsCaps.shaderCaps; }
+
+
+	// Approximate pixel fill-rate of the graphics device (RO).
+	CUSTOM_PROP static int graphicsPixelFillrate {
+		return GetGraphicsPixelFillrate (gGraphicsCaps.vendorID, gGraphicsCaps.rendererID);
+	}
+
+
+	// Are built-in shadows supported? (RO)
+	CUSTOM_PROP static bool supportsShadows {
+		return RenderTexture::IsEnabled() && GetBuildSettings().hasShadows && gGraphicsCaps.hasFragmentProgram && gGraphicsCaps.supportsRenderTextureFormat[kRTFormatDepth];
+	}
+	// Are render textures supported? (RO)
+	CUSTOM_PROP static bool supportsRenderTextures {
+		return RenderTexture::IsEnabled();
+	}
+	// Are image effects supported? (RO)
+	CUSTOM_PROP static bool supportsImageEffects {
+		return RenderTexture::IsEnabled() && (gGraphicsCaps.npotRT >= kNPOTRestricted);
+	}
+
+	// Are 3D (volume) textures supported? (RO)
+	CUSTOM_PROP static bool supports3DTextures {
+		return gGraphicsCaps.has3DTexture;
+	}
+
+	// Are compute shaders supported? (RO)
+	CUSTOM_PROP static bool supportsComputeShaders {
+		return gGraphicsCaps.hasComputeShader;
+	}
+
+	// Is GPU draw call instancing supported? (RO)
+	CUSTOM_PROP static bool supportsInstancing {
+		return gGraphicsCaps.hasInstancing;
+	}
+
+	// How many simultaneous render targets (MRTs) are supported? (RO)
+	CUSTOM_PROP static int supportedRenderTargetCount {
+		return RenderTexture::IsEnabled() ? gGraphicsCaps.maxMRTs : 0;
+	}
+
+	// Is the stencil buffer supported? (RO)
+	CUSTOM_PROP static int supportsStencil {
+		return gGraphicsCaps.hasStencil;
+	}
+
+	//*undocumented*
+	CUSTOM_PROP static bool supportsVertexPrograms { return gGraphicsCaps.hasVertexProgram; }
+
+	// Is render texture format supported?
+	CUSTOM static bool SupportsRenderTextureFormat (RenderTextureFormat format) {
+		return RenderTexture::IsEnabled() && gGraphicsCaps.supportsRenderTextureFormat[format];
+	}
+
+	/// What [[NPOT|NPOTSupport]] support does GPU provide? (RO)
+	///
+	/// SA: [[NPOTSupport]] enum.
+	CUSTOM_PROP static NPOTSupport npotSupport { return gGraphicsCaps.npot; }
+
+	//A unique device identifier. It is guaranteed to be unique for every device (RO).
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	CUSTOM_PROP static string deviceUniqueIdentifier {
+		return CreateScriptingString (systeminfo::GetDeviceUniqueIdentifier ());
+	}
+
+	// The user defined name of the device (RO).
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	CUSTOM_PROP static string deviceName {
+		return CreateScriptingString (systeminfo::GetDeviceName ());
+	}
+
+	// The model of the device (RO).
+	CONDITIONAL !UNITY_FLASH && !PLATFORM_WEBGL
+	CUSTOM_PROP static string deviceModel {
+		return CreateScriptingString (systeminfo::GetDeviceModel ());
+	}
+
+	// Returns a boolean value that indicates whether an accelerometer is
+	CUSTOM_PROP static bool supportsAccelerometer {
+		return systeminfo::SupportsAccelerometer ();
+	}
+
+	// Returns a boolean value that indicates whether a gyroscope is available
+	CUSTOM_PROP static bool supportsGyroscope {
+		return IsGyroAvailable ();
+	}
+
+	// Returns a boolean value that indicates whether the device is capable to
+	CUSTOM_PROP static bool supportsLocationService {
+		return systeminfo::SupportsLocationService ();
+	}
+
+	// Returns a boolean value that indicates whether the device is capable to
+	CUSTOM_PROP static bool supportsVibration {
+		return systeminfo::SupportsVibration ();
+	}
+
+	// Returns the kind of device the application is running on. See [[DeviceType]] enumeration for possible values.
+	CUSTOM_PROP static DeviceType deviceType
+	{
+		return systeminfo::DeviceType ();
+	}
+
+	CUSTOM_PROP static int maxTextureSize
+	{
+		return gGraphicsCaps.maxTextureSize;
+	}
+
+END
+
+// Suspends the coroutine execution for the given amount of seconds.
+CLASS WaitForSeconds : YieldInstruction
+	//*undocumented*
+	CSRAW internal float m_Seconds;
+
+	// Creates a yield instruction to wait for a given number of seconds
+	CSRAW public WaitForSeconds (float seconds) { m_Seconds = seconds; }
+END
+
+// Waits until next fixed frame rate update function. SA: MonoBehaviour::pref::FixedUpdate.
+CLASS WaitForFixedUpdate : YieldInstruction
+END
+
+// Waits until the end of the frame after all cameras and GUI is rendered, just before displaying the frame on screen.
+CLASS WaitForEndOfFrame : YieldInstruction
+END
+
+
+// MonoBehaviour.StartCoroutine returns a Coroutine. Instances of this class are only used to reference these coroutines and do not hold any exposed properties or functions.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+
+CLASS Coroutine : YieldInstruction
+	CSRAW internal IntPtr m_Ptr;
+	private Coroutine () { }
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void ReleaseCoroutine ()
+	{
+		Assert (self.GetPtr() != NULL);
+		Coroutine::CleanupCoroutineGC (self);
+	}
+
+	CSRAW
+	~Coroutine ()
+	{
+		ReleaseCoroutine ();
+	}
+END
+
+CSRAW
+
+// The RequireComponent attribute lets automatically add required component as a dependency.
+
+
+CSRAW [AttributeUsage(AttributeTargets.Class, AllowMultiple=true)]
+CLASS RequireComponent  : Attribute
+	//*undocumented*
+	CSRAW public Type m_Type0;
+	//*undocumented*
+	CSRAW public Type m_Type1;
+	//*undocumented*
+	CSRAW public Type m_Type2;
+
+	// Require a single component
+	CSRAW public RequireComponent (Type requiredComponent) { m_Type0 = requiredComponent; }
+	// Require a two components
+	CSRAW public RequireComponent (Type requiredComponent, Type requiredComponent2) { m_Type0 = requiredComponent; m_Type1 = requiredComponent2;  }
+	// Require three components
+	CSRAW public RequireComponent (Type requiredComponent, Type requiredComponent2, Type requiredComponent3) { m_Type0 = requiredComponent; m_Type1 = requiredComponent2; m_Type2 = requiredComponent3; }
+END
+
+
+// The AddComponentMenu attribute allows you to place a script anywhere in the "Component" menu, instead of just the "Component->Scripts" menu.
+
+CLASS AddComponentMenu : Attribute
+	CSRAW private string m_AddComponentMenu;
+
+	// The script will be placed in the component menu according to /menuName/. /menuName/ is the path to the component
+	CSRAW public AddComponentMenu (string menuName) { m_AddComponentMenu = menuName; }
+
+	//* undocumented
+	CSRAW public string componentMenu { get {return m_AddComponentMenu; } }
+END
+
+
+// The ContextMenu attribute allows you to add commands to the context menu
+CLASS ContextMenu  : Attribute
+
+	// Adds the function to the context menu of the component.
+	CSRAW public ContextMenu (string name) { m_ItemName = name; }
+
+
+	CSRAW private string m_ItemName;
+
+	//* undocumented
+	CSRAW public string menuItem { get { return m_ItemName; } }
+END
+
+
+// Makes a script execute in edit mode.
+CLASS ExecuteInEditMode : Attribute
+END
+
+
+// Makes a variable not show up in the inspector but be serialized.
+CLASS HideInInspector : Attribute
+END
+
+// A class you can derive from if you want to create objects that don't need to be attached to game objects.
+CSRAW
+[StructLayout (LayoutKind.Sequential)]
+NONSEALED_CLASS ScriptableObject : Object
+
+	//*undocumented* Users are not supposed to instantiate unextended ScriptableObjects, are they?
+	CSRAW public ScriptableObject ()
+	{
+		Internal_CreateScriptableObject(this);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void Internal_CreateScriptableObject([Writable]ScriptableObject self)
+	{
+		CreateEngineScriptableObject(self.GetScriptingObject());
+	}
+
+	OBSOLETE warning Use EditorUtility.SetDirty instead
+	CONDITIONAL ENABLE_MONO
+	AUTO void SetDirty ();
+
+	// Creates an instance of a scriptable object with /className/.
+	CUSTOM static ScriptableObject CreateInstance (string className) { return CreateScriptableObject (className.ToUTF8()); }
+
+	// Creates an instance of a scriptable object with /type/.
+	CSRAW public static ScriptableObject CreateInstance (Type type) { return CreateInstanceFromType(type); }
+
+	CUSTOM private static ScriptableObject CreateInstanceFromType (Type type) { return CreateScriptableObjectWithType (type); }
+
+	CSRAW
+	#if ENABLE_GENERICS
+	// Creates an instance of a scriptable object with /T/.
+	public static T CreateInstance<T> () where T : ScriptableObject
+	{
+		return (T)CreateInstance(typeof(T));
+	}
+	#endif
+
+	// This function is called when the object is loaded
+	CSNONE void OnEnable ();
+
+
+	// This function is called when the scriptable object goes out of scope
+	CSNONE void OnDisable();
+
+	// This function is called when the scriptable object will be destroyed.
+	CSNONE void OnDestroy();
+
+
+END
+
+// The Resources class allows you to find and access Objects including assets.
+CLASS Resources
+
+	// Returns a list of all objects of Type /type/.
+	CUSTOM static Object[] FindObjectsOfTypeAll (Type type) { return ScriptingFindObjectsOfType (type, kFindAnything); }
+
+	// Loads an asset stored at /path/ in a Resources folder.
+
+	CSRAW public static Object Load (string path)
+	{
+		return Load(path, typeof(Object));
+	}
+
+	// Loads an asset stored at /path/ in a Resources folder.
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeReferencedBySecondArgument)]
+	CUSTOM static Object Load (string path, Type systemTypeInstance)
+	{
+		MonoRaiseIfNull (systemTypeInstance);
+
+		ScriptingClassPtr klass = GetScriptingTypeRegistry().GetType(systemTypeInstance);
+		string lowerPath = ToLower(path.ToUTF8());
+		ResourceManager::range found = GetResourceManager().GetPathRange(lowerPath);
+
+		Object* obj = NULL;
+		ScriptingObjectPtr o = SCRIPTING_NULL;
+		for (ResourceManager::iterator i=found.first;i != found.second;i++)
+		{
+			obj = i->second;
+			o = Scripting::ScriptingWrapperForImpl(obj);
+			if (o == SCRIPTING_NULL)
+				continue;
+
+			ScriptingClassPtr k = scripting_object_get_class(o, GetScriptingTypeRegistry());
+			if (o && scripting_class_is_subclass_of(k,klass))
+			{
+				GetResourceManager ().PreloadDependencies (obj->GetInstanceID ());
+				break;
+			}
+
+			GameObject* go = dynamic_pptr_cast<GameObject*> (obj);
+			if (go != NULL)
+			{
+				o = ScriptingGetComponentOfType(*go, systemTypeInstance, false);
+				if (o != SCRIPTING_NULL)
+				{
+					GetResourceManager ().PreloadDependencies (obj->GetInstanceID ());
+					break;
+				}
+			}
+		}
+
+		// Android keeps its Resources folder split up (to minimize seeks inside the .apk)
+		// To not "leak" SerializedFile objects we need to unload the added stream here..
+		if (obj && PLATFORM_ANDROID)
+		{
+			PersistentManager& pm = GetPersistentManager();
+			pm.UnloadNonDirtyStreams();
+		}
+
+		return o;
+	}
+
+	// Loads all assets in a folder or file at /path/ in a Resources folder.
+	CUSTOM static Object[] LoadAll (string path, Type systemTypeInstance)
+	{
+		MonoRaiseIfNull (systemTypeInstance);
+
+		ScriptingClassPtr klass = GetScriptingTypeRegistry().GetType(systemTypeInstance);
+		ResourceManager::range found = GetResourceManager().GetAll();
+		string cpath = ToLower(path.ToUTF8());
+
+		vector<PPtr<Object> > objects;
+
+		for (ResourceManager::iterator i=found.first;i != found.second;i++)
+		{
+			// Path doesn't match (But allow empty path for all objects)
+			if (!StartsWithPath(i->first, cpath))
+				continue;
+
+			Object* obj = i->second;
+			ScriptingObjectPtr o = Scripting::ScriptingWrapperForImpl(obj);
+			if (o == SCRIPTING_NULL)
+				continue;
+
+			ScriptingClassPtr k = scripting_object_get_class(o, GetScriptingTypeRegistry());
+			if (o && scripting_class_is_subclass_of(k, klass))
+			{
+				objects.push_back(i->second);
+				GetResourceManager ().PreloadDependencies (obj->GetInstanceID ());
+			}
+			else
+			{
+				GameObject* go = dynamic_pptr_cast<GameObject*> (obj);
+				if (go != NULL)
+				{
+					o = ScriptingGetComponentOfType(*go, systemTypeInstance, false);
+					if (o != SCRIPTING_NULL)
+					{
+						objects.push_back(ScriptingObjectToObject<Object>(o));
+						GetResourceManager ().PreloadDependencies (obj->GetInstanceID ());
+					}
+				}
+			}
+		}
+
+		return CreateScriptingArrayFromUnityObjects (objects, ClassID(Object));
+	}
+
+	// Loads all assets in a folder or file at /path/ in a Resources folder.
+
+	CSRAW public static Object[] LoadAll (string path)
+	{
+		return LoadAll(path, typeof(Object));
+	}
+
+	// *undocumented
+	CUSTOM static Object GetBuiltinResource (Type type, string path)
+	{
+		MonoRaiseIfNull(type);
+		return GetScriptingBuiltinResource(type, path.ToUTF8());
+	}
+
+	// Returns a resource at an asset path (Editor Only).
+	CUSTOM static Object LoadAssetAtPath (string assetPath, Type type)
+	{
+		#if UNITY_EDITOR
+		return LoadAssetAtPath(assetPath, type);
+		#else
+		return SCRIPTING_NULL;
+		#endif
+	}
+
+	// Unloads /assetToUnload/ from memory.
+	CUSTOM static void UnloadAsset (Object assetToUnload) { UnloadAssetFromScripting (assetToUnload); }
+
+	// Unloads assets that are not used.
+	CUSTOM static AsyncOperation UnloadUnusedAssets ()
+	{
+		AsyncOperation* result = UnloadUnusedAssetsOperation::UnloadUnusedAssets ();
+		ScriptingObjectPtr o = scripting_object_new(GetCommonScriptingClasses ().asyncOperation);
+		ScriptingObjectWithIntPtrField<AsyncOperation>(o).SetPtr(result);
+		return o;
+	}
+
+END
+
+// Asynchronous create request for an [[AssetBundle]].
+CONDITIONAL ENABLE_WWW
+CLASS AssetBundleCreateRequest : AsyncOperation
+
+	// Asset object being loaded (RO).
+	CUSTOM_PROP AssetBundle assetBundle
+	{
+		AssetBundleCreateRequest* ptr;
+		MarshallManagedStructIntoNative(self,&ptr);
+		return Scripting::ScriptingWrapperFor (ptr->GetAssetBundle());
+	}
+
+END
+
+// Asynchronous load request from an [[AssetBundle]].
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CLASS AssetBundleRequest : AsyncOperation
+	C++RAW
+ #define GET ExtractMonoObjectData<PreloadManagerOperation*> (self)
+
+	CSRAW internal AssetBundle m_AssetBundle;
+	CSRAW internal string m_Path;
+	CSRAW internal Type m_Type;
+
+	// Asset object being loaded (RO).
+	CSRAW public Object asset { get { return m_AssetBundle.Load(m_Path, m_Type); } }
+
+	C++RAW
+ #undef GET
+
+END
+
+// AssetBundles let you stream additional assets via the WWW class and instantiate them at runtime. AssetBundles are created via BuildPipeline.BuildAssetBundle.
+
+CLASS AssetBundle : Object
+
+	// Asynchronously create an AssetBundle from a memory region.
+	CONDITIONAL ENABLE_WWW
+	CUSTOM static AssetBundleCreateRequest CreateFromMemory(byte[] binary)
+	{
+		if (!binary)
+			return SCRIPTING_NULL;
+
+		int dataSize = GetScriptingArraySize(binary);
+		UInt8* dataPtr = GetScriptingArrayStart<UInt8>(binary);
+
+		AsyncOperation* req = new AssetBundleCreateRequest(dataPtr, dataSize);
+
+
+		return CreateScriptingObjectFromNativeStruct(GetCommonScriptingClasses ().assetBundleCreateRequest,req);
+	}
+
+	// Loads an asset bundle from a disk.
+	CUSTOM static AssetBundle CreateFromFile(string path)
+	{
+		return Scripting::ScriptingWrapperFor(ExtractAssetBundle(path));
+	}
+
+	// Main asset that was supplied when building the asset bundle (RO).
+	CUSTOM_PROP Object mainAsset { return Scripting::ScriptingWrapperFor(LoadMainObjectFromAssetBundle(*self)); }
+
+	// Check if an AssetBundle contains a specific object.
+	CUSTOM bool Contains (string name)
+	{
+		string lowerName = ToLower(name.ToUTF8());
+		AssetBundle::range found = self->GetPathRange(lowerName);
+		return found.first != found.second;
+	}
+
+	// Loads object with /name/ from the bundle.
+	CSRAW public Object Load (string name)
+	{
+		return Load(name, typeof(Object));
+	}
+
+	// Loads object with /name/ of a given /type/ from the bundle.
+	CSRAW
+	[TypeInferenceRule(TypeInferenceRules.TypeReferencedBySecondArgument)]
+	CUSTOM Object Load (string name, Type type)
+	{
+		MonoRaiseIfNull (type);
+		Object* o = LoadNamedObjectFromAssetBundle(*self, name, type);
+		if (o==0) return SCRIPTING_NULL;
+		return Scripting::ScriptingWrapperForImpl(o);
+	}
+
+	// Asynchronously loads object with /name/ of a given /type/ from the bundle.
+	CUSTOM AssetBundleRequest LoadAsync (string name, Type type)
+	{
+		AsyncOperation* result = LoadSceneOperation::LoadAssetBundle(*self, name);
+		#if ENABLE_MONO || PLATFORM_WINRT
+		ScriptingObjectPtr mono = scripting_object_new(GetCommonScriptingClasses ().assetBundleRequest);
+		AssetBundleRequestMono data;
+		data.m_Result = result;
+		data.m_Path = name.GetNativeString();
+		data.m_Type = type;
+		data.m_AssetBundle = Scripting::ScriptingWrapperFor((AssetBundle*)self);
+		MarshallNativeStructIntoManaged(data, mono);
+
+		return mono;
+		#else
+		return SCRIPTING_NULL;
+		#endif
+
+	}
+
+	// Loads all objects contained in the asset bundle that inherit from /type/.
+	CUSTOM Object[] LoadAll (Type type)
+	{
+		MonoRaiseIfNull (type);
+
+		vector<Object* > objects;
+		LoadAllFromAssetBundle(*self, type, objects);
+		return CreateScriptingArrayFromUnityObjects(objects, ClassID(Object));
+	}
+
+	// Loads all objects contained in the asset bundle.
+	CSRAW public Object[] LoadAll ()
+	{
+		return LoadAll(typeof(Object));
+	}
+
+	// Unloads all assets in the bundle.
+	CUSTOM void Unload (bool unloadAllLoadedObjects)
+	{
+		AssetBundle& file = *self;
+		UnloadAssetBundle(file, unloadAllLoadedObjects);
+	}
+END
+
+OBSOLETE warning Use SerializeField on the private variables that you want to be serialized instead
+CLASS SerializePrivateVariables : Attribute
+END
+
+// Priority of a thread.
+ENUM ThreadPriority
+	// Lowest thread priority
+	Low = 0,
+	// Below normal thread priority
+	BelowNormal = 1,
+	// Normal thread priority
+	Normal = 2,
+	// Highest thread priority
+	High = 4
+END
+
+
+// Force Unity to serialize a private field.
+
+
+
+CLASS SerializeField : Attribute
+END
+
+// Controls the [[wiki:Profiler]] from script.
+CLASS Profiler
+
+	// *undocumented*
+	CUSTOM_PROP static bool supported
+	{
+		#if ENABLE_PROFILER
+		return GetBuildSettings().hasPROVersion;
+		#else
+		return false;
+		#endif
+	}
+
+
+	// Sets profiler output file in built players.
+	CUSTOM_PROP static string logFile
+	{
+		#if ENABLE_PROFILER
+		return CreateScriptingString(UnityProfiler::Get().GetLogPath());
+		#else
+		return SCRIPTING_NULL;
+		#endif
+	}
+	{
+		#if ENABLE_PROFILER
+		if (!GetBuildSettings().hasPROVersion)
+		{
+			ErrorString("Profiler is only supported in Unity Pro.");
+			return;
+		}
+		UnityProfiler::Get().SetLogPath(value);
+		#else
+		ErrorString("Profiler is not supported in this build");
+		#endif
+	}
+
+	// Sets profiler output file in built players.
+	CUSTOM_PROP static bool enableBinaryLog
+	{
+		#if ENABLE_PROFILER
+		return UnityProfiler::Get().BinaryLogEnabled();
+		#else
+		return false;
+		#endif
+	}
+	{
+		#if ENABLE_PROFILER
+		if (!GetBuildSettings().hasPROVersion)
+		{
+			ErrorString("Profiler is only supported in Unity Pro.");
+			return;
+		}
+		UnityProfiler::Get().EnableBinaryLog(value);
+		#else
+		ErrorString("Profiler is not supported in this build");
+		#endif
+	}
+
+	// Enables the Profiler.
+	CUSTOM_PROP static bool enabled
+	{
+		#if ENABLE_PROFILER
+		return UnityProfiler::Get().GetEnabled();
+		#else
+		return false;
+		#endif
+	}
+	{
+		#if ENABLE_PROFILER
+		if (!GetBuildSettings().hasPROVersion)
+		{
+			ErrorString("Profiler is only supported in Unity Pro.");
+			return;
+		}
+		return UnityProfiler::Get().SetEnabled(value);
+		#else
+		ErrorString("Profiler is not supported in this build");
+		#endif
+	}
+
+
+	// Displays the recorded profiledata in the profiler.
+	CSRAW [System.Diagnostics.ConditionalAttribute("ENABLE_PROFILER")]
+	CUSTOM static void AddFramesFromFile (string file)
+	{
+		#if ENABLE_PROFILER
+		if(file.Length() == 0)
+		{
+			ErrorString ("AddFramesFromFile: Invalid empty path");
+			return;
+		}
+		UnityProfiler::Get().AddFramesFromFile(file);
+		#endif
+	}
+
+
+	/// *listonly*
+	CSRAW [System.Diagnostics.ConditionalAttribute("ENABLE_PROFILER")]
+	CSRAW static public void BeginSample(string name)
+	{
+		BeginSampleOnly(name);
+	}
+
+	// Begin profiling a piece of code with a custom label.
+	CSRAW [System.Diagnostics.ConditionalAttribute("ENABLE_PROFILER")]
+	CUSTOM static void BeginSample(string name, Object targetObject)
+	{
+		#if ENABLE_PROFILER
+		UnityProfiler& profiler = UnityProfiler::Get();
+		if (profiler.GetIsActive ())
+			UnityProfiler::Get().BeginSampleDynamic(name, targetObject);
+		#endif
+	}
+
+	CUSTOM private static void BeginSampleOnly(string name)
+	{
+		#if ENABLE_PROFILER
+		UnityProfiler& profiler = UnityProfiler::Get();
+		if (profiler.GetIsActive ())
+			UnityProfiler::Get().BeginSampleDynamic(name, NULL);
+		#endif
+	}
+
+	// End profiling a piece of code with a custom label.
+	CSRAW [System.Diagnostics.ConditionalAttribute("ENABLE_PROFILER")]
+	CUSTOM static void EndSample ()
+	{
+		#if ENABLE_PROFILER
+		UnityProfiler::Get().EndSampleDynamic();
+		#endif
+	}
+
+	// Heap size used by the program
+	CUSTOM_PROP static uint usedHeapSize
+	{
+		#if ENABLE_PROFILER
+		return GetUsedHeapSize();
+		#else
+		return 0;
+		#endif
+	}
+
+	// Returns the runtime memory usage of the resource.
+
+	CUSTOM static int GetRuntimeMemorySize(Object o)
+	{
+		#if ENABLE_PROFILER
+			return o->GetRuntimeMemorySize();
+		#else
+			return 0;
+		#endif
+	}
+
+	// Returns the size of the mono heap
+	CUSTOM static uint GetMonoHeapSize ()
+	{
+		#if ENABLE_PROFILER && ENABLE_MONO
+			return mono_gc_get_heap_size ();
+		#else
+			return 0;
+		#endif
+	 }
+
+	// Returns the used size from mono
+	CUSTOM static uint GetMonoUsedSize ()
+	{
+		#if ENABLE_PROFILER && ENABLE_MONO
+			return mono_gc_get_used_size ();
+		#else
+			return 0;
+		#endif
+	}
+	///*undocumented*
+	CUSTOM static uint GetTotalAllocatedMemory()
+	{
+		#if ENABLE_MEMORY_MANAGER
+			return GetMemoryManager().GetTotalAllocatedMemory();
+		#else
+			return 0;
+		#endif
+	}
+	///*undocumented*
+	CUSTOM static uint GetTotalUnusedReservedMemory()
+	{
+		#if ENABLE_MEMORY_MANAGER
+			return GetMemoryManager().GetTotalUnusedReservedMemory();
+		#else
+			return 0;
+		#endif
+	}
+	///*undocumented*
+	CUSTOM static uint GetTotalReservedMemory()
+	{
+		#if ENABLE_MEMORY_MANAGER
+			return GetMemoryManager().GetTotalReservedMemory();
+		#else
+			return 0;
+		#endif
+	}
+
+	//CUSTOM static void SharkBeginRemoteProfiling ()
+	//{
+	//	#if ENABLE_SHARK_PROFILE
+	//	SharkBeginRemoteProfiling();
+	//	#endif
+	//}
+	//
+	//CUSTOM static void SharkEndRemoteProfiling ()
+	//{
+	//	#if ENABLE_SHARK_PROFILE
+	//	SharkEndRemoteProfiling();
+	//	#endif
+	//}
+END
+
+CSRAW }
+
+CSRAW
+namespace UnityEngineInternal
+{
+
+using UnityEngine;
+
+//*undocumented*
+// class for reproduction framework
+CONDITIONAL ENABLE_MONO
+CLASS Reproduction
+
+	CUSTOM static void CaptureScreenshot ()
+	{
+#if SUPPORT_REPRODUCE_LOG
+		CaptureScreenshotReproduction(true);
+#else
+		RaiseMonoException("This method only works with internal development builds.");
+#endif
+	}
+
+END
+
+CSRAW }

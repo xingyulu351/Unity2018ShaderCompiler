@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Array</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Join()" type="csnone" />
+    </Signature>
+    <Summary><![CDATA[Joins the contents of an array into one string.]]></Summary>
+    <Description><![CDATA[The elements are seperated by the ]]><varname>seperator</varname><![CDATA[ string and returns a copy of the joined array.]]></Description>
+    <Example nocheck="false" convertexample="false">
+      <Unconverted><![CDATA[function Start () {
+		var arr = new ]]><link ref="Array">Array</link><![CDATA[ ("Hello", "World");]]><br /><br /><![CDATA[		// Prints "Hello, World"
+		print(arr.join(", "));
+}]]></Unconverted>
+    </Example>
+  </Section>
+</Model>

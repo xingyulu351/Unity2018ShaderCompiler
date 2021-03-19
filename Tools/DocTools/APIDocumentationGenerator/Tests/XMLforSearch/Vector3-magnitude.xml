@@ -1,0 +1,12 @@
+<Model>
+  <ParentClass>Vector3</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="magnitude" type="var" />
+      <ReturnType>float</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Returns the length of this vector (Read Only).]]></Summary>
+    <Description><![CDATA[The length of the vector is square root of ]]><monotype>(x*x+y*y+z*z)</monotype><![CDATA[.]]><p /><![CDATA[If you only need to compare magnitudes of some vectors, you can compare squared magnitudes of them
+using ]]><link ref="Vector3._sqrMagnitude">sqrMagnitude</link><![CDATA[ (computing squared magnitudes is faster).]]><p /><![CDATA[See Also: ]]><link ref="Vector3._sqrMagnitude">sqrMagnitude</link><![CDATA[.]]></Description>
+  </Section>
+</Model>

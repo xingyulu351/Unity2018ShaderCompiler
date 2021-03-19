@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+    <member name="Color" type="Struct" namespace="UnityEngine">
+        <section>
+            <summary>color summary</summary>
+            <description>color description</description>
+        </section>
+        <member name="Color._red" type="Property">
+            <section>
+                <signature><![CDATA[red]]></signature>
+                <summary>red description</summary>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[red example]]></code>
+                </example>
+            </section>
+        </member>
+    </member>
+</doc>

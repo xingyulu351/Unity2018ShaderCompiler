@@ -1,0 +1,17 @@
++++ new/ClassStatic.cpp
+@@ -1,0 +1,1 @@
++//just a dummyfile
+
++++ new/ClassStatic.cs
+@@ -1,0 +1,10 @@
++using scm=System.ComponentModel;
++using uei=UnityEngine.Internal;
++
++using System;
++namespace UnityEditor {
++{
++public static partial class Camera
++{
++}
++
+

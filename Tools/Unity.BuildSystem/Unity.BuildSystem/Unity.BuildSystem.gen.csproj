@@ -1,0 +1,1383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F5D4B783-E848-66DE-B4F3-1AA28AF72FE8}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Unity.BuildSystem</RootNamespace>
+    <AssemblyName>Unity.BuildSystem</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>7</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Unity.BuildSystem\Debug\</OutputPath>
+    <DefineConstants>PLATFORM_IN_SOURCESTREE_ANDROID;PLATFORM_IN_SOURCESTREE_APPLETV;PLATFORM_IN_SOURCESTREE_C;PLATFORM_IN_SOURCESTREE_IOS;PLATFORM_IN_SOURCESTREE_LINUX;PLATFORM_IN_SOURCESTREE_OSX;PLATFORM_IN_SOURCESTREE_PS4;PLATFORM_IN_SOURCESTREE_SWITCH;PLATFORM_IN_SOURCESTREE_UNIVERSALWINDOWS;PLATFORM_IN_SOURCESTREE_WEBGL;PLATFORM_IN_SOURCESTREE_WIN;PLATFORM_IN_SOURCESTREE_WINDOWS;PLATFORM_IN_SOURCESTREE_WINRT;PLATFORM_IN_SOURCESTREE_XBOXONE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Unity.BuildSystem\Release\</OutputPath>
+    <DefineConstants>PLATFORM_IN_SOURCESTREE_ANDROID;PLATFORM_IN_SOURCESTREE_APPLETV;PLATFORM_IN_SOURCESTREE_C;PLATFORM_IN_SOURCESTREE_IOS;PLATFORM_IN_SOURCESTREE_LINUX;PLATFORM_IN_SOURCESTREE_OSX;PLATFORM_IN_SOURCESTREE_PS4;PLATFORM_IN_SOURCESTREE_SWITCH;PLATFORM_IN_SOURCESTREE_UNIVERSALWINDOWS;PLATFORM_IN_SOURCESTREE_WEBGL;PLATFORM_IN_SOURCESTREE_WIN;PLATFORM_IN_SOURCESTREE_WINDOWS;PLATFORM_IN_SOURCESTREE_WINRT;PLATFORM_IN_SOURCESTREE_XBOXONE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Newtonsoft.Json" >
+      <HintPath>..\..\..\External\Json.NET\Bin\Net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="AssemblyInfo.cs">
+  </Compile>
+  <Compile Include="BuildZips.cs">
+  </Compile>
+  <Compile Include="CApplicationNativeProgram.cs">
+  </Compile>
+  <Compile Include="CJamCompatibility.cs">
+  </Compile>
+  <Compile Include="ConvertedJamFileBase.cs">
+  </Compile>
+  <Compile Include="CSharpTool.cs">
+  </Compile>
+  <Compile Include="GenerateNativeDependenciesForManagedCode.cs">
+  </Compile>
+  <Compile Include="HandwrittenRuleReplacements.cs">
+  </Compile>
+  <Compile Include="Help.cs">
+  </Compile>
+  <Compile Include="JamStyleCommandLineParser.cs">
+  </Compile>
+  <Compile Include="LegacyCApplicationLibrary.cs">
+  </Compile>
+  <Compile Include="Lumping.cs">
+  </Compile>
+  <Compile Include="Main.cs">
+  </Compile>
+  <Compile Include="Module.cs">
+  </Compile>
+  <Compile Include="NativeProjectFiles.cs">
+  </Compile>
+  <Compile Include="PlatformSupportUtils.cs">
+  </Compile>
+  <Compile Include="ProjectFiles.cs">
+  </Compile>
+  <Compile Include="ScriptingBackend.cs">
+  </Compile>
+  <Compile Include="StaticGlobals.cs">
+  </Compile>
+  <Compile Include="SubIncludeGlobalStateBackup.cs">
+  </Compile>
+  <Compile Include="SubIncludeRunner.cs">
+  </Compile>
+  <Compile Include="V1BuildCodeEmulation.cs">
+  </Compile>
+  <Compile Include="VariableRestorer.cs">
+  </Compile>
+  <Compile Include="VisualStudioProjectFile.cs">
+  </Compile>
+  <Compile Include="Platforms\PS4\NativeProgramConfigurationExtensions.cs">
+  </Compile>
+  <Compile Include="Platforms\XboxOne\NativeProgramConfigurationExtensions.cs">
+  </Compile>
+  <Compile Include="V2\AssembleJsTool.cs">
+  </Compile>
+  <Compile Include="V2\CoreModule.cs">
+  </Compile>
+  <Compile Include="V2\EditorModule.cs">
+  </Compile>
+  <Compile Include="V2\IvyPackager.cs">
+  </Compile>
+  <Compile Include="V2\MacEditor.cs">
+  </Compile>
+  <Compile Include="V2\ModuleBuildMode.cs">
+  </Compile>
+  <Compile Include="V2\NewBuildCodeEnabled.cs">
+  </Compile>
+  <Compile Include="V2\PlatformSupport.cs">
+  </Compile>
+  <Compile Include="V2\UnityPlayerConfiguration.cs">
+  </Compile>
+  <Compile Include="V2\UWPSupport.cs">
+  </Compile>
+  <Compile Include="..\..\..\Configuration\CombinedAssembliesDefines.jam.cs">
+    <Link>Configuration\CombinedAssembliesDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Configuration\GlobalDefines.jam.cs">
+    <Link>Configuration\GlobalDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Configuration\UnityEditorDefines.jam.cs">
+    <Link>Configuration\UnityEditorDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Editor\Graphs\UnityEditorGraphs.jam.cs">
+    <Link>Editor\Graphs\UnityEditorGraphs.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Editor\Src\Physics\PhysicsEditor.jam.cs">
+    <Link>Editor\Src\Physics\PhysicsEditor.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Editor\Src\TextRendering\TextRenderingEditor.jam.cs">
+    <Link>Editor\Src\TextRendering\TextRenderingEditor.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Editor\Src\VR\VREditorModule.jam.cs">
+    <Link>Editor\Src\VR\VREditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Editor\Tools\ScriptUpdater\ScriptUpdater.jam.cs">
+    <Link>Editor\Tools\ScriptUpdater\ScriptUpdater.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\guisystem\guisystem.jam.cs">
+    <Link>Extensions\guisystem\guisystem.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\Networking\UNetHLAPI.jam.cs">
+    <Link>Extensions\Networking\UNetHLAPI.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\Networking\UNetWeaver.jam.cs">
+    <Link>Extensions\Networking\UNetWeaver.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\TestRunner\TestRunner.jam.cs">
+    <Link>Extensions\TestRunner\TestRunner.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\Timeline\Timeline.jam.cs">
+    <Link>Extensions\Timeline\Timeline.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\UnitySpatialTracking\UnitySpatialTracking.jam.cs">
+    <Link>Extensions\UnitySpatialTracking\UnitySpatialTracking.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\UnityVR\UnityVR.jam.cs">
+    <Link>Extensions\UnityVR\UnityVR.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Extensions\UnityGoogleAudioSpatializer\UnityGoogleAudioSpatializer.jam.cs">
+    <Link>Extensions\UnityGoogleAudioSpatializer\UnityGoogleAudioSpatializer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\Jambase.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\Jambase.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c\win32resource.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c\win32resource.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\c-gcc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\c-gcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\c-gcc-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\c-gcc-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\c-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\c-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\c-vc-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\c-vc-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\global-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\global-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\global-master.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\global-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\global-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\global-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux-gcc-with-sdk.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux-gcc-with-sdk.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-gcc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-gcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-gcc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-gcc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-gcc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux32-gcc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-gcc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-gcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-gcc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-gcc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-gcc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\linux64-gcc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-gcc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-gcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-gcc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-gcc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-gcc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx32-gcc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-gcc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-gcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-gcc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-gcc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-gcc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx64-gcc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx-gcc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\macosx-gcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc-master.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc-master.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_arm64-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc-master.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x64-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc-master.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\uap_x86-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-vc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-vc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win32-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-autodetect.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-vc.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-vc-debug.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-vc-release.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win64-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\c-compilers\win-sdk.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\c-compilers\win-sdk.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\copydirectory.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\copydirectory.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\copyfile.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\copyfile.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Jamplus\builds_csharp\bin\modules\hardsoftlink.jam.cs">
+    <Link>External\Jamplus\builds_csharp\bin\modules\hardsoftlink.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\Compression\lz4\lz4.jam.cs">
+    <Link>External\Compression\lz4\lz4.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\libjpeg-turbo\libjpeg.jam.cs">
+    <Link>External\libjpeg-turbo\libjpeg.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\libpng\libpng.jam.cs">
+    <Link>External\libpng\libpng.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\libunwind\libunwind.jam.cs">
+    <Link>External\libunwind\libunwind.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\libwebsockets\libwebsockets.jam.cs">
+    <Link>External\libwebsockets\libwebsockets.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\pogostubs\pogostubslib.jam.cs">
+    <Link>External\pogostubs\pogostubslib.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\pubnub\pubnub.jam.cs">
+    <Link>External\pubnub\pubnub.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\SDL2\SDL2.jam.cs">
+    <Link>External\SDL2\SDL2.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\SDL2\SDL2_sources.jam.cs">
+    <Link>External\SDL2\SDL2_sources.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\TextureCompressors\Crunch\libcrunch.jam.cs">
+    <Link>External\TextureCompressors\Crunch\libcrunch.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\TextureCompressors\Basis\libbasis.jam.cs">
+    <Link>External\TextureCompressors\Basis\libbasis.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\udis86\udis86lib.jam.cs">
+    <Link>External\udis86\udis86lib.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\zlib\zlib.jam.cs">
+    <Link>External\zlib\zlib.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\JamExtensions.jam.cs">
+    <Link>JamExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Jamfile.jam.cs">
+    <Link>Jamfile.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Jamrules.jam.cs">
+    <Link>Jamrules.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Pass1.jam.cs">
+    <Link>Pass1.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\AndroidPlayer\Jam\AndroidSupport.cs">
+    <Link>PlatformDependent\AndroidPlayer\Jam\AndroidSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\AndroidPlayer\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\AndroidPlayer\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\AndroidPlayer\Jam\UnityEngine.jam.cs">
+    <Link>PlatformDependent\AndroidPlayer\Jam\UnityEngine.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\AndroidPlayer\Jam\UnpackBuildsZip.jam.cs">
+    <Link>PlatformDependent\AndroidPlayer\Jam\UnpackBuildsZip.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\AndroidPlayer\Testing\AndroidAutomation.jam.cs">
+    <Link>PlatformDependent\AndroidPlayer\Testing\AndroidAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Facebook\FacebookEditorExtensions.jam.cs">
+    <Link>PlatformDependent\Facebook\FacebookEditorExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Facebook\FacebookPlayer.jam.cs">
+    <Link>PlatformDependent\Facebook\FacebookPlayer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\iPhonePlayer\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\iPhonePlayer\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\iPhonePlayer\Jam\UnpackBuildsZip.jam.cs">
+    <Link>PlatformDependent\iPhonePlayer\Jam\UnpackBuildsZip.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\iPhonePlayer\Jam\iOSSupport.cs">
+    <Link>PlatformDependent\iPhonePlayer\Jam\iOSSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\iPhonePlayer\Jam\iOSToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\iPhonePlayer\Jam\iOSToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\iPhonePlayer\Jam\tvOSSupport.cs">
+    <Link>PlatformDependent\iPhonePlayer\Jam\tvOSSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\iPhonePlayer\Testing\iPhoneAutomation.jam.cs">
+    <Link>PlatformDependent\iPhonePlayer\Testing\iPhoneAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Linux\Jam\LinuxToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\Linux\Jam\LinuxToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\LinuxStandalone\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\LinuxStandalone\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\LinuxStandalone\LinuxScreenSelector.jam.cs">
+    <Link>PlatformDependent\LinuxStandalone\LinuxScreenSelector.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\LinuxStandalone\LinuxStandaloneSupport.cs">
+    <Link>PlatformDependent\LinuxStandalone\LinuxStandaloneSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\LinuxStandalone\Testing\LinuxStandaloneAutomation.jam.cs">
+    <Link>PlatformDependent\LinuxStandalone\Testing\LinuxStandaloneAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\NuGet\NuGet.jam.cs">
+    <Link>External\NuGet\NuGet.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\MetroPlayer\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\MetroPlayer\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\MetroPlayer\Jam\UnpackBuildsZip.jam.cs">
+    <Link>PlatformDependent\MetroPlayer\Jam\UnpackBuildsZip.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\MetroPlayer\Testing\MetroAutomation.jam.cs">
+    <Link>PlatformDependent\MetroPlayer\Testing\MetroAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\OSX\Jam\MacOSXToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\OSX\Jam\MacOSXToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\OSX\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\OSX\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\OSXPlayer\Testing\OSXStandaloneAutomation.jam.cs">
+    <Link>PlatformDependent\OSXPlayer\Testing\OSXStandaloneAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\OSXPlayer\MacStandaloneSupport.cs">
+    <Link>PlatformDependent\OSXPlayer\MacStandaloneSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\c-orbis.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\c-orbis.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-debug.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-debugil2cpp.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-debugil2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-debugmono.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-debugmono.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-master.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-masteril2cpp.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-masteril2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-mastermono.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-mastermono.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-release.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-releaseil2cpp.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-releaseil2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\global-releasemono.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\global-releasemono.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\orbis-autodetect.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\orbis-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\c-compilers\orbis-vc.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\c-compilers\orbis-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\Jamfile.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\Jamfile.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4Bdwgc.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4Bdwgc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4CgBatchPlugin.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4CgBatchPlugin.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4CompilerDefaults.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4CompilerDefaults.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4EditorExtensions.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4EditorExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4Il2CppPlugin.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4Il2CppPlugin.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4Player.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4Player.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\UnityEngine.jam.cs">
+    <Link>PlatformDependent\PS4\Jam\UnityEngine.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Jam\PS4ToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\PS4\Jam\PS4ToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Testing\PS4Automation.jam.cs">
+    <Link>PlatformDependent\PS4\Testing\PS4Automation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\PS4\Tools\il2cpp\PS4libil2cpp.jam.cs">
+    <Link>PlatformDependent\PS4\Tools\il2cpp\PS4libil2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\c-nx64.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\c-nx64.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\global-develop.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\global-develop.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\nx64-autodetect.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\nx64-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\nx64-clang.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\nx64-clang.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\nx64-clang-autodetect.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\nx64-clang-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\nx64-clang-debug.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\nx64-clang-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\nx64-clang-develop.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\nx64-clang-develop.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\c-compilers\nx64-clang-release.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\c-compilers\nx64-clang-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\Jamfile.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\Jamfile.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchCgBatchPlugin.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchCgBatchPlugin.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchCompilerDefaults.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchCompilerDefaults.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchEditorExtensions.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchEditorExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchExtVersionFileGenerator.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchExtVersionFileGenerator.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchIl2CppPlugin.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchIl2CppPlugin.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\Switchlibil2cpp.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\Switchlibil2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchPlayer.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchPlayer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\UnityEngine.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\UnityEngine.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\UnpackBuildsZip.jam.cs">
+    <Link>PlatformDependent\Switch\Jam\UnpackBuildsZip.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Jam\SwitchToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\Switch\Jam\SwitchToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Switch\Testing\SwitchAutomation.jam.cs">
+    <Link>PlatformDependent\Switch\Testing\SwitchAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WebGL\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\WebGL\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WebGL\Jam\UnpackBuildsZip.jam.cs">
+    <Link>PlatformDependent\WebGL\Jam\UnpackBuildsZip.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WebGL\Jam\WebGLEditorExtensions.jam.cs">
+    <Link>PlatformDependent\WebGL\Jam\WebGLEditorExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WebGL\Jam\WebGLSupport.cs">
+    <Link>PlatformDependent\WebGL\Jam\WebGLSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WebGL\Testing\WebGLAutomation.jam.cs">
+    <Link>PlatformDependent\WebGL\Testing\WebGLAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Win\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\Win\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Win\Jam\ETW.jam.cs">
+    <Link>PlatformDependent\Win\Jam\ETW.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\Win\Jam\WindowsToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\Win\Jam\WindowsToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WinPlayer\Testing\WindowsStandaloneAutomation.jam.cs">
+    <Link>PlatformDependent\WinPlayer\Testing\WindowsStandaloneAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WinPlayer\WinStandaloneSupport.cs">
+    <Link>PlatformDependent\WinPlayer\WinStandaloneSupport.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WinRT\AssemblyConverter\AssemblyConverter.jam.cs">
+    <Link>PlatformDependent\WinRT\AssemblyConverter\AssemblyConverter.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WinRT\InternalCallReplacer\InternalCallReplacer.jam.cs">
+    <Link>PlatformDependent\WinRT\InternalCallReplacer\InternalCallReplacer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\WinRT\WinRT.jam.cs">
+    <Link>PlatformDependent\WinRT\WinRT.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-autodetect.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-c-vc.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-c-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-c-vc-autodetect.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-c-vc-autodetect.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-debug.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-debug.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-debug_il2cpp.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-debug_il2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-debug_mono.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-debug_mono.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-master.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-master.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-master_il2cpp.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-master_il2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-master_mono.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-master_mono.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-release.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-release.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-release_il2cpp.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-release_il2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-release_mono.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\c-compilers\durango-vc-release_mono.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\Jamfile.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\Jamfile.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\PlatformDefines.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\PlatformDefines.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\UnityEngine.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\UnityEngine.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\XboxOneCgBatchPlugin.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\XboxOneCgBatchPlugin.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\XboxOneEditorExtensions.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\XboxOneEditorExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\XboxOneIl2CppPlugin.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\XboxOneIl2CppPlugin.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\XboxOnePlayer.jam.cs">
+    <Link>PlatformDependent\XboxOne\Jam\XboxOnePlayer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Jam\XBoxOneToolChainEmulatingV1BuildCodeProvider.cs">
+    <Link>PlatformDependent\XboxOne\Jam\XBoxOneToolChainEmulatingV1BuildCodeProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\PlatformDependent\XboxOne\Testing\XboxOneAutomation.jam.cs">
+    <Link>PlatformDependent\XboxOne\Testing\XboxOneAutomation.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\CSharp\UnityCSharpProjects.jam.cs">
+    <Link>Projects\CSharp\UnityCSharpProjects.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\UAP\Jamfile.jam.cs">
+    <Link>Projects\UAP\Jamfile.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\AR\ARModule.jam.cs">
+    <Link>Runtime\AR\ARModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Animation\AnimationModule.jam.cs">
+    <Link>Runtime\Animation\AnimationModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Cloth\ClothModule.jam.cs">
+    <Link>Runtime\Cloth\ClothModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Dynamics\PhysicsModule.jam.cs">
+    <Link>Runtime\Dynamics\PhysicsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Networking\UNETModule.jam.cs">
+    <Link>Runtime\Networking\UNETModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\ParticleSystem\ParticleSystemModule.jam.cs">
+    <Link>Runtime\ParticleSystem\ParticleSystemModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\TerrainPhysics\TerrainPhysicsModule.jam.cs">
+    <Link>Runtime\TerrainPhysics\TerrainPhysicsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\UI\UIModule.jam.cs">
+    <Link>Runtime\UI\UIModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Vehicles\VehiclesModule.jam.cs">
+    <Link>Runtime\Vehicles\VehiclesModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\VR\VRModule.jam.cs">
+    <Link>Runtime\VR\VRModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\VR\VRModuleDaydream.jam.cs">
+    <Link>Runtime\VR\VRModuleDaydream.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\VR\VRModuleHoloLens.jam.cs">
+    <Link>Runtime\VR\VRModuleHoloLens.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\VR\VRModuleOculus.jam.cs">
+    <Link>Runtime\VR\VRModuleOculus.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\VR\VRModuleOpenVR.jam.cs">
+    <Link>Runtime\VR\VRModuleOpenVR.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\VR\VRModuleVuforia.jam.cs">
+    <Link>Runtime\VR\VRModuleVuforia.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Tests\Unity.IntegrationTests.Framework\IntegrationTestsFramework.jam.cs">
+    <Link>Tests\Unity.IntegrationTests.Framework\IntegrationTestsFramework.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Tests\Unity.IntegrationTests\IntegrationTests.jam.cs">
+    <Link>Tests\Unity.IntegrationTests\IntegrationTests.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\AssemblyPatcher\AssemblyPatcher.jam.cs">
+    <Link>Tools\AssemblyPatcher\AssemblyPatcher.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\BindingsGenerator.jam.cs">
+    <Link>Tools\BindingsGenerator\BindingsGenerator.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\BindingsGeneratorTool.jam.cs">
+    <Link>Tools\BindingsGenerator\BindingsGeneratorTool.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\UnsafeUtilityPatcherTool.jam.cs">
+    <Link>Tools\BindingsGenerator\UnsafeUtilityPatcherTool.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BugReporterV2\BugReporter.jam.cs">
+    <Link>Tools\BugReporterV2\BugReporter.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BugReporterV2\BugReporterRules.jam.cs">
+    <Link>Tools\BugReporterV2\BugReporterRules.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BugReporterV2\Qt.jam.cs">
+    <Link>Tools\BugReporterV2\Qt.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BugReporterWin\lib\CrashHandlerLib.jam.cs">
+    <Link>Tools\BugReporterWin\lib\CrashHandlerLib.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\DocTools\DocBrowserHelper\DocBrowserHelper.jam.cs">
+    <Link>Tools\DocTools\DocBrowserHelper\DocBrowserHelper.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\il2cpp\IL2CPP.jam.cs">
+    <Link>External\il2cpp\IL2CPP.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\il2cpp\il2cpp\external\boehmgc\bdwgc.jam.cs">
+    <Link>External\il2cpp\il2cpp\external\boehmgc\bdwgc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\il2cpp\libil2cpp.jam.cs">
+    <Link>External\il2cpp\libil2cpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\il2cpp\MapFileParser.jam.cs">
+    <Link>External\il2cpp\MapFileParser.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\InternalCallRegistrationWriter\InternalCallRegistrationWriter.jam.cs">
+    <Link>Tools\InternalCallRegistrationWriter\InternalCallRegistrationWriter.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\RegistrationGenerator\RegistrationGenerator.jam.cs">
+    <Link>Tools\RegistrationGenerator\RegistrationGenerator.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\rrw\ReferenceRewriter.jam.cs">
+    <Link>Tools\rrw\ReferenceRewriter.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\SerializationWeaver\SerializationWeaver.jam.cs">
+    <Link>Tools\SerializationWeaver\SerializationWeaver.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\TypeForwarderGenerator\TypeForwarderGenerator.jam.cs">
+    <Link>Tools\TypeForwarderGenerator\TypeForwarderGenerator.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\UnityBindingsParser\BindingsToCsAndCpp\BindingsToCsAndCpp.jam.cs">
+    <Link>Tools\UnityBindingsParser\BindingsToCsAndCpp\BindingsToCsAndCpp.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\UnityPreserveAttributeParser\UnityPreserveAttributeParser.jam.cs">
+    <Link>Tools\UnityPreserveAttributeParser\UnityPreserveAttributeParser.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\draco\draco.jam.cs">
+    <Link>External\draco\draco.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\AI\AIModule.jam.cs">
+    <Link>Modules\AI\AIModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\AssetBundle\AssetBundleModule.jam.cs">
+    <Link>Modules\AssetBundle\AssetBundleModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\AssetPipelineEditor\AssetPipelineEditorModule.jam.cs">
+    <Link>Modules\AssetPipelineEditor\AssetPipelineEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Audio\AudioModule.jam.cs">
+    <Link>Modules\Audio\AudioModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Baselib\BaselibModule.jam.cs">
+    <Link>Modules\Baselib\BaselibModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\ClusterInput\ClusterInputModule.jam.cs">
+    <Link>Modules\ClusterInput\ClusterInputModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\ClusterRenderer\ClusterRendererModule.jam.cs">
+    <Link>Modules\ClusterRenderer\ClusterRendererModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\CrashReporting\CrashReportingModule.jam.cs">
+    <Link>Modules\CrashReporting\CrashReportingModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\DirectGPUSkinning\DirectGPUSkinningModule.jam.cs">
+    <Link>Modules\DirectGPUSkinning\DirectGPUSkinningModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Director\DirectorModule.jam.cs">
+    <Link>Modules\Director\DirectorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Example\ExampleModule.jam.cs">
+    <Link>Modules\Example\ExampleModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\FileSystemHttp\FileSystemHttpModule.jam.cs">
+    <Link>Modules\FileSystemHttp\FileSystemHttpModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\GameCenter\GameCenterModule.jam.cs">
+    <Link>Modules\GameCenter\GameCenterModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\GridEditor\GridEditorModule.jam.cs">
+    <Link>Modules\GridEditor\GridEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\ImageConversion\ImageConversionModule.jam.cs">
+    <Link>Modules\ImageConversion\ImageConversionModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\IMGUI\IMGUIModule.jam.cs">
+    <Link>Modules\IMGUI\IMGUIModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Input\InputModule.jam.cs">
+    <Link>Modules\Input\InputModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\JSONSerialize\JSONSerializeModule.jam.cs">
+    <Link>Modules\JSONSerialize\JSONSerializeModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\JSONSerializeEditor\JSONSerializeEditor.jam.cs">
+    <Link>Modules\JSONSerializeEditor\JSONSerializeEditor.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Licensing\LicensingModule.jam.cs">
+    <Link>Modules\Licensing\LicensingModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\LicensingLegacy\LicensingLegacyModule.jam.cs">
+    <Link>Modules\LicensingLegacy\LicensingLegacyModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\MarshallingTests\MarshallingTestsModule.jam.cs">
+    <Link>Modules\MarshallingTests\MarshallingTestsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\PackageManager\Editor\PackageManagerModule.jam.cs">
+    <Link>Modules\PackageManager\Editor\PackageManagerModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\PerformanceReporting\PerformanceReportingModule.jam.cs">
+    <Link>Modules\PerformanceReporting\PerformanceReportingModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Physics2D\Physics2DModule.jam.cs">
+    <Link>Modules\Physics2D\Physics2DModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Physics2DEditor\Physics2DEditorModule.jam.cs">
+    <Link>Modules\Physics2DEditor\Physics2DEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Profiler\ProfilerModule.jam.cs">
+    <Link>Modules\Profiler\ProfilerModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\ProfilerEditor\ProfilerEditorModule.jam.cs">
+    <Link>Modules\ProfilerEditor\ProfilerEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\RestService\RestServiceModule.jam.cs">
+    <Link>Modules\RestService\RestServiceModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\ScreenCapture\ScreenCaptureModule.jam.cs">
+    <Link>Modules\ScreenCapture\ScreenCaptureModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\SharedInternals\SharedInternalsModule.jam.cs">
+    <Link>Modules\SharedInternals\SharedInternalsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\SketchUpEditor\SketchUpEditorModule.jam.cs">
+    <Link>Modules\SketchUpEditor\SketchUpEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\SpatialTracking\SpatialTrackingModule.jam.cs">
+    <Link>Modules\SpatialTracking\SpatialTrackingModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\SpriteMaskEditor\SpriteMaskEditorModule.jam.cs">
+    <Link>Modules\SpriteMaskEditor\SpriteMaskEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\StyleSheets\StyleSheetsModule.jam.cs">
+    <Link>Modules\StyleSheets\StyleSheetsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Terrain\TerrainModule.jam.cs">
+    <Link>Modules\Terrain\TerrainModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\TextCore\TextCoreModule.jam.cs">
+    <Link>Modules\TextCore\TextCoreModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\TextCoreEditor\TextCoreEditorModule.jam.cs">
+    <Link>Modules\TextCoreEditor\TextCoreEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\TextRendering\TextRenderingModule.jam.cs">
+    <Link>Modules\TextRendering\TextRenderingModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Tilemap\TilemapModule.jam.cs">
+    <Link>Modules\Tilemap\TilemapModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\TilemapEditor\TilemapEditorModule.jam.cs">
+    <Link>Modules\TilemapEditor\TilemapEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Timeline\TimelineModule.jam.cs">
+    <Link>Modules\Timeline\TimelineModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\TLS\TLSModule.jam.cs">
+    <Link>Modules\TLS\TLSModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UIElements\UIElementsModule.jam.cs">
+    <Link>Modules\UIElements\UIElementsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Umbra\UmbraModule.jam.cs">
+    <Link>Modules\Umbra\UmbraModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityAnalytics\UnityAnalyticsModule.jam.cs">
+    <Link>Modules\UnityAnalytics\UnityAnalyticsModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityConnect\UnityConnectModule.jam.cs">
+    <Link>Modules\UnityConnect\UnityConnectModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityTestProtocol\UnityTestProtocol.jam.cs">
+    <Link>Modules\UnityTestProtocol\UnityTestProtocol.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityWebRequest\UnityWebRequestModule.jam.cs">
+    <Link>Modules\UnityWebRequest\UnityWebRequestModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityWebRequestAssetBundle\UnityWebRequestAssetBundleModule.jam.cs">
+    <Link>Modules\UnityWebRequestAssetBundle\UnityWebRequestAssetBundleModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityWebRequestAudio\UnityWebRequestAudioModule.jam.cs">
+    <Link>Modules\UnityWebRequestAudio\UnityWebRequestAudioModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityWebRequestTexture\UnityWebRequestTextureModule.jam.cs">
+    <Link>Modules\UnityWebRequestTexture\UnityWebRequestTextureModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\UnityWebRequestWWW\UnityWebRequestWWWModule.jam.cs">
+    <Link>Modules\UnityWebRequestWWW\UnityWebRequestWWWModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\VFX\VFXModule.jam.cs">
+    <Link>Modules\VFX\VFXModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\VFXEditor\VFXEditorModule.jam.cs">
+    <Link>Modules\VFXEditor\VFXEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Video\VideoModule.jam.cs">
+    <Link>Modules\Video\VideoModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\VideoEditor\VideoEditorModule.jam.cs">
+    <Link>Modules\VideoEditor\VideoEditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\Wind\WindModule.jam.cs">
+    <Link>Modules\Wind\WindModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\XR\XRModule.jam.cs">
+    <Link>Modules\XR\XRModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\XREditor\XREditorModule.jam.cs">
+    <Link>Modules\XREditor\XREditorModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\AssetCacheServer.jam.cs">
+    <Link>Projects\Jam\AssetCacheServer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\BaseJamIncludes.jam.cs">
+    <Link>Projects\Jam\BaseJamIncludes.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Binary2Text.jam.cs">
+    <Link>Projects\Jam\Binary2Text.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\BuiltInPackages.jam.cs">
+    <Link>Projects\Jam\BuiltInPackages.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\BuiltinResources.jam.cs">
+    <Link>Projects\Jam\BuiltinResources.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\CgBatch.jam.cs">
+    <Link>Projects\Jam\CgBatch.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\CombinedAssemblies.jam.cs">
+    <Link>Projects\Jam\CombinedAssemblies.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\DefaultUnityEngine.jam.cs">
+    <Link>Projects\Jam\DefaultUnityEngine.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\DocBrowserModel.jam.cs">
+    <Link>Projects\Jam\DocBrowserModel.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\DocCombiner.jam.cs">
+    <Link>Projects\Jam\DocCombiner.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\DocCommon.jam.cs">
+    <Link>Projects\Jam\DocCommon.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\DocGen.jam.cs">
+    <Link>Projects\Jam\DocGen.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\DocProject.jam.cs">
+    <Link>Projects\Jam\DocProject.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Editor.jam.cs">
+    <Link>Projects\Jam\Editor.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\EditorFiles.jam.cs">
+    <Link>Projects\Jam\EditorFiles.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\EditorGraphs.jam.cs">
+    <Link>Projects\Jam\EditorGraphs.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\FilesThatStillHaveWarnings.jam.cs">
+    <Link>Projects\Jam\FilesThatStillHaveWarnings.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\GenerateUnityConfigure.jam.cs">
+    <Link>Projects\Jam\GenerateUnityConfigure.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\glslang.jam.cs">
+    <Link>Projects\Jam\glslang.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\GlslOptimizer.jam.cs">
+    <Link>Projects\Jam\GlslOptimizer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\hlslang.jam.cs">
+    <Link>Projects\Jam\hlslang.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\HLSLcc.jam.cs">
+    <Link>Projects\Jam\HLSLcc.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\JobProcess.jam.cs">
+    <Link>Projects\Jam\JobProcess.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\LinuxBootstrapper.jam.cs">
+    <Link>Projects\Jam\LinuxBootstrapper.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\LinuxEditor.jam.cs">
+    <Link>Projects\Jam\LinuxEditor.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\MacEditor.jam.cs">
+    <Link>Projects\Jam\MacEditor.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\ManagedProjectFiles.jam.cs">
+    <Link>Projects\Jam\ManagedProjectFiles.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\MetroEditorExtensions.jam.cs">
+    <Link>Projects\Jam\MetroEditorExtensions.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\MetroSupport.jam.cs">
+    <Link>Projects\Jam\MetroSupport.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\NonLumpableFiles.jam.cs">
+    <Link>Projects\Jam\NonLumpableFiles.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\PackageManager.jam.cs">
+    <Link>Projects\Jam\PackageManager.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\QuicktimeTools.jam.cs">
+    <Link>Projects\Jam\QuicktimeTools.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\RuntimeFiles.jam.cs">
+    <Link>Projects\Jam\RuntimeFiles.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\SetupRuntimeModules2.jam.cs">
+    <Link>Projects\Jam\SetupRuntimeModules2.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\ToolChains.jam.cs">
+    <Link>Projects\Jam\ToolChains.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UNETServer.jam.cs">
+    <Link>Projects\Jam\UNETServer.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnitTest++.jam.cs">
+    <Link>Projects\Jam\UnitTest++.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnityAsmUtilsLib.jam.cs">
+    <Link>Projects\Jam\UnityAsmUtilsLib.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnityCrashHandler.jam.cs">
+    <Link>Projects\Jam\UnityCrashHandler.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnityVersion.jam.cs">
+    <Link>Projects\Jam\UnityVersion.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnityYAMLMerge.jam.cs">
+    <Link>Projects\Jam\UnityYAMLMerge.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnityYAMLMergeLib.jam.cs">
+    <Link>Projects\Jam\UnityYAMLMergeLib.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnpackBuildsZip.jam.cs">
+    <Link>Projects\Jam\UnpackBuildsZip.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\UnwrapCL.jam.cs">
+    <Link>Projects\Jam\UnwrapCL.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\VuforiaSupport.jam.cs">
+    <Link>Projects\Jam\VuforiaSupport.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\WarningSettings.jam.cs">
+    <Link>Projects\Jam\WarningSettings.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\WebExtract.jam.cs">
+    <Link>Projects\Jam\WebExtract.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\XcodeApi.jam.cs">
+    <Link>Projects\Jam\XcodeApi.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Rules\AsmJamrules.jam.cs">
+    <Link>Projects\Jam\Rules\AsmJamrules.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Rules\FastCopyDirectory.jam.cs">
+    <Link>Projects\Jam\Rules\FastCopyDirectory.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Rules\IvyRules.jam.cs">
+    <Link>Projects\Jam\Rules\IvyRules.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Rules\TargetPlatformRules.jam.cs">
+    <Link>Projects\Jam\Rules\TargetPlatformRules.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Rules\UnityRules.jam.cs">
+    <Link>Projects\Jam\Rules\UnityRules.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Projects\Jam\Rules\BuildHost\BuildPlatform.jam.cs">
+    <Link>Projects\Jam\Rules\BuildHost\BuildPlatform.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Platforms\PS4\Modules\PS4\PS4Module.jam.cs">
+    <Link>Platforms\PS4\Modules\PS4\PS4Module.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Platforms\PS4\Modules\PS4VR\PS4VRModule.jam.cs">
+    <Link>Platforms\PS4\Modules\PS4VR\PS4VRModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Platforms\Switch\Modules\Switch\SwitchModule.jam.cs">
+    <Link>Platforms\Switch\Modules\Switch\SwitchModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Platforms\WebGL\Modules\WebGL\WebGLModule.jam.cs">
+    <Link>Platforms\WebGL\Modules\WebGL\WebGLModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Platforms\XboxOne\Modules\XBoxOne\XBoxOneModule.jam.cs">
+    <Link>Platforms\XboxOne\Modules\XBoxOne\XBoxOneModule.jam.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Platforms\PS4\Unity.BuildSystem\PS4Support.cs">
+    <Link>Platforms\PS4\Unity.BuildSystem\PS4Support.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\artifacts\UnityBuildSystem\AllFilesInfluencingBuildProgram.cs">
+    <Link>artifacts\UnityBuildSystem\AllFilesInfluencingBuildProgram.cs</Link>
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.gen.csproj" >
+      <Project>{821B9927-8824-7A63-753A-B0722FEA2C3D}</Project>
+      <Name>NiceIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools\Bee.Tools.gen.csproj" >
+      <Project>{0A5A7B4F-EB80-9EEF-1943-D14B1AE24DB8}</Project>
+      <Name>Bee.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core\Bee.Core.gen.csproj" >
+      <Project>{7FB12158-1066-6DF7-CDB5-E7F236032555}</Project>
+      <Name>Bee.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet\Bee.DotNet.gen.csproj" >
+      <Project>{2E85F509-C5FC-E315-F060-A392C39587BD}</Project>
+      <Name>Bee.DotNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TundraBackend\Bee.TundraBackend.gen.csproj" >
+      <Project>{4B2F375D-1D76-9CCE-4C40-4FA81738EFF3}</Project>
+      <Name>Bee.TundraBackend</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TundraBinaries\Bee.TundraBinaries.gen.csproj" >
+      <Project>{CD5DCE05-8D7C-52E9-6F45-2C062849DFD4}</Project>
+      <Name>Bee.TundraBinaries</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program\Bee.Stevedore.Program.gen.csproj" >
+      <Project>{74E29FE0-0493-43E5-B53D-B1280F9ECDC0}</Project>
+      <Name>Bee.Stevedore.Program</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore\Bee.Stevedore.gen.csproj" >
+      <Project>{62ED546F-A811-D28C-3694-1342EF18FD27}</Project>
+      <Name>Bee.Stevedore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Why\Bee.Why.gen.csproj" >
+      <Project>{D02F44AD-DD15-4FF4-027D-FCF7DD33BE4A}</Project>
+      <Name>Bee.Why</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Core\Bee.NativeProgramSupport.Core.gen.csproj" >
+      <Project>{02A115F7-1A56-6F66-87E4-10A346B2744E}</Project>
+      <Name>Bee.NativeProgramSupport.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Running\Bee.NativeProgramSupport.Running.gen.csproj" >
+      <Project>{D845801D-3932-542C-0FB6-EF44CB3D78CF}</Project>
+      <Name>Bee.NativeProgramSupport.Running</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.ProgramRunner.CLI\Bee.ProgramRunner.CLI.gen.csproj" >
+      <Project>{27CC708C-3CD1-C0F9-E6BB-3AC650CC433C}</Project>
+      <Name>Bee.ProgramRunner.CLI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Building\Bee.NativeProgramSupport.Building.gen.csproj" >
+      <Project>{BCDC99E7-042A-BE8B-012F-156C52B915D9}</Project>
+      <Name>Bee.NativeProgramSupport.Building</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.ARM\Bee.Toolchain.ARM.gen.csproj" >
+      <Project>{5F257235-A850-C839-B32D-58C3DCA44EF2}</Project>
+      <Name>Bee.Toolchain.ARM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.GNU\Bee.Toolchain.GNU.gen.csproj" >
+      <Project>{43AA3E7F-F59A-31EB-DE9E-D8EECCF86A05}</Project>
+      <Name>Bee.Toolchain.GNU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.LLVM\Bee.Toolchain.LLVM.gen.csproj" >
+      <Project>{99B0EFB7-07B2-561C-98F4-38D0E9657EDC}</Project>
+      <Name>Bee.Toolchain.LLVM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Xcode\Bee.Toolchain.Xcode.gen.csproj" >
+      <Project>{0DA4FDDD-0F42-B671-1E68-60758C2B478A}</Project>
+      <Name>Bee.Toolchain.Xcode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.VisualStudio\Bee.Toolchain.VisualStudio.gen.csproj" >
+      <Project>{51BEE503-CEB3-353C-05A2-AD10282AF45F}</Project>
+      <Name>Bee.Toolchain.VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Windows\Bee.Toolchain.Windows.gen.csproj" >
+      <Project>{28055389-D1F5-883E-5906-9C9D0B3EC837}</Project>
+      <Name>Bee.Toolchain.Windows</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.UWP\Bee.Toolchain.UWP.gen.csproj" >
+      <Project>{6D51E62D-C2C3-D1EC-2AA1-7ABB9A569A0D}</Project>
+      <Name>Bee.Toolchain.UWP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Lumin\Bee.Toolchain.Lumin.gen.csproj" >
+      <Project>{4671D3FC-2A5A-94B1-12C7-0B8FE3F8F4FB}</Project>
+      <Name>Bee.Toolchain.Lumin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Android\Bee.Toolchain.Android.gen.csproj" >
+      <Project>{2114809A-5983-FF72-2A45-68C4761946AF}</Project>
+      <Name>Bee.Toolchain.Android</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Emscripten\Bee.Toolchain.Emscripten.gen.csproj" >
+      <Project>{31CCB3B8-DAAE-649D-CA8E-F07D2209822C}</Project>
+      <Name>Bee.Toolchain.Emscripten</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.IOS\Bee.Toolchain.IOS.gen.csproj" >
+      <Project>{8382CE0B-D08E-B868-0451-A4123A7F78D3}</Project>
+      <Name>Bee.Toolchain.IOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Linux\Bee.Toolchain.Linux.gen.csproj" >
+      <Project>{8E22493B-E96A-6A05-6DFD-45CC6223C242}</Project>
+      <Name>Bee.Toolchain.Linux</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.MacOS\Bee.Toolchain.MacOS.gen.csproj" >
+      <Project>{CB6D7EFE-308A-4370-04CB-4AECEAECB576}</Project>
+      <Name>Bee.Toolchain.MacOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.TvOS\Bee.Toolchain.TvOS.gen.csproj" >
+      <Project>{7FB7F452-6417-A7B5-C58E-A9F4BD9ABCB8}</Project>
+      <Name>Bee.Toolchain.TvOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport\Bee.CSharpSupport.gen.csproj" >
+      <Project>{52FFA209-FBF3-6B09-42BC-6919C343AC93}</Project>
+      <Name>Bee.CSharpSupport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.ProjectGeneration\Bee.ProjectGeneration.gen.csproj" >
+      <Project>{4312CFE8-0548-6590-576A-5CDF21F3A5CF}</Project>
+      <Name>Bee.ProjectGeneration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.CSharpSupport.Unity\Bee.CSharpSupport.Unity.gen.csproj" >
+      <Project>{56572334-7CE1-4BFC-B54C-49AB521CE39D}</Project>
+      <Name>Bee.CSharpSupport.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Emscripten.Unity\Bee.Toolchain.Emscripten.Unity.gen.csproj" >
+      <Project>{FE860853-9C0F-854D-FE07-B27C06B82873}</Project>
+      <Name>Bee.Toolchain.Emscripten.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.Linux.Unity\Bee.Toolchain.Linux.Unity.gen.csproj" >
+      <Project>{EC5B5216-2097-E082-B8F5-3CEB18C5A0D2}</Project>
+      <Name>Bee.Toolchain.Linux.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee.Unity\Bee.Toolchain.MacOS.Unity\Bee.Toolchain.MacOS.Unity.gen.csproj" >
+      <Project>{3F4AAF88-6873-1FBD-FE48-9303424B1E75}</Project>
+      <Name>Bee.Toolchain.MacOS.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\PS4\Bee.Toolchain.PS4\Bee.Toolchain.PS4.gen.csproj" >
+      <Project>{5D216BA1-77DB-AE38-9995-1809BD2BE06B}</Project>
+      <Name>Bee.Toolchain.PS4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\Switch\Bee.Toolchain.Switch\Bee.Toolchain.Switch.gen.csproj" >
+      <Project>{C932E6DD-A54B-2DA7-ADD3-E49654164642}</Project>
+      <Name>Bee.Toolchain.Switch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Platforms\XboxOne\Bee.Toolchain.XboxOne\Bee.Toolchain.XboxOne.gen.csproj" >
+      <Project>{B0B1285F-0600-5B65-8873-BE47759EFBAE}</Project>
+      <Name>Bee.Toolchain.XboxOne</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.StandaloneDriver\Bee.StandaloneDriver.gen.csproj" >
+      <Project>{A9EE224F-E0CA-BD1A-88F6-1AEB66AC9AF7}</Project>
+      <Name>Bee.StandaloneDriver</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JamSharp.Runtime\JamSharp.Runtime.gen.csproj" >
+      <Project>{EC822A9C-57FB-AED8-2EB9-1CCAF227CBE4}</Project>
+      <Name>JamSharp.Runtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Unity.BuildSystem.Common\Unity.BuildSystem.Common.gen.csproj" >
+      <Project>{957CCCEA-DCA2-0C0C-AC3A-1025CA1204C4}</Project>
+      <Name>Unity.BuildSystem.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JamSharp.JamState\JamSharp.JamState.gen.csproj" >
+      <Project>{C5D97A4A-85C7-B1C9-0451-3B33A728CC9B}</Project>
+      <Name>JamSharp.JamState</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Unity.BuildSystem.JamStateToTundraConverter\Unity.BuildSystem.JamStateToTundraConverter.gen.csproj" >
+      <Project>{61FC8D5E-FFB3-BBF3-EC7F-992004F744E5}</Project>
+      <Name>Unity.BuildSystem.JamStateToTundraConverter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Unity.BuildSystem.VisualStudio\Unity.BuildSystem.VisualStudio.gen.csproj" >
+      <Project>{BF2E663D-85F5-EEAB-1C7F-8D05D26DBB64}</Project>
+      <Name>Unity.BuildSystem.VisualStudio</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

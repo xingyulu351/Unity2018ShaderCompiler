@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+    <member name="Hashtable" type="Class" namespace="">
+        <section doconly="true">
+            <summary>You can use a Hashtable to store key+value pairs.</summary>
+            <description>For detailed information see http://msdn.microsoft.com/en-us/library/system.collections.hashtable.aspx
+
+For C# users: the generic alternative to Hashtable is called Dictionary.</description>
+        </section>
+        <member name="Hashtable.Add" type="Method">
+            <section doconly="true">
+                <signature><![CDATA[Add(object, object)]]></signature>
+                <summary>Adds an element with the specified key and value into the Hashtable.</summary>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Adds 2 elements to a hash table.
+
+var h : Hashtable;
+h = new Hashtable();
+h.Add(1,"one");
+h.Add(2,"two");
+]]></code>
+                </example>
+            </section>
+        </member>
+        <member name="Hashtable.Clear" type="Method">
+            <section doconly="true">
+                <signature><![CDATA[Clear()]]></signature>
+                <summary>Count is set to zero, and references to other objects from elements of the collection are also released.</summary>
+                <description>The capacity remains unchanged.
+/This method is an O(n) operation, where n is Hashtable.Count.</description>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Creates a Hashtable, adds 2 elements and then clears it
+
+var h : Hashtable;
+h = new Hashtable();
+h.Add("1","one");
+h.Add("2","two");
+Debug.Log(h.Count);
+h.Clear();
+Debug.Log(h.Count);
+]]></code>
+                </example>
+            </section>
+        </member>
+        <member name="Hashtable.Contains" type="Method">
+            <section doconly="true">
+                <signature><![CDATA[Contains(object)]]></signature>
+                <summary>Determines whether the Hashtable contains a specific key.</summary>
+                <description>This method implements IDictionary.Contains. It behaves exactly like ContainsKey.
+This method is an O(1) operation.</description>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Searchs for a value on the hash table
+
+var h : Hashtable;
+h = new Hashtable();
+h.Add(1,"one");
+h.Add(2,"two");
+h.Add(3,"two");
+if(h.Contains(1)) {
+    Debug.Log("Key '1', has been found!");
+}
+]]></code>
+                </example>
+            </section>
+        </member>
+        <member name="Hashtable.ContainsKey" type="Method">
+            <section doconly="true">
+                <signature><![CDATA[ContainsKey(object)]]></signature>
+                <summary>Determines whether the Hashtable contains a specific key.</summary>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Searchs for a key on the hash table
+
+var h : Hashtable;
+h = new Hashtable();
+h.Add("1","one");
+h.Add("2","two");
+if(h.ContainsKey("1")) {
+    Debug.Log("Key '1', has been found!");
+}
+]]></code>
+                </example>
+            </section>
+        </member>
+        <member name="Hashtable.ContainsValue" type="Method">
+            <section doconly="true">
+                <signature><![CDATA[ContainsValue(object)]]></signature>
+                <summary>Determines whether the Hashtable contains a specific value.</summary>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Searchs for a value on the hash table
+
+var h : Hashtable;
+h = new Hashtable();
+h.Add("1","one");
+h.Add("2","two");
+if(h.ContainsValue("one")) {
+    Debug.Log("Value 'one', has been found!");
+}
+]]></code>
+                </example>
+            </section>
+        </member>
+        <member name="Hashtable.Count" type="Property">
+            <section doconly="true">
+                <signature><![CDATA[Count]]></signature>
+                <summary>Returns how many elements are in the hashtable.</summary>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Prints the number of elements in a new Hashtable
+
+var ht : Hashtable;
+ht = new Hashtable();
+Debug.Log("Hashtable has " + ht.Count + " elements.");
+]]></code>
+                </example>
+            </section>
+        </member>
+        <member name="Hashtable.Remove" type="Method">
+            <section doconly="true">
+                <signature><![CDATA[Remove(object)]]></signature>
+                <summary>Removes the element with the specified key from the Hashtable.</summary>
+                <example convertexample="true">
+                    <code lang="js"><![CDATA[
+// Creates a Hashtable with two values and removes one
+
+var h : Hashtable;
+h = new Hashtable();
+h.Add("1","one");
+h.Add("2","two");
+h.Remove("1");
+Debug.Log(h.Count);
+]]></code>
+                </example>
+            </section>
+        </member>
+    </member>
+</doc>

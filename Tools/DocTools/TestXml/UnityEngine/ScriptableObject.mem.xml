@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="ScriptableObject" type="Class" namespace="UnityEngine">
+    <section>
+      <summary>A class you can derive from if you want to create objects that don't need to be attached to game objects.</summary>
+      <description>This is most useful for assets which are only meant to store data.</description>
+    </section>
+    <member name="ScriptableObject.ctor" type="Constructor">
+      <section undoc="true">
+        <signature><![CDATA[ctor()]]></signature>
+      </section>
+    </member>
+    <member name="ScriptableObject.SetDirty" type="Method" />
+    <member name="ScriptableObject.CreateInstance" type="Method">
+      <section>
+        <signature><![CDATA[CreateInstance(string)]]></signature>
+        <summary>Creates an instance of a scriptable object with /className/.</summary>
+      </section>
+      <section>
+        <signature><![CDATA[CreateInstance(Type)]]></signature>
+        <summary>Creates an instance of a scriptable object with /type/.</summary>
+      </section>
+      <section>
+        <signature><![CDATA[CreateInstance<T>()]]></signature>
+        <summary>Creates an instance of a scriptable object with /T/.</summary>
+      </section>
+    </member>
+    <member name="ScriptableObject.OnDestroy" type="Unknown">
+      <section doconly="true">
+        <signature><![CDATA[OnDestroy()]]></signature>
+        <summary>This function is called when the scriptable object will be destroyed.</summary>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	function OnDestroy () {
+		print("Script was destroyed");
+	}]]></code>
+        </example>
+        <description>OnDestroy cannot be a co-routine.</description>
+      </section>
+    </member>
+    <member name="ScriptableObject.OnDisable" type="Unknown">
+      <section doconly="true">
+        <signature><![CDATA[OnDisable()]]></signature>
+        <summary>This function is called when the scriptable object goes out of scope.</summary>
+        <description>This is also called when the object is destroyed and can be used for any cleanup code.
+When scripts are reloaded after compilation has finished, OnDisable will be called, followed by an OnEnable after the script has been loaded.</description>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	function OnDisable () {
+		print("script was removed");
+	}]]></code>
+        </example>
+        <description>OnDisable cannot be a co-routine.</description>
+      </section>
+    </member>
+    <member name="ScriptableObject.OnEnable" type="Unknown">
+      <section doconly="true">
+        <signature><![CDATA[OnEnable()]]></signature>
+        <summary>This function is called when the object is loaded.</summary>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[	function OnEnable () {
+		print("script was enabled");
+	}]]></code>
+        </example>
+        <description>OnEnable cannot be a co-routine.</description>
+      </section>
+    </member>
+  </member>
+</doc>

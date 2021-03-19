@@ -1,0 +1,8 @@
+--suite=native
+--suite=cgbatch
+--suite=UnWrapCL
+--suite=DocCombiner
+--category=Unit
+--category=Integration
+--category=Stress
+--category=Regression

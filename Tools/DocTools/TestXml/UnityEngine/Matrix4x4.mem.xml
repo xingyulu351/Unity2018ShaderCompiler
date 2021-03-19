@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Matrix4x4" type="Struct" namespace="UnityEngine">
+    <section>
+      <summary>A standard 4x4 transformation matrix.</summary>
+      <description>A transformation matrix can perform arbitrary linear 3D transformations (i.e. translation, rotation, scale, shear etc.)
+and perspective transformations using homogenous coordinates. You rarely use matrices in scripts; most
+often using [[Vector3]]s, [[Quaternion]]s and functionality of [[Transform]] class is more straightforward. Plain matrices are used in special cases
+like setting up nonstandard camera projection.
+
+Consult any graphics textbook for in depth explanation of transformation matrices.
+
+In Unity, Matrix4x4 is used by several [[Transform]], [[Camera]], [[Material]] and [[GL]] functions.
+
+Matrices in unity are column major. Data is accessed as: row + (column*4). Matrices can be
+indexed like 2D arrays but in an expression like mat[a, b], /a/ refers to the row index, while /b/ refers
+to the column index (note that this is the opposite way round to Cartesian coordinates).</description>
+    </section>    
+    <member name="Matrix4x4.this" type="Property">
+      <section>
+        <signature><![CDATA[this(int,int)]]></signature>
+        <summary>Access element at [row, column].</summary>
+        <description>Both /row/ and /column/ must be from 0 to 3 inclusive. A matrix is 4x4 array
+of numbers, and you can access the individual elements using this function.
+
+Note the standard math notation - row is the first index.</description>
+      </section>
+      <section>
+        <signature><![CDATA[this(int)]]></signature>
+        <summary>Access element at sequential index (0..15 inclusive).</summary>
+        <description>A matrix is 4x4 array of numbers (16 numbers in total). You can access
+the individual elements using "flattened" index with this.
+The /index/ is @@row+column*4@@.</description>
+      </section>
+    </member>    
+  </member>
+</doc>

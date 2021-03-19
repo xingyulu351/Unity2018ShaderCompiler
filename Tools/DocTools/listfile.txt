@@ -1,0 +1,12 @@
+build/CombinedAssemblies/*.dll
+Documentation/ApiDocs
+Documentation/ApiDocs_Translated
+Tools/DocTools/UnderlyingModel/bin/Debug/*
+Tools/DocTools/APIDocumentationGenerator/bin/*
+Tools/DocTools/APIDocumentationGenerator/StaticFiles/*
+Tools/DocTools/APIDocumentationGenerator/XSLT/*
+Tools/DocTools/ScriptRefBase/bin/Debug/*
+Tools/DocTools/PreviousVersionAPI.mem
+Tools/DocTools/*.json
+build/WindowsEditor/Data/UnityExtensions
+build/WindowsEditor/Data/Resources/PackageManager/Editor

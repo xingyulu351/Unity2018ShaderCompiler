@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>Bounds</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="SetMinMax" type="function" />
+      <ParamElement name="min" type="Vector3" />
+      <ParamElement name="max" type="Vector3" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Sets the bounds to the ]]><varname>min</varname><![CDATA[ and ]]><varname>max</varname><![CDATA[ value of the box.]]></Summary>
+    <ParamWithDoc>
+      <name>min</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>max</name>
+      <doc><![CDATA[]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[Using this function is faster than assigning ]]><varname>min</varname><![CDATA[ and ]]><varname>max</varname><![CDATA[ separately.]]></Description>
+  </Section>
+</Model>

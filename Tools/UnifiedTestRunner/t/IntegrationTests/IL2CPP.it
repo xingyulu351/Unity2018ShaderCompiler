@@ -1,0 +1,26 @@
+use Test::More;
+
+plan skip_all => 'Not yet supported';
+
+use warnings;
+use strict;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath);
+
+use RunTests qw (runTests isEmptyFolder);
+
+RunTest_CompletesSucesfullyAndProducesExpectedArtifacts:
+{
+    my ($exitCode, $artifactsPath) = runTests('--suite=il2cpp', '-testfilter=DeriveFromEnumeratorStyleTest', '-env=monobe');
+    is($exitCode, 0);
+    my $suiteRoot = canonpath("$artifactsPath/il2cpp/il2cpp");
+    ok(-e canonpath("$suiteRoot/NUnitConsole/stdout.txt"));
+    ok(-e canonpath("$suiteRoot/NUnitConsole/stderr.txt"));
+    ok(-e canonpath("$suiteRoot/NUnitConsole/TestResults.xml"));
+    ok(-e canonpath("$suiteRoot/Jam/UnityLinker.txt"));
+}
+
+done_testing();

@@ -1,0 +1,7 @@
+OK native AtomicOpsTests AtomicExchange 0
+OK native AtomicOpsTests AtomicCompareExchange 0
+OK native AtomicOpsTests AtomicDecrement 0
+OK native AtomicOpsTests AtomicIncrement 0
+OK native AtomicOpsTests AtomicSub 0
+OK native AtomicOpsTests AtomicAdd 0
+OK native MemoryManager NewDelete 0

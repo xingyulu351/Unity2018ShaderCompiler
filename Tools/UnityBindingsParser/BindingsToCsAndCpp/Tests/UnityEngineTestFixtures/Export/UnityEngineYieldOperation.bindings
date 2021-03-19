@@ -1,0 +1,14 @@
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace UnityEngine
+{
+
+// Base class for all /yield/ instructions.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+NONSEALED_CLASS YieldInstruction
+END
+
+CSRAW }

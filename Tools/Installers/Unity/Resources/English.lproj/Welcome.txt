@@ -1,0 +1,7 @@
+Install, activate and get creating with Unity
+
+Installing Unity should take just a few minutes. After you press “Continue” below, you will be prompted to accept the software license agreement. Then, you will be guided through choosing a destination on your computer for installing Unity. 
+
+Once Unity is installed, you can then complete some last easy steps to activate your license. Thanks for downloading, and all the best creating with Unity.
+
+Welcome to Unity.  It's nice to have you.

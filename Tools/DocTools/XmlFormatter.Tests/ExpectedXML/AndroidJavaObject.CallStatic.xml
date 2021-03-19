@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>AndroidJavaObject</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="CallStatic" type="function" modifiers="public" />
+      <ParamElement name="methodName" type="string" />
+      <ParamElement name="args" type="object[]" modifier="params" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Call a static Java method on a class.]]></Summary>
+    <ParamWithDoc>
+      <name>methodName</name>
+      <doc><![CDATA[Specifies which method to call.]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>args</name>
+      <doc><![CDATA[An array of parameters passed to the method.]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[To call a static method with return type 'void', use the regular version.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	// Create a android.os.Binder object and call statich method flushPendingCommands().
+	function Start() {
+		var jo = new ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[("android.os.Binder");
+		jo.CallStatic("flushPendingCommands");
+	}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Start() {
+        ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[ jo = new ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[("android.os.Binder");
+        jo.CallStatic("flushPendingCommands");
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+  <Section>
+    <Signature>
+      <Declaration name="CallStatic" type="function" modifiers="public" />
+      <ParamElement name="methodName" type="string" />
+      <ParamElement name="args" type="object[]" modifier="params" />
+      <ReturnType>ReturnType</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Call a static Java method on a class.]]></Summary>
+    <ParamWithDoc>
+      <name>methodName</name>
+      <doc><![CDATA[Specifies which method to call.]]></doc>
+    </ParamWithDoc>
+    <ParamWithDoc>
+      <name>args</name>
+      <doc><![CDATA[An array of parameters passed to the method.]]></doc>
+    </ParamWithDoc>
+    <Description><![CDATA[To call a static method with a non-void return type, use the generic version.]]></Description>
+    <Example nocheck="false" convertexample="true">
+      <JavaScript><![CDATA[	// Create a java.lang.String object, and call static method valueOf(double value).
+	function Start() {
+		var jo = new ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[("java.lang.String");
+		var valueString = jo.CallStatic.<String>("valueOf", 42d);
+	}]]></JavaScript>
+      <CSharp><![CDATA[using UnityEngine;
+using System.Collections;]]><br /><br /><![CDATA[public class ExampleClass : ]]><link ref="MonoBehaviour">MonoBehaviour</link><![CDATA[ {
+    void Start() {
+        ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[ jo = new ]]><link ref="AndroidJavaObject">AndroidJavaObject</link><![CDATA[("java.lang.String");
+        string valueString = jo.CallStatic<string>("valueOf", 42.0);
+    }
+}
+]]></CSharp>
+    </Example>
+  </Section>
+</Model>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+    <member name="Animations.AnimatorConditionMode" type="Enum" namespace="UnityEditor.Animations">
+        <section>
+            <summary>The mode of the condition.</summary>
+        </section>
+        <member name="Animations.AnimatorConditionMode.Equals" type="EnumValue">
+            <section>
+                <summary>The condition is true when parameter value is equal to the threshold.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorConditionMode.ExitTime" type="EnumValue">
+            <section>
+                <summary>The condition is true when the source state has stepped over the exit time value.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorConditionMode.Greater" type="EnumValue">
+            <section>
+                <summary>The condition is true when parameter value is greater than the threshold.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorConditionMode.If" type="EnumValue">
+            <section>
+                <summary>The condition is true when the parameter value is true.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorConditionMode.IfNot" type="EnumValue">
+            <section>
+                <summary>The condition is true when the parameter value is false.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorConditionMode.Less" type="EnumValue">
+            <section>
+                <summary>The condition is true when the parameter value is less than the threshold.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorConditionMode.NotEqual" type="EnumValue">
+            <section>
+                <summary>The condition is true when the parameter value is not equal to the threshold.</summary>
+            </section>
+        </member>
+    </member>
+</doc>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="ClassWithFunctionReferencingMovedClass.FunctionWithMovedClassArgument" type="Class">
+    <section>
+      <summary>This class references moved class via function argument</summary>
+      <description>Yes it does</description>
+    </section>
+    <member name="ClassWithFunctionReferencingMovedClass.FunctionWithMovedClassArgument" type="Method">
+      <section>
+        <summary>This class references moved class via function argument</summary> 
+      </section>
+    </member>
+  </member>
+</doc>

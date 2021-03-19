@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass DisplayName="GenericClassWithFunction&lt;T0&gt;">GenericClassWithFunction_1</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="Foo" type="function" modifiers="public" />
+      <ReturnType>void</ReturnType>
+    </Signature>
+    <Summary><![CDATA[Foo does foo]]></Summary>
+  </Section>
+</Model>

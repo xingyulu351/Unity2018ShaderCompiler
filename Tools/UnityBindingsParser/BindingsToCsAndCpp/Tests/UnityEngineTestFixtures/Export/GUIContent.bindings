@@ -1,0 +1,124 @@
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+
+
+// The contents of a GUI element.
+CSRAW [StructLayout (LayoutKind.Sequential)]
+CSRAW [System.Serializable]
+CLASS GUIContent 
+
+	// MUST MATCH MEMORY LAYOUT IN GUICONTENT.CPP
+	CSRAW
+	[SerializeField]
+	string m_Text = "";
+	[SerializeField]
+	Texture m_Image;
+	[SerializeField]
+	string m_Tooltip = "";
+	
+
+
+	// The text contained.
+	CSRAW public string text { get { return m_Text; } set { m_Text = value; } }
+
+	// The icon image contained.
+	CSRAW public Texture image { get { return m_Image; } set { m_Image = value; } }
+
+	// The tooltip of this element.
+	CSRAW public string tooltip { get { return m_Tooltip; } set { m_Tooltip = value; } }
+
+
+	// Constructor for GUIContent in all shapes and sizes
+	CSRAW public GUIContent () {}
+	// Build a GUIContent object containing only text.
+	CSRAW public GUIContent (string text) {
+		m_Text = text;
+	}
+
+	// Build a GUIContent object containing only an image.
+	CSRAW public GUIContent (Texture image) {
+		m_Image = image;
+	}
+	
+	// Build a GUIContent object containing both /text/ and an image.
+	CSRAW public GUIContent (string text, Texture image) {
+		m_Text = text;
+		m_Image = image;
+	}
+	
+	// Build a GUIContent containing some /text/. When the user hovers the mouse over it, the global GUI::ref::tooltip is set to the /tooltip/.
+	CSRAW public GUIContent (string text, string tooltip) {
+		m_Text = text;
+		m_Tooltip = tooltip;
+	}
+
+	// Build a GUIContent containing an image. When the user hovers the mouse over it, the global GUI::ref::tooltip is set to the /tooltip/.
+	CSRAW public GUIContent (Texture image, string tooltip) {
+		m_Image = image;
+		m_Tooltip = tooltip;
+	}
+	
+	// Build a GUIContent that contains both /text/, an /image/ and has a /tooltip/ defined. When the user hovers the mouse over it, the global GUI::ref::tooltip is set to the /tooltip/.
+	CSRAW public GUIContent (string text, Texture image, string tooltip) {
+		m_Text = text;
+		m_Image = image;
+		m_Tooltip = tooltip;
+	}
+	
+	// Build a GUIContent as a copy of another GUIContent.
+	CSRAW public GUIContent (GUIContent src) {
+		m_Text = src.m_Text;	
+		m_Image = src.m_Image;
+		m_Tooltip = src.m_Tooltip;
+	}
+
+	// Shorthand for empty content.
+	CSRAW public static GUIContent none = new GUIContent ("");
+
+	// *undocumented*
+	CSRAW 
+	internal int hash {get {
+		int h = 0;
+		if (m_Text != null && m_Text != "")
+			h = m_Text.GetHashCode () * 37;
+		return h;
+	}}
+	static GUIContent s_Text = new GUIContent(), s_Image = new GUIContent(), s_TextImage = new GUIContent();
+	internal static GUIContent Temp (string t) {
+		s_Text.m_Text = t;
+		return s_Text;
+	}
+	internal static GUIContent Temp (Texture i) {
+		s_Image.m_Image = i;
+		return s_Image;
+	}
+	internal static GUIContent Temp (string t, Texture i) {
+		s_TextImage.m_Text = t;
+		s_TextImage.m_Image = i;
+		return s_TextImage;
+	}
+	internal static GUIContent[] Temp (string[] texts) {
+		GUIContent[] retval = new GUIContent[texts.Length];
+		for (int i = 0; i < texts.Length; i++) {
+			retval[i] = new GUIContent (texts[i]);
+		}
+		return retval;
+	}
+	internal static GUIContent[] Temp (Texture[] images) {
+		GUIContent[] retval = new GUIContent[images.Length];
+		for (int i = 0; i < images.Length; i++) {
+			retval[i] = new GUIContent (images[i]);
+		}
+		return retval;
+	}
+END
+
+CSRAW
+}

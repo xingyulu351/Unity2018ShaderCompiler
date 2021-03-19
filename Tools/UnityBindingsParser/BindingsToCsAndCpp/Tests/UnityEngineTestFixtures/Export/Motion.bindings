@@ -1,0 +1,43 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/Mono/MonoScript.h"
+#include "Runtime/Animation/Motion.h"
+
+CSRAW
+using System;
+using Object=UnityEngine.Object;
+
+namespace UnityEngine
+{
+
+//*undocumented* leave undocumented until BlendTree are in public API
+NONSEALED_CLASS public Motion : Object
+
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM bool ValidateIfRetargetable(bool showWarning) {return self->ValidateIfRetargetable(showWarning);}
+
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP float averageDuration { return self->GetAverageDuration(); }
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP float averageAngularSpeed { return self->GetAverageAngularSpeed(); }
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP Vector3 averageSpeed { return self->GetAverageSpeed(); }
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP float apparentSpeed { return self->GetApparentSpeed(); }
+
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP bool isLooping {return self->IsLooping();}
+
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP bool isAnimatorMotion {return self->IsAnimatorMotion();}
+	
+	CONDITIONAL UNITY_EDITOR 
+	CUSTOM_PROP bool isHumanMotion {return self->IsHumanMotion();}
+	
+END
+
+
+CSRAW }

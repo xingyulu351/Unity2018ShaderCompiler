@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model Namespace="NamespaceA">
+  <StaticVars />
+  <Vars />
+  <Constructors />
+  <MemberFunctions />
+  <ProtectedFunctions />
+  <StaticFunctions />
+  <Operators />
+  <Messages />
+  <Events />
+  <Delegates />
+  <Section>
+    <Signature>
+      <Declaration name="ClassReferencingMovedClassFunction" type="class" namespace="NamespaceA" modifiers="public" />
+      <ReturnType />
+    </Signature>
+    <Summary><![CDATA[This class references ]]><link ref="NamespaceA.ClassMovedToNamespace.Foo">ClassMovedToNamespace.Foo</link></Summary>
+    <Description><![CDATA[Yes it does]]></Description>
+  </Section>
+  <InheritsFrom>NamespaceA.ClassReferencingMovedClassFunction</InheritsFrom>
+</Model>

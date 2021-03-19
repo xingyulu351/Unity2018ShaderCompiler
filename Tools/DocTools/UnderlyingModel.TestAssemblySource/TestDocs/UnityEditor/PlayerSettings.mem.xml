@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="PlayerSettings" type="Class" namespace="UnityEditor">
+    <section>
+      <summary>Player Settings is where you define various parameters for the final game that you will build in Unity. Some of these values are used in the Resolution Dialog that launches when you open a standalone game.</summary>
+    </section>
+  </member>
+</doc>

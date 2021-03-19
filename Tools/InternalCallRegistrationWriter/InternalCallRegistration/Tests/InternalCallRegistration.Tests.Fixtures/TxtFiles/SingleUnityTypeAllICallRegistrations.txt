@@ -1,0 +1,40 @@
+//System.Void UnityEngine.OuterType/InnerType::MethodInInnerType()
+void Register_UnityEngine_OuterType_InnerType_MethodInInnerType();
+Register_UnityEngine_OuterType_InnerType_MethodInInnerType();
+
+//System.Void UnityEngine.OtherSimpleUnityBindingsType::OtherInternalCallVoidReturnNoArguments()
+void Register_UnityEngine_OtherSimpleUnityBindingsType_OtherInternalCallVoidReturnNoArguments();
+Register_UnityEngine_OtherSimpleUnityBindingsType_OtherInternalCallVoidReturnNoArguments();
+
+//System.Void UnityEngine.OtherSimpleUnityBindingsType::OtherStaticInternalCallVoidReturnNoArguments()
+void Register_UnityEngine_OtherSimpleUnityBindingsType_OtherStaticInternalCallVoidReturnNoArguments();
+Register_UnityEngine_OtherSimpleUnityBindingsType_OtherStaticInternalCallVoidReturnNoArguments();
+
+//System.Void UnityEngine.SimpleUnityBindingsType::AInternalCall()
+void Register_UnityEngine_SimpleUnityBindingsType_AInternalCall();
+Register_UnityEngine_SimpleUnityBindingsType_AInternalCall();
+
+//System.Void UnityEngine.SimpleUnityBindingsType::BInternalCall()
+void Register_UnityEngine_SimpleUnityBindingsType_BInternalCall();
+Register_UnityEngine_SimpleUnityBindingsType_BInternalCall();
+
+//System.Void UnityEngine.SimpleUnityBindingsType::CInternalCall()
+void Register_UnityEngine_SimpleUnityBindingsType_CInternalCall();
+Register_UnityEngine_SimpleUnityBindingsType_CInternalCall();
+
+//System.Void UnityEngine.SimpleUnityBindingsType::InternalCallVoidReturnNoArguments()
+void Register_UnityEngine_SimpleUnityBindingsType_InternalCallVoidReturnNoArguments();
+Register_UnityEngine_SimpleUnityBindingsType_InternalCallVoidReturnNoArguments();
+
+//System.Void UnityEngine.SimpleUnityBindingsType::StaticInternalCallVoidReturnNoArguments()
+void Register_UnityEngine_SimpleUnityBindingsType_StaticInternalCallVoidReturnNoArguments();
+Register_UnityEngine_SimpleUnityBindingsType_StaticInternalCallVoidReturnNoArguments();
+
+//System.Void UnityEngine.Serialization.UnityEngineClassInNamespace::.ctor()
+void Register_UnityEngine_Serialization_UnityEngineClassInNamespace__ctor();
+Register_UnityEngine_Serialization_UnityEngineClassInNamespace__ctor();
+
+//System.Void UnityEngine.Serialization.UnityEngineClassInNamespace::CInternalCall()
+void Register_UnityEngine_Serialization_UnityEngineClassInNamespace_CInternalCall();
+Register_UnityEngine_Serialization_UnityEngineClassInNamespace_CInternalCall();
+

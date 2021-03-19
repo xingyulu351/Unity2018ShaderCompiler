@@ -1,0 +1,37 @@
+use Test::More;
+
+use FindBin qw ($Bin);
+use lib $Bin;
+
+use File::Spec::Functions qw (canonpath catfile);
+use File::Temp qw (tempdir tempfile);
+use FileUtils qw (writeAllLines);
+use RunTests runTests;
+use Dirs;
+
+BasicTest:
+{
+    my $content = <<END_FILE;
+{
+    "suites": [{
+        "name": "native",
+        "details": "faking tests",
+        "args": ["--platform=Editor", "--testfilter=faking", "--stress" ]
+    }, {
+        "name": "native",
+        "details": "VR tests",
+        "args": ["--platform=Editor", "--testfilter=VR"]
+    }]
+}
+END_FILE
+    my ($fh, $tempFileName) = tempfile();
+    close($fh);
+    FileUtils::writeAllLines($tempFileName, $content);
+    diag("Profile written into $tempFileName");
+    my ($exitCode, $artifactsPath) = runTests("--runrules=$tempFileName");
+    is($exitCode, 0);
+    ok(-d canonpath("$artifactsPath/run1"));
+    ok(-d canonpath("$artifactsPath/run2"));
+}
+
+done_testing();

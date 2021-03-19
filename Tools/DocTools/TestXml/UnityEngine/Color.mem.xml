@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="Color" type="Struct" namespace="UnityEngine">
+    <section>
+      <summary>Representation of RGBA colors.</summary>
+      <description>This structure is used throughout Unity to pass colors around. 
+Each color component is a floating point value with a range from 0 to 1.
+
+Components (::ref::r,::ref::g,::ref::b) define a color in RGB color space. Alpha component (::ref::a)
+defines transparency - alpha of one is completely opaque, alpha of zero is completely
+transparent.</description>
+    </section>
+    <member name="Color.ctor" type="Constructor">
+      <section>
+        <signature><![CDATA[ctor(float,float,float,float)]]></signature>
+        <summary>Constructs a new Color with given r,g,b,a components.</summary>
+        <param name="r">Red component.</param>
+        <param name="g">Green component.</param>
+        <param name="b">Blue component.</param>
+        <param name="a">Alpha component.</param>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[var color : Color = Color(0.2, 0.3, 0.4, 0.5);]]></code>
+        </example>
+      </section>
+      <section>
+        <signature><![CDATA[ctor(float,float,float)]]></signature>
+        <summary>Constructs a new Color with given r,g,b components and sets /a/ to 1.</summary>
+        <param name="r">Red component.</param>
+        <param name="g">Green component.</param>
+        <param name="b">Blue component.</param>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[var color : Color = Color(0.2, 0.3, 0.4);]]></code>
+        </example>
+      </section>
+    </member>    
+    <member name="Color.op_Divide" type="Operator">
+      <section>
+        <signature><![CDATA[Divide(Color,float)]]></signature>
+        <summary>Divides color /a/ by the float /b/. Each color component is scaled separately.</summary>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[// white / 2 = gray
+var grayColor : Color = Color.white / 2;]]></code>
+        </example>
+      </section>
+    </member>    
+    <member name="Color.implop_Color(Vector4)" type="ImplOperator">
+      <section>
+        <summary>Colors can be implicitly converted to and from [[Vector4]].</summary>
+        <example convertexample="true">
+          <code lang="js"><![CDATA[// Convert a vector4 to a Color
+var aColor : Color = Vector4(0.5,1,0.5,1);]]></code>
+        </example>
+      </section>
+    </member>
+    <member name="Color._red" type="Property">
+      <section>
+        <signature><![CDATA[red]]></signature>
+        <summary>Solid red. RGBA is (1, 0, 0, 1).</summary>
+      </section>
+    </member> 	
+  </member>
+</doc>

@@ -1,0 +1,1031 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Graphics/MoviePlayback.h"
+#include "Runtime/Math/Color.h"
+#include "Runtime/Misc/SystemInfo.h"
+#include "Runtime/Network/NetworkManager.h"
+#include "Runtime/Input/GetInput.h"
+#include "Runtime/Input/LocationService.h"
+#include "Runtime/Input/OnScreenKeyboard.h"
+#include "PlatformDependent/iPhonePlayer/iPhoneSettings.h"
+#include "PlatformDependent/iPhonePlayer/APN.h"
+
+using namespace Unity;
+
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Collections;
+
+namespace UnityEngine
+{
+
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneTouchPhase enumeration is deprecated. Please use TouchPhase instead.
+ENUM iPhoneTouchPhase
+	// A finger touched the screen.
+	Began = 0,
+	// A finger moved on the screen.
+	Moved = 1,
+	// A finger is touching the screen but hasn't moved.
+	Stationary = 2,
+	// A finger was lifted from the screen. This is the final phase of a touch.
+	Ended = 3,
+	// The system cancelled tracking for the touch, as when (for example) the user puts the device to her face or more than five touches happened simultaneously. This is the final phase of a touch.
+	Canceled = 4
+END
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneTouch struct is deprecated. Please use Touch instead.
+STRUCT iPhoneTouch
+	CSRAW private int m_FingerId;
+	CSRAW private Vector2 m_Position;
+	CSRAW private Vector2 m_PositionDelta;
+	CSRAW private float m_TimeDelta;
+	CSRAW private int m_TapCount;
+	CSRAW private iPhoneTouchPhase m_Phase;
+
+	// The unique index for touch.
+	CSRAW public int fingerId { get { return m_FingerId; } }
+
+	// The position of the touch.
+	CSRAW public Vector2 position { get { return m_Position; } }
+
+	// The position delta since last change.
+	CSRAW public Vector2 deltaPosition { get { return m_PositionDelta; } }
+
+	// Amount of time passed since last change.
+	CSRAW public float deltaTime { get { return m_TimeDelta; } }
+
+	// Number of taps.
+	CSRAW public int tapCount { get { return m_TapCount; } }
+
+	// Describes the phase of the touch.
+	CSRAW public iPhoneTouchPhase phase { get { return m_Phase; } }
+
+
+	OBSOLETE warning positionDelta property is deprecated. Please use iPhoneTouch.deltaPosition instead.
+	CSRAW public Vector2 positionDelta { get { return m_PositionDelta; } }
+
+	OBSOLETE warning timeDelta property is deprecated. Please use iPhoneTouch.deltaTime instead.
+	CSRAW public float timeDelta { get { return m_TimeDelta; } }
+END
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneAccelerationEvent struct is deprecated. Please use AccelerationEvent instead.
+STRUCT iPhoneAccelerationEvent
+	CSRAW private Vector3 m_Acceleration;
+	CSRAW private float m_TimeDelta;
+
+	// Value of acceleration.
+	CSRAW public Vector3 acceleration { get { return m_Acceleration; } }
+
+	// Amount of time passed since last accelerometer measurement.
+	CSRAW public float deltaTime { get { return m_TimeDelta; } }
+
+	OBSOLETE warning timeDelta property is deprecated. Please use iPhoneAccelerationEvent.deltaTime instead.
+	CSRAW public float timeDelta { get { return m_TimeDelta; } }
+
+END
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneOrientation enumeration is deprecated. Please use DeviceOrientation instead.
+ENUM iPhoneOrientation
+	// The orientation of the device cannot be determined.
+	Unknown = 0,
+	// The device is in portrait mode, with the device held upright and the home button at the bottom.
+	Portrait = 1,
+	// The device is in portrait mode but upside down, with the device held upright and the home button at the top.
+	PortraitUpsideDown = 2,
+	// The device is in landscape mode, with the device held upright and the home button on the right side.
+	LandscapeLeft = 3,
+	// The device is in landscape mode, with the device held upright and the home button on the left side.
+	LandscapeRight = 4,
+	// The device is held perpendicular to the ground with the screen facing upwards.
+	FaceUp = 5,
+	// The device is held perpendicular to the ground with the screen facing downwards.
+	FaceDown = 6
+END
+
+// The iPhoneInput class acts as the interface into the iPhone's unique Input systems.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+CLASS iPhoneInput
+
+	OBSOLETE warning accelerationEvents property is deprecated. Please use Input.accelerationEvents instead.
+	CSRAW public static iPhoneAccelerationEvent[] accelerationEvents { get {
+			int count = accelerationEventCount;
+			iPhoneAccelerationEvent[] events = new iPhoneAccelerationEvent[count];
+			for (int q = 0; q < count; ++q)
+				events[q] = GetAccelerationEvent (q);
+			return events;
+		}
+	}
+
+	OBSOLETE warning touches property is deprecated. Please use Input.touches instead.
+	CSRAW public static iPhoneTouch[] touches { get {
+			int count = touchCount;
+			iPhoneTouch[] touches = new iPhoneTouch[count];
+			for (int q = 0; q < count; ++q)
+				touches[q] = GetTouch (q);
+			return touches;
+		}
+	}
+
+	OBSOLETE warning GetTouch method is deprecated. Please use Input.GetTouch instead.
+	CUSTOM static iPhoneTouch GetTouch (int index)
+	{
+#if ENABLE_NEW_EVENT_SYSTEM
+		if (index >= 0 && index < GetTouchCount ())
+		{
+			Touch* t = GetTouch(index);
+
+			if (t != NULL)
+			{
+				return *t;
+			}
+			else
+			{
+				RaiseMonoException ("GetTouch() failed!");
+			}
+		}
+		else
+		{
+			RaiseMonoException ("Index specified to GetTouch() is out of bounds! Must be less than Touch.touchCount.");
+		}
+		Touch dummy;
+		return dummy;
+#else
+		Touch touch;
+
+		if (index >= 0 && index < GetTouchCount ())
+		{
+			if (!GetTouch (index, touch))
+				RaiseMonoException ("Internal error.");
+		}
+		else
+			RaiseMonoException ("Index out of bounds.");
+		return touch;
+#endif
+	}
+
+	OBSOLETE warning touchCount property is deprecated. Please use Input.touchCount instead.
+	CUSTOM_PROP static int touchCount { return GetTouchCount (); }
+
+	OBSOLETE warning multiTouchEnabled property is deprecated. Please use Input.multiTouchEnabled instead.
+	CUSTOM_PROP static bool multiTouchEnabled { return IsMultiTouchEnabled (); } { return SetMultiTouchEnabled (value); }
+
+	OBSOLETE warning GetAccelerationEvent method is deprecated. Please use Input.GetAccelerationEvent instead.
+	CUSTOM static iPhoneAccelerationEvent GetAccelerationEvent (int index)
+	{
+		Acceleration acc;
+		if (index >= 0 && index < GetAccelerationCount ())
+			GetAcceleration (index, acc);
+		else
+			RaiseMonoException ("Index out of bounds.");
+		return acc;
+	}
+
+	OBSOLETE warning accelerationEventCount property is deprecated. Please use Input.accelerationEventCount instead.
+	CUSTOM_PROP static int accelerationEventCount { return GetAccelerationCount (); }
+
+	OBSOLETE warning acceleration property is deprecated. Please use Input.acceleration instead.
+	CUSTOM_PROP static Vector3 acceleration { return GetAcceleration (); }
+
+	OBSOLETE warning orientation property is deprecated. Please use Input.deviceOrientation instead.
+	CUSTOM_PROP static iPhoneOrientation orientation { return GetOrientation(); }
+
+	OBSOLETE warning lastLocation property is deprecated. Please use Input.location.lastData instead.
+	CUSTOM_PROP static LocationInfo lastLocation {
+		if (LocationService::GetLocationStatus() != kLocationServiceRunning)
+			printf_console ("Location service updates are not enabled. Check Handheld.locationServiceStatus before querying last location.\n");
+
+		return LocationService::GetLastLocation();
+	}
+END
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneScreenOrientation enumeration is deprecated. Please use ScreenOrientation instead.
+ENUM iPhoneScreenOrientation
+	//*undocumented*
+	Unknown = 0,
+	// Portrait orientation.
+	Portrait = 1,
+	// Portrait orientation upside down.
+	PortraitUpsideDown = 2,
+	// Landscape orientation, home button on the right side.
+	LandscapeLeft = 3,
+	// Landscape orientation, home button on the left side.
+	LandscapeRight = 4,
+
+	// Default landscape orientation, home button on the right side (equals to \LandscapeLeft\).
+	Landscape = 3,
+END
+
+// Interface into iPhone specific settings.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+CLASS iPhoneSettings
+	OBSOLETE warning screenOrientation property is deprecated. Please use Screen.orientation instead.
+	CUSTOM_PROP static iPhoneScreenOrientation screenOrientation { return GetScreenManager().GetScreenOrientation(); } { GetScreenManager().RequestOrientation(value); }
+	OBSOLETE warning verticalOrientation property is deprecated. Please use Screen.orientation instead.
+	CUSTOM_PROP static bool verticalOrientation { return GetScreenManager().GetScreenOrientation() == portrait; } { GetScreenManager().SetScreenOrientation(value ? portrait : landscapeLeft); }
+	OBSOLETE warning screenCanDarken property is deprecated. Please use Screen.sleepTimeout instead.
+	CUSTOM_PROP static bool screenCanDarken { return IsIdleTimerEnabled(); } { SetIdleTimerEnabled(value); }
+	OBSOLETE warning uniqueIdentifier property is deprecated. Please use SystemInfo.deviceUniqueIdentifier instead.
+	CUSTOM_PROP static string uniqueIdentifier { return CreateScriptingString(systeminfo::GetDeviceUniqueIdentifier()); }
+	OBSOLETE warning name property is deprecated. Please use SystemInfo.deviceName instead.
+	CUSTOM_PROP static string name { return CreateScriptingString(systeminfo::GetDeviceName()); }
+	OBSOLETE warning model property is deprecated. Please use SystemInfo.deviceModel instead.
+	CUSTOM_PROP static string model { return CreateScriptingString(systeminfo::GetDeviceModel()); }
+	OBSOLETE warning systemName property is deprecated. Please use SystemInfo.operatingSystem instead.
+	CUSTOM_PROP static string systemName { return CreateScriptingString(systeminfo::GetDeviceSystemName()); }
+	OBSOLETE warning systemVersion property is deprecated. Please use SystemInfo.operatingSystem instead.
+	CUSTOM_PROP static string systemVersion { return CreateScriptingString(systeminfo::GetDeviceSystemVersion()); }
+	OBSOLETE warning internetReachability property is deprecated. Please use Application.internetReachability instead.
+	CUSTOM_PROP static iPhoneNetworkReachability internetReachability { return GetInternetReachability(); }
+	OBSOLETE warning generation property is deprecated. Please use iPhone.generation instead.
+	CUSTOM_PROP static iPhoneGeneration generation { return iphone::GetDeviceGeneration(); }
+	OBSOLETE warning locationServiceStatus property is deprecated. Please use Input.location.status instead.
+	CUSTOM_PROP static LocationServiceStatus locationServiceStatus { return LocationService::GetLocationStatus(); }
+	OBSOLETE warning locationServiceEnabledByUser property is deprecated. Please use Input.location.isEnabledByUser instead.
+	CUSTOM_PROP static bool locationServiceEnabledByUser { return LocationService::IsServiceEnabledByUser(); }
+
+	OBSOLETE warning StartLocationServiceUpdates method is deprecated. Please use Input.location.Start instead.
+	CUSTOM static void StartLocationServiceUpdates(float desiredAccuracyInMeters, float updateDistanceInMeters) {
+		LocationService::SetDesiredAccuracy(desiredAccuracyInMeters);
+		LocationService::SetDistanceFilter(updateDistanceInMeters);
+		LocationService::StartUpdatingLocation();
+	}
+	OBSOLETE warning StartLocationServiceUpdates method is deprecated. Please use Input.location.Start instead.
+	CSRAW public static void StartLocationServiceUpdates(float desiredAccuracyInMeters) {
+		StartLocationServiceUpdates(desiredAccuracyInMeters, 10.0f);
+	}
+	OBSOLETE warning StartLocationServiceUpdates method is deprecated. Please use Input.location.Start instead.
+	CSRAW public static void StartLocationServiceUpdates() {
+		StartLocationServiceUpdates(10.0f, 10.0f);
+	}
+
+	OBSOLETE warning StopLocationServiceUpdates method is deprecated. Please use Input.location.Stop instead.
+	CUSTOM static void StopLocationServiceUpdates() {
+		LocationService::StopUpdatingLocation();
+	}
+END
+
+// Describes the type of keyboard.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneKeyboardType enumeration is deprecated. Please use TouchScreenKeyboardType instead.
+ENUM iPhoneKeyboardType
+	// Default keyboard for the current input method.
+	Default = 0,
+	// Keyboard displays standard ASCII characters.
+	ASCIICapable = 1,
+	// Keyboard with numbers and punctuation.
+	NumbersAndPunctuation = 2,
+	// Keyboard optimized for URL entry, features ".", "/", and ".com" prominently.
+	URL = 3,
+	// Numeric keypad designed for PIN entry, features the numbers 0 through 9 prominently.
+	NumberPad = 4,
+	// Keypad designed for entering telephone numbers, features the numbers 0 through 9 and the "*" and "#" characters prominently.
+	PhonePad = 5,
+	// Keypad designed for entering a person's name or phone number.
+	NamePhonePad = 6,
+	// Keyboard optimized for specifying email addresses, features the "@", "." and space characters prominently.
+	EmailAddress = 7
+END
+
+// Simple struct that contains all the arguments needed by iPhoneKeyboard_InternalConstructorHelper.
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+STRUCT internal iPhoneKeyboard_InternalConstructorHelperArguments
+	CSRAW public string text;
+	CSRAW public string textPlaceholder;
+	CSRAW public uint keyboardType;
+	CSRAW public uint autocorrection;
+	CSRAW public uint multiline;
+	CSRAW public uint secure;
+	CSRAW public uint alert;
+END
+
+C++RAW
+
+struct MonoiPhoneKeyboard_InternalConstructorHelperArguments {
+	MonoString* text;
+	MonoString* textPlaceholder;
+	unsigned int keyboardType;
+	unsigned int autocorrection;
+	unsigned int multiline;
+	unsigned int secure;
+	unsigned int alert;
+};
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneKeyboard class is deprecated. Please use TouchScreenKeyboard instead.
+CLASS iPhoneKeyboard
+	// We are matching the KeyboardOnScreen class here so we can directly access it.
+	CSRAW private IntPtr keyboardWrapper;
+
+	C++RAW
+ #define GET ExtractMonoObjectData<KeyboardOnScreen*> (self)
+
+    THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void Destroy()
+    {
+		if (GET)
+        {
+			delete GET;
+			GET=0;
+        }
+	}
+
+	//*undocumented*
+	CSRAW ~iPhoneKeyboard()
+    {
+		Destroy();
+	}
+
+	//*undocumented*
+	public iPhoneKeyboard(string text, iPhoneKeyboardType keyboardType, bool autocorrection, bool multiline, bool secure, bool alert, string textPlaceholder)
+	{
+		iPhoneKeyboard_InternalConstructorHelperArguments arguments = new iPhoneKeyboard_InternalConstructorHelperArguments ();
+		arguments.text = text;
+		arguments.keyboardType = Convert.ToUInt32(keyboardType);
+		arguments.autocorrection = Convert.ToUInt32(autocorrection);
+		arguments.multiline = Convert.ToUInt32(multiline);
+		arguments.secure = Convert.ToUInt32(secure);
+		arguments.alert = Convert.ToUInt32(alert);
+		arguments.textPlaceholder = textPlaceholder;
+		iPhoneKeyboard_InternalConstructorHelper (arguments);
+	}
+
+	CUSTOM private void iPhoneKeyboard_InternalConstructorHelper (iPhoneKeyboard_InternalConstructorHelperArguments arguments)
+	{
+		GET = new KeyboardOnScreen(scripting_cpp_string_for(arguments.text),
+			arguments.keyboardType, arguments.autocorrection, arguments.multiline, arguments.secure, arguments.alert,
+			scripting_cpp_string_for(arguments.textPlaceholder));
+	}
+
+	//*undocumented*
+	CSRAW public static iPhoneKeyboard Open(string text, iPhoneKeyboardType keyboardType = iPhoneKeyboardType.Default, bool autocorrection = true, bool multiline = false, bool secure = false, bool alert = false, string textPlaceholder = "")
+	{
+		return new iPhoneKeyboard(text, keyboardType, autocorrection, multiline, secure, alert, textPlaceholder);
+	}
+
+	//*undocumented*
+	CUSTOM_PROP public string text {
+		if (GET) return CreateScriptingString(GET->getText());
+		else return CreateScriptingString("");
+	} {
+		if (GET) GET->setText(value);
+	}
+
+	//*undocumented*
+	CUSTOM_PROP public static bool hideInput {
+		return KeyboardOnScreen::isInputHidden();
+	} {
+	    KeyboardOnScreen::setInputHidden(value);
+	}
+
+	//*undocumented*
+	CUSTOM_PROP public bool active {
+		if (GET) return (short)GET->isActive();
+		else return false;
+	} {
+		if (GET) GET->setActive(value);
+	}
+
+	//*undocumented*
+	CUSTOM_PROP public bool done {
+		if (GET) return (short)GET->isDone();
+		else return false;
+	}
+
+	C++RAW
+ #undef GET
+
+	//*undocumented*
+	CUSTOM_PROP static Rect area { return KeyboardOnScreen::GetRect(); }
+
+	//*undocumented*
+	CUSTOM_PROP static bool visible { return KeyboardOnScreen::IsVisible(); }
+END
+
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneMovieControlMode enumeration is deprecated. Please use FullScreenMovieControlMode instead.
+ENUM iPhoneMovieControlMode
+	// Display the standard controls for controlling movie playback. This includes play/pause controls, a volume slider, and a timeline control.
+	Full = 0,
+	// Display minimal set of controls controlling movie playback. Set of controls might differ between OS versions.
+	Minimal = 1,
+	// Do not display any controls, but cancel movie playback if the user touches the screen.
+	CancelOnTouch = 2,
+	// Do not display any controls. This mode prevents the user from controlling playback.
+	Hidden = 3,
+
+	OBSOLETE warning VolumeOnly is deprecated. Please use iPhoneMovieControlMode.Minimal instead.
+	// Display volume controls only.
+	VolumeOnly = 1
+END
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneMovieScalingMode enumeration is deprecated. Please use FullScreenMovieScalingMode instead.
+ENUM iPhoneMovieScalingMode
+	// Do not scale the movie.
+	None = 0,
+	// Scale the movie until one dimension fits on the screen exactly.
+	AspectFit = 1,
+	// Scale the movie until the movie fills the entire screen.
+	AspectFill = 2,
+	// Scale the movie until both dimensions fit the screen exactly. The aspect ratio of the movie is not preserved.
+	Fill = 3
+END
+
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+OBSOLETE warning iPhoneNetworkReachability enumeration is deprecated. Please use NetworkReachability instead.
+ENUM iPhoneNetworkReachability
+	// Network is not reachable
+	NotReachable = 0,
+	// Network is reachable via carrier data network
+	ReachableViaCarrierDataNetwork = 1,
+	// Network is reachable via WiFi network
+	ReachableViaWiFiNetwork = 2
+END
+
+// Interface into iPhone miscellaneous functionality.
+CONDITIONAL UNITY_IPHONE_API || UNITY_ANDROID_API
+CLASS iPhoneUtils
+
+	// we want to avoid obsolete warnings:
+	// if method is not marked as obsolete and uses obsolete types we get warning
+	// so prototypes for c-side calls will use ints and we manually create default-params overloads
+
+	OBSOLETE warning PlayMovie method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CUSTOM static void PlayMovie (string path, Color bgColor, int controlMode, int scalingMode)
+	{
+		PlayFullScreenMovie (path, bgColor, (unsigned)controlMode, (unsigned)scalingMode);
+	}
+	OBSOLETE warning PlayMovie method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CSRAW public static void PlayMovie (string path, Color bgColor, iPhoneMovieControlMode controlMode, iPhoneMovieScalingMode scalingMode)
+	{
+		PlayMovie (path, bgColor, (int)controlMode, (int)scalingMode);
+	}
+	OBSOLETE warning PlayMovie method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CSRAW public static void PlayMovie (string path, Color bgColor, iPhoneMovieControlMode controlMode)
+	{
+		PlayMovie (path, bgColor, (int)controlMode, (int)iPhoneMovieScalingMode.AspectFit);
+	}
+	OBSOLETE warning PlayMovie method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CSRAW public static void PlayMovie (string path, Color bgColor)
+	{
+		PlayMovie (path, bgColor, (int)iPhoneMovieControlMode.Full, (int)iPhoneMovieScalingMode.AspectFit);
+	}
+
+	OBSOLETE warning PlayMovieURL method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CUSTOM static void PlayMovieURL (string url, Color bgColor, int controlMode, int scalingMode)
+	{
+		PlayFullScreenMovie (url, bgColor, (unsigned)controlMode, (unsigned)scalingMode);
+	}
+	OBSOLETE warning PlayMovieURL method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CSRAW public static void PlayMovieURL (string url, Color bgColor, iPhoneMovieControlMode controlMode, iPhoneMovieScalingMode scalingMode)
+	{
+		PlayMovieURL (url, bgColor, (int)controlMode, (int)scalingMode);
+	}
+	OBSOLETE warning PlayMovieURL method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CSRAW public static void PlayMovieURL (string url, Color bgColor, iPhoneMovieControlMode controlMode)
+	{
+		PlayMovieURL (url, bgColor, (int)controlMode, (int)iPhoneMovieScalingMode.AspectFit);
+	}
+	OBSOLETE warning PlayMovieURL method is deprecated. Please use Handheld.PlayFullScreenMovie instead.
+	CSRAW public static void PlayMovieURL (string url, Color bgColor)
+	{
+		PlayMovieURL (url, bgColor, (int)iPhoneMovieControlMode.Full, (int)iPhoneMovieScalingMode.AspectFit);
+	}
+
+	OBSOLETE warning Vibrate method is deprecated. Please use Handheld.Vibrate instead.
+	CUSTOM static void Vibrate ()
+	{
+		Vibrate ();
+	}
+	OBSOLETE warning isApplicationGenuine property is deprecated. Please use Application.genuine instead.
+	CUSTOM_PROP static bool isApplicationGenuine
+	{
+		return IsApplicationGenuine ();
+	}
+	OBSOLETE warning isApplicationGenuineAvailable property is deprecated. Please use Application.genuineCheckAvailable instead.
+	CUSTOM_PROP static bool isApplicationGenuineAvailable
+	{
+		return IsApplicationGenuineAvailable();
+	}
+END
+
+// This enumeration is used to identify the size of an advertisement.
+CONDITIONAL UNITY_IPHONE_API
+ENUM ADSizeIdentifier
+	// Indicates that the banner view is in unknown mode.
+	Unknown = 0,
+	// Indicates that the banner view is in portait mode.
+	Portrait = 1,
+	// Indicates that the banner view is in landscape mode.
+	Landscape = 2
+END
+
+C++RAW
+
+// Specify calendar types.
+CONDITIONAL UNITY_IPHONE_API
+ENUM CalendarIdentifier
+    // Identifies the Gregorian calendar.
+	GregorianCalendar = 0,
+    // Identifies the Buddhist calendar.
+	BuddhistCalendar = 1,
+    // Identifies the Chinese calendar.
+	ChineseCalendar = 2,
+    // Identifies the Hebrew calendar.
+	HebrewCalendar = 3,
+    // Identifies the Islamic calendar.
+	IslamicCalendar = 4,
+    // Identifies the Islamic civil calendar.
+	IslamicCivilCalendar = 5,
+    // Identifies the Japanese calendar.
+	JapaneseCalendar = 6,
+    // Identifies the Republic of China (Taiwan) calendar.
+	RepublicOfChinaCalendar = 7,
+    // Identifies the Persian calendar.
+	PersianCalendar = 8,
+    // Identifies the Indian calendar.
+	IndianCalendar = 9,
+    // Identifies the ISO8601.
+	ISO8601Calendar = 10
+END
+
+// Specify calendrical units.
+CONDITIONAL UNITY_IPHONE_API
+ENUM CalendarUnit
+    // Specifies the era unit.
+	Era = 2,
+    // Specifies the year unit.
+	Year = 4,
+    // Specifies the month unit.
+	Month = 8,
+    // Specifies the day unit.
+	Day = 16,
+    // Specifies the hour unit.
+	Hour = 32,
+    // Specifies the minute unit.
+	Minute = 64,
+    // Specifies the second unit.
+	Second = 128,
+    // Specifies the week unit.
+	Week = 256,
+    // Specifies the weekday unit.
+	Weekday = 512,
+    // Specifies the ordinal weekday unit.
+	WeekdayOrdinal = 1024,
+    // Specifies the quarter of the calendar.
+	Quarter = 2048
+END
+
+// LocalNotification is a wrapper around the UILocalNotification class found in the Apple UIKit framework and is only available on iPhone/iPad/iPod Touch.
+CONDITIONAL UNITY_IPHONE_API
+CLASS LocalNotification
+	CSRAW private IntPtr notificationWrapper;
+
+	C++RAW
+ #define GET ExtractMonoObjectData<iPhoneLocalNotification*> (self)
+
+	//*undocumented*
+	CUSTOM private double GetFireDate()
+	{
+		return GET->GetFireDate();
+	}
+
+	//*undocumented*
+	CUSTOM private void SetFireDate(double dt)
+	{
+		GET->SetFireDate(dt);
+	}
+
+	CSRAW private static long m_NSReferenceDateTicks = new DateTime(
+		2001, 1, 1, 0, 0, 0, DateTimeKind.Utc).Ticks;
+
+	// The date and time when the system should deliver the notification.
+	CSRAW public DateTime fireDate { get {
+			return new DateTime((long)(GetFireDate() * 10000000) + m_NSReferenceDateTicks);
+		}
+
+		set {
+			SetFireDate((value.ToUniversalTime().Ticks - m_NSReferenceDateTicks) / 10000000.0);
+		}
+	}
+
+	// The time zone of the notification's fire date.
+	CUSTOM_PROP public string timeZone
+	{
+		const char *timeZone = GET->GetTimeZone();
+		return (timeZone ? CreateScriptingString(timeZone) : 0);
+	}
+	{
+		GET->SetTimeZone(value.IsNull() ? 0 : value.ToUTF8().c_str());
+	}
+
+	// The calendar interval at which to reschedule the notification.
+	CUSTOM_PROP public CalendarUnit repeatInterval
+	{
+		return GET->GetRepeatInterval();
+	}
+	{
+		GET->SetRepeatInterval(value);
+	}
+
+	// The name of the file containing the sound to play when an alert is displayed.
+	CUSTOM_PROP public CalendarIdentifier repeatCalendar
+	{
+		return GET->GetRepeatCalendar();
+	}
+	{
+		GET->SetRepeatCalendar(value);
+	}
+
+	// The message displayed in the notification alert.
+	CUSTOM_PROP public string alertBody
+	{
+		const char *message = GET->GetAlertBody();
+		return (message ? CreateScriptingString(message) : 0);
+	}
+	{
+		GET->SetAlertBody(value.IsNull() ? 0 : value.ToUTF8().c_str());
+	}
+
+	// The title of the action button or slider.
+	CUSTOM_PROP public string alertAction
+	{
+		const char *action = GET->GetAlertAction();
+		return (action ? CreateScriptingString(action) : 0);
+	}
+	{
+		GET->SetAlertAction(value.IsNull() ? 0 : value.ToUTF8().c_str());
+	}
+
+	// A boolean value that controls whether the alert action is visible or not.
+	CUSTOM_PROP public bool hasAction
+	{
+		return GET->HasAction();
+	}
+	{
+		GET->HasAction(value);
+	}
+
+	// Identifies the image used as the launch image when the user taps the action button.
+	CUSTOM_PROP public string alertLaunchImage
+	{
+		const char *path = GET->GetAlertLaunchImage();
+		return (path ? CreateScriptingString(path) : 0);
+	}
+	{
+		GET->SetAlertLaunchImage(value.IsNull () ? 0 : value.ToUTF8().c_str());
+	}
+
+	// The number to display as the application's icon badge.
+	CUSTOM_PROP public int applicationIconBadgeNumber
+	{
+		return GET->GetApplicationIconBadgeNumber();
+	}
+	{
+		GET->SetApplicationIconBadgeNumber(value);
+	}
+
+	// The name of the sound file to play when an alert is displayed.
+	CUSTOM_PROP public string soundName
+	{
+		const char *path = GET->GetSoundName();
+		return (path ? CreateScriptingString(path) : 0);
+	}
+	{
+		GET->SetSoundName(value.IsNull() ? 0 : value.ToUTF8().c_str());
+	}
+
+	// The default system sound. (RO)
+	CUSTOM_PROP public static string defaultSoundName
+	{
+		const char *path = iPhoneLocalNotification::GetDefaultSoundName();
+		return (path ? CreateScriptingString(path) : 0);
+	}
+
+	// A dictionary for passing custom information to the notified application.
+	CUSTOM_PROP public IDictionary userInfo
+	{
+		return GET->GetUserInfo();
+	}
+	{
+		GET->SetUserInfo(value);
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void Destroy()
+	{
+		if (GET)
+		{
+			delete GET;
+			GET = 0;
+		}
+	}
+
+	//*undocumented*
+	CSRAW ~LocalNotification()
+	{
+		Destroy();
+	}
+
+	//*undocumented*
+	CUSTOM private void InitWrapper()
+	{
+		GET = new iPhoneLocalNotification;
+	}
+
+	// Creates a new local notification.
+	CSRAW public LocalNotification()
+	{
+		InitWrapper();
+	}
+
+	C++RAW
+ #undef GET
+END
+
+// RemoteNotification is only available on iPhone/iPad/iPod Touch.
+CONDITIONAL UNITY_IPHONE_API
+CLASS RemoteNotification
+	CSRAW private IntPtr notificationWrapper;
+
+	C++RAW
+ #define GET ExtractMonoObjectData<iPhoneRemoteNotification*> (self)
+
+	// The message displayed in the notification alert. (RO)
+	CUSTOM_PROP public string alertBody
+	{
+		const char *message = GET->GetAlertBody();
+		return (message ? CreateScriptingString(message) : 0);
+	}
+
+	// A boolean value that controls whether the alert action is visible or not. (RO)
+	CUSTOM_PROP public bool hasAction
+	{
+		return GET->HasAction();
+	}
+
+	// The number to display as the application's icon badge. (RO)
+	CUSTOM_PROP public int applicationIconBadgeNumber
+	{
+		return GET->GetApplicationIconBadgeNumber();
+	}
+
+	// The name of the sound file to play when an alert is displayed. (RO)
+	CUSTOM_PROP public string soundName
+	{
+		const char *path = GET->GetSoundName();
+		return (path ? CreateScriptingString(path) : 0);
+	}
+
+	// A dictionary for passing custom information to the notified application. (RO)
+	CUSTOM_PROP public IDictionary userInfo
+	{
+		return GET->GetUserInfo();
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private void Destroy()
+	{
+		if (GET)
+		{
+			delete GET;
+			GET = 0;
+		}
+	}
+
+	//*undocumented*
+	CSRAW ~RemoteNotification()
+	{
+		Destroy();
+	}
+
+	//*undocumented*
+	CSRAW private RemoteNotification()
+	{ }
+
+	C++RAW
+ #undef GET
+END
+
+// Specify remote notification types.
+CONDITIONAL UNITY_IPHONE_API
+ENUM RemoteNotificationType
+    // The application accepts no notifications.
+	None = 0,
+    // The application accepts notifications that badge the application icon.
+	Badge = 1,
+    // The application accepts alert sounds as notifications.
+	Sound = 2,
+    // The application accepts alert messages as notifications.
+	Alert = 4
+END
+
+// NotificationServices is only available on iPhone/iPad/iPod Touch.
+CONDITIONAL UNITY_IPHONE_API
+CLASS NotificationServices
+	// The number of received local notifications. (RO)
+	CUSTOM_PROP static int localNotificationCount { return GetLocalNotificationCount(); }
+
+	// Returns an object representing a specific local notification. (RO)
+	CUSTOM static LocalNotification GetLocalNotification(int index)
+	{
+		if (index >= 0 && index < GetLocalNotificationCount())
+		{
+			MonoClass *classLocalNotification;
+			MonoObject *localNotification;
+
+			classLocalNotification = GetMonoManager().GetBuiltinMonoClass("LocalNotification");
+			localNotification = mono_object_new(mono_domain_get(), classLocalNotification);
+
+			ExtractMonoObjectData<iPhoneLocalNotification*>(localNotification) = CopyLocalNotification(index);
+
+			return localNotification;
+		}
+
+		RaiseMonoException("Index out of bounds.");
+		return 0;
+	}
+
+	// The list of objects representing received local notifications. (RO)
+	CSRAW public static LocalNotification[] localNotifications { get {
+			int count = localNotificationCount;
+			LocalNotification[] notifications = new LocalNotification[count];
+			for (int i = 0; i < count; ++i)
+				notifications[i] = GetLocalNotification(i);
+			return notifications;
+		}
+	}
+
+	// Schedules a local notification.
+	CUSTOM public static void ScheduleLocalNotification(LocalNotification notification)
+	{
+		MonoRaiseIfNull(notification);
+		ExtractMonoObjectData<iPhoneLocalNotification*>(notification)->Schedule();
+	}
+
+	// Presents a local notification immediately.
+	CUSTOM public static void PresentLocalNotificationNow(LocalNotification notification)
+	{
+		MonoRaiseIfNull(notification);
+		ExtractMonoObjectData<iPhoneLocalNotification*>(notification)->PresentNow();
+	}
+
+	// Cancels the delivery of the specified scheduled local notification.
+	CUSTOM public static void CancelLocalNotification(LocalNotification notification)
+	{
+		MonoRaiseIfNull(notification);
+		ExtractMonoObjectData<iPhoneLocalNotification*>(notification)->Cancel();
+	}
+
+	// Cancels the delivery of all scheduled local notifications.
+	CUSTOM public static void CancelAllLocalNotifications()
+	{
+		iPhoneLocalNotification::CancelAll();
+	}
+
+	// All currently scheduled local notifications.
+	CUSTOM_PROP public static LocalNotification[] scheduledLocalNotifications
+	{
+		std::vector<iPhoneLocalNotification*> notifications = iPhoneLocalNotification::GetScheduled();
+		int count = notifications.size();
+		MonoClass *classLocalNotification = GetMonoManager().GetBuiltinMonoClass("LocalNotification");
+		MonoArray *monoNotifications = mono_array_new(mono_domain_get(), classLocalNotification, count);
+
+		for (int index = 0; index < count; ++index)
+		{
+			MonoObject *notif = mono_object_new(mono_domain_get(), classLocalNotification);
+			ExtractMonoObjectData<iPhoneLocalNotification*>(notif) = notifications[index];
+			SetScriptingArrayElement(monoNotifications, index, notif);
+		}
+
+		return monoNotifications;
+	}
+
+	// The number of received remote notifications. (RO)
+	CUSTOM_PROP static int remoteNotificationCount { return GetRemoteNotificationCount(); }
+
+	// Returns an object representing a specific remote notification. (RO)
+	CUSTOM static RemoteNotification GetRemoteNotification(int index)
+	{
+		if (index >= 0 && index < GetRemoteNotificationCount())
+		{
+			MonoClass *classRemoteNotification;
+			MonoObject *remoteNotification;
+
+			classRemoteNotification = GetMonoManager().GetBuiltinMonoClass("RemoteNotification");
+			remoteNotification = mono_object_new(mono_domain_get(), classRemoteNotification);
+
+			ExtractMonoObjectData<iPhoneRemoteNotification*>(remoteNotification) = CopyRemoteNotification(index);
+
+			return remoteNotification;
+		}
+
+		RaiseMonoException("Index out of bounds.");
+		return 0;
+	}
+
+	// The list of objects representing received remote notifications. (RO)
+	CSRAW public static RemoteNotification[] remoteNotifications { get {
+			int count = remoteNotificationCount;
+			RemoteNotification[] notifications = new RemoteNotification[count];
+			for (int i = 0; i < count; ++i)
+				notifications[i] = GetRemoteNotification(i);
+			return notifications;
+		}
+	}
+
+	// Discards of all received local notifications.
+	CUSTOM public static void ClearLocalNotifications()
+	{
+		ClearLocalNotifications();
+	}
+
+	// Discards of all received remote notifications.
+	CUSTOM public static void ClearRemoteNotifications()
+	{
+		ClearRemoteNotifications();
+	}
+
+	// Register to receive remote notifications of the specified types from a provider via Apple Push Service.
+	CUSTOM public static void RegisterForRemoteNotificationTypes(RemoteNotificationType notificationTypes)
+	{
+		iPhoneRemoteNotification::Register(notificationTypes);
+	}
+
+	// Unregister for remote notifications.
+	CUSTOM public static void UnregisterForRemoteNotifications()
+	{
+		iPhoneRemoteNotification::Unregister();
+	}
+
+	// The types of notifications the application accepts.
+	CUSTOM_PROP public static RemoteNotificationType enabledRemoteNotificationTypes
+	{
+		return iPhoneRemoteNotification::GetEnabledTypes();
+	}
+
+	// Device token received from Apple Push Service after calling @@NotificationServices.RegisterForRemoteNotificationTypes@@. (RO)
+	CUSTOM_PROP public static byte[] deviceToken
+	{
+		const char *deviceToken = iPhoneRemoteNotification::GetDeviceToken();
+
+		if (!deviceToken)
+			return 0;
+
+		int count = iPhoneRemoteNotification::GetDeviceTokenLength();
+		MonoArray *monoDeviceToken = mono_array_new(mono_domain_get(), mono_get_byte_class(), count);
+
+		for (int index = 0; index < count; ++index)
+		{
+			SetScriptingArrayElement(monoDeviceToken, index, deviceToken[index]);
+		}
+
+		return monoDeviceToken;
+	}
+
+	// Returns an error that might occur on registration for remote notifications via @@NotificationServices.RegisterForRemoteNotificationTypes@@. (RO)
+	CUSTOM_PROP public static string registrationError
+	{
+		const char *error = iPhoneRemoteNotification::GetError();
+		return (error ? CreateScriptingString(error) : 0);
+	}
+END
+
+CONDITIONAL UNITY_IPHONE_API
+CLASS internal UnhandledExceptionHandler
+	CSRAW private static void RegisterUECatcher()
+	{
+		AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
+	}
+
+	C++RAW
+	extern void CrashedCheckBellowForHintsWhy();
+	THREAD_AND_SERIALIZATION_SAFE
+	CUSTOM private static void HandleUnhandledException(object sender, object args)
+	{
+		#if PLATFORM_IOS
+		// Let unhandled exceptions crash only when happening on main thread
+		if ( Thread::CurrentThreadIsMainThread() )
+		{
+			// This function is defined in iOS trampoline
+			CrashedCheckBellowForHintsWhy();
+		}
+		#endif
+	}
+END
+
+CSRAW
+}
+

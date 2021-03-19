@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="EditorGUI" type="Class" namespace="UnityEditor">
+    <section>
+      <summary>These work pretty much like the normal GUI functions - and also have matching implementations in [[EditorGUILayout]].</summary>
+    </section>    
+    <member name="EditorGUI.DropShadowLabel" type="Method">
+      <section>
+        <signature><![CDATA[DropShadowLabel(Rect,string)]]></signature>
+        <signature><![CDATA[DropShadowLabel(Rect,GUIContent)]]></signature>
+        <signature><![CDATA[DropShadowLabel(Rect,string,GUIStyle)]]></signature>
+        <signature><![CDATA[DropShadowLabel(Rect,GUIContent,GUIStyle)]]></signature>
+        <summary>Draws a label with a drop shadow.</summary>
+        <param name="position">Where to show the label.</param>
+        <param name="content">Text to show
+@style style to use.</param>
+        <description>Not superfast, so use with caution.
+
+{img EditorGUIDropShadowLabel.png}\\
+''Shadow Label in and editor window.''</description>
+        <example>
+          <code lang="js"><![CDATA[	// Write some text using a Shadow Label.
+	
+	class EditorGUIDropShadowLabel extends EditorWindow {
+	
+		var text : String = "This is some text with a Shadow Label";
+	
+		@MenuItem("Examples/Shadow Label")
+		static function Init() {
+			var window = GetWindow(EditorGUIDropShadowLabel);
+			window.position = Rect(0, 0, 250, 60);
+			window.Show();
+		}
+		function OnGUI() {
+			EditorGUI.DropShadowLabel(Rect(0, 5, 245, 20), text);	
+	
+			if(GUI.Button(Rect(0,30, 250, 20),"Close"))
+				this.Close();
+		}
+		function OnInspectorUpdate() {
+			Repaint();
+		}
+	}]]></code>
+        </example>
+      </section>
+    </member>    
+  </member>
+</doc>

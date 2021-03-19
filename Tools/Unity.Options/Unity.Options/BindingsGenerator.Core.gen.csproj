@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{71DBDDC1-901D-986D-A7DB-DDF61E195695}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>BindingsGenerator.Core</RootNamespace>
+    <AssemblyName>BindingsGenerator.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>6</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\BindingsGenerator.Core\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\BindingsGenerator.Core\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Unity.Cecil" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Pdb" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Mdb" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Rocks" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Rocks.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory" >
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.Cecil" >
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.CSharp" >
+      <HintPath>..\..\..\External\NRefactory\builds\5.5.1\net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="Options.cs">
+  </Compile>
+  <Compile Include="ProgramOptions.cs">
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyVerifier.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyVerifier.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\CppGenerator.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\CppGenerator.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Extensions.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Extensions.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\GlobalContext.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\GlobalContext.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\IncludesProvider.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\IncludesProvider.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Naming.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Naming.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\RegistrationGenerator.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\RegistrationGenerator.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\ScriptingBackend.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\ScriptingBackend.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\StubUtils.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\StubUtils.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\TreeGenerator.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\TreeGenerator.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\TypeFilter.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\TypeFilter.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\TypeUtils.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\TypeUtils.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Visitors.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Visitors.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\AssemblyPatcher.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\AssemblyPatcher.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\CodeGenHelper.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\CodeGenHelper.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\ILProcessorExtensions.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\ILProcessorExtensions.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\Step\PassStructByRefInjector.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\Step\PassStructByRefInjector.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\Step\PromoteToInternalCalls.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyPatcher\Step\PromoteToInternalCalls.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyResolver\DefaultAssemblyResolver.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\AssemblyResolver\DefaultAssemblyResolver.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\AssignNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\AssignNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\BlockNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\BlockNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\ExpressionNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\ExpressionNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FieldDeclarationStatementNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FieldDeclarationStatementNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FieldReferenceNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FieldReferenceNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FileNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FileNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FunctionCallNodes.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FunctionCallNodes.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FunctionNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\FunctionNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\IfStatementNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\IfStatementNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\LabelNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\LabelNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\MemberQualifier.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\MemberQualifier.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\NamespaceNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\NamespaceNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\ReturnStatementNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\ReturnStatementNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\StatementNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\StatementNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\StructDefinitionNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\StructDefinitionNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\StubStatementNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\StubStatementNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\TypeDefNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\TypeDefNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\VariableDeclarationStatementNode.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Nodes\VariableDeclarationStatementNode.cs</Link>
+  </Compile>
+  <Compile Include="..\..\BindingsGenerator\Unity.BindingsGenerator.Core\Properties\AssemblyInfo.cs">
+    <Link>Tools\BindingsGenerator\Unity.BindingsGenerator.Core\Properties\AssemblyInfo.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Export\Attributes.cs">
+    <Link>Runtime\Export\Attributes.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Runtime\Export\Scripting\PreserveAttribute.cs">
+    <Link>Runtime\Export\Scripting\PreserveAttribute.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\SharedInternals\Attributes.cs">
+    <Link>Modules\SharedInternals\Attributes.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Modules\SharedInternals\BindingsAttributes.cs">
+    <Link>Modules\SharedInternals\BindingsAttributes.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\External\il2cpp\il2cpp\Unity.Cecil.Visitor\Visitor.cs">
+    <Link>External\il2cpp\il2cpp\Unity.Cecil.Visitor\Visitor.cs</Link>
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Unity.CommonTools\Unity.CommonTools.gen.csproj" >
+      <Project>{BDA06DB4-4CA7-6647-66E0-59CA2990E4DB}</Project>
+      <Name>Unity.CommonTools</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

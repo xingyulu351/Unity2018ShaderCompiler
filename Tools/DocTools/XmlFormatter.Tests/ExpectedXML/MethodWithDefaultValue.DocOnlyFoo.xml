@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Model>
+  <ParentClass>MethodWithDefaultValue</ParentClass>
+  <Section>
+    <Signature>
+      <Declaration name="DocOnlyFoo(string)" type="csnone" />
+    </Signature>
+    <Summary><![CDATA[Doconly docs.]]></Summary>
+  </Section>
+</Model>

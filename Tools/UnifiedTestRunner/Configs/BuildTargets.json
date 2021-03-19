@@ -1,0 +1,11 @@
+{
+	"_comment1:" : "Should match UnityEngine.RuntimePlatform in lowercase",
+	"android" : ["PlatformDependent/AndroidPlayer/AndroidPlayer.pm"],
+	"ps4" : ["PlatformDependent/PS4/PS4.pm"],
+	"psp2" : ["PlatformDependent/PSP2Player/PSP2Player.pm"],
+	"xboxone" : ["PlatformDependent/XboxOne/XboxOne.pm"],
+	"ios" : ["/Tools/Build/TargetBuildRecipes/iOSSupport.pm"],
+	"tvos" : ["/Tools/Build/TargetBuildRecipes/AppleTVSupport.pm"],
+	"_comment2": "If path above is not specified, globs below will be used. Empty for now",
+	"search_patterns" : []
+}

@@ -1,0 +1,16 @@
+[
+{"names":["projectlist"],"description":"Path to file containing a list of test projects","valueType":2,"defaultValue":"Tests\\EditModeAndPlayModeTests\\projectlist.txt","allowedValues":[]},
+{"names":["testfilter"],"description":"Regexp test filter","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["category"],"description":"Filter tests by categories e.g. 'ABV'","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["testproject","testprojects"],"description":"Name(s) of the test projects to run. E.g. 2D","valueType":2,"defaultValue":null,"allowedValues":[],"acceptsMultipleValues":"true"},
+{"names":["assetpipelinev2"],"description":"Enable Asset Import Pipeline V2 backend for the test run.","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["reruncount"],"description":"The maximum number of times to re-run failed tests to discover instabilities","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["architecture"],"description":"CPU architecture to run tests on.","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["timeout"],"description":"Time span in seconds to wait before giving up to read from editor log","valueType":2,"defaultValue":"600","allowedValues":[]},
+{"names":["fail-on-script-compilation-error"],"description":"Fail a test suite if script compilation errors occurs. Temporary, until random compilation errors during editor startup are fixed","valueType":0,"defaultValue":null,"allowedValues":[]},
+{"names":["artifacts_path"],"description":"Path to store build and run artifacts such as player logs, editor log etc","valueType":2,"defaultValue":null,"allowedValues":[]},
+{"names":["scripting-backend"],"description":"Scripting backend to execute test on.","valueType":2,"defaultValue":"Mono","allowedValues":["DotNet","Il2Cpp","Mono","NotSet"]},
+{"names":["api-profile"],"description":"Api profile to use.","valueType":2,"defaultValue":null,"allowedValues":["NET_2_0","NET_2_0_Subset","NET_4_6","NET_Standard_2_0"]},
+{"names":["scriptingruntimeversion"],"description":"Scripting runtime version.","valueType":2,"defaultValue":"Latest","allowedValues":["Latest","Legacy","NotSet"]},
+{"names":["platform"],"description":"Platform to run the tests on","valueType":2,"defaultValue":"editmode","allowedValues":[]}
+]

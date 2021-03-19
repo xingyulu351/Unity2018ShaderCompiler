@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+    <member name="Animations.AnimatorCondition" type="Struct" namespace="UnityEditor.Animations">
+        <section>
+            <summary>Condition that is used to determine if a transition must be taken.</summary>
+        </section>
+        <member name="Animations.AnimatorCondition._exitTime" type="Unknown">
+            <section>
+                <summary>The normalized time of the source state when the condition is true.</summary>
+                <description>Values are [0,1]
+Valid when the mode is AnimatorConditionMode.ExitTime.</description>
+            </section>
+        </member>
+        <member name="Animations.AnimatorCondition._mode" type="Property">
+            <section>
+                <signature><![CDATA[mode]]></signature>
+                <summary>The mode of the condition.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorCondition._parameter" type="Property">
+            <section>
+                <signature><![CDATA[parameter]]></signature>
+                <summary>The name of the parameter used in the condition.</summary>
+            </section>
+        </member>
+        <member name="Animations.AnimatorCondition._threshold" type="Property">
+            <section>
+                <signature><![CDATA[threshold]]></signature>
+                <summary>The AnimatorParameter's threshold value for the condition to be true.</summary>
+            </section>
+        </member>
+    </member>
+</doc>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc>
+    <member name="RenderBuffer" type="Struct" namespace="UnityEngine">
+        <section>
+            <summary><![CDATA[RenderBuffer summary]]></summary>
+            <description><![CDATA[RenderBuffer description]]></description>
+        </section>
+        <member name="RenderBuffer._m_BufferPtr" type="Unknown">
+            <section undoc="true" />
+        </member>
+        <member name="RenderBuffer._m_RenderTextureInstanceID" type="Unknown">
+            <section undoc="true" />
+        </member>
+    </member>
+</doc>

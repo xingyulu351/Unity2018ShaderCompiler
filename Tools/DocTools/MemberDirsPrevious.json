@@ -1,0 +1,7 @@
+{Memfiles:"Documentation/MemberDocs",
+Mem2files:"Documentation/ApiDocs",
+Assemblies:"Tools/DocTools/HistoryGenerator/PreviousVersionDlls/builds",
+StaticFilesSource:"Tools/DocTools/APIDocumentationGenerator/StaticFiles",
+XSLTSource:"Tools/DocTools/APIDocumentationGenerator/XSLT",
+XmlOutputRoot:"build/UserDocumentation/XML",
+HtmlOutputRoot:"build/UserDocumentation/html"}

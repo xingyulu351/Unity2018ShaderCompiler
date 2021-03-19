@@ -1,0 +1,228 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Configuration/UnityConfigure.h"
+#include "Runtime/Mono/MonoManager.h"
+#include "Runtime/Mono/MonoBehaviour.h"
+#include "Runtime/NavMesh/NavMesh.h"
+#include "Runtime/NavMesh/NavMeshAgent.h"
+#include "Runtime/NavMesh/OffMeshLink.h"
+#include "Runtime/NavMesh/NavMeshSettings.h"
+#include "Runtime/NavMesh/NavMeshLayers.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+#include "Runtime/Scripting/ScriptingExportUtility.h"
+#include "External/Recast/Detour/Include/DetourNavMeshQuery.h"
+
+CSRAW
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace UnityEngine
+{
+
+// Keep this enum in sync with the one defined in "NavMeshTypes.h"
+// Link type specifier.
+ENUM OffMeshLinkType
+
+	// Manually specified type of link.
+	LinkTypeManual = 0,
+
+	// Vertical drop.
+	LinkTypeDropDown = 1,
+
+	// Horizontal jump.
+	LinkTypeJumpAcross = 2
+END
+
+// Keep this struct in sync with the one defined in "NavMeshTypes.h"
+// State of OffMeshLink.
+STRUCT OffMeshLinkData
+	CSRAW private int m_Valid;
+	CSRAW private int m_Activated;
+	CSRAW private int m_InstanceID;
+	CSRAW private OffMeshLinkType m_LinkType;
+	CSRAW private Vector3 m_StartPos;
+	CSRAW private Vector3 m_EndPos;
+	
+	// Is link valid (RO).
+	CSRAW public bool valid { get { return m_Valid != 0; } }
+
+	// Is link active (RO).
+	CSRAW public bool activated { get { return m_Activated != 0; } }
+
+	// Link type specifier (RO).
+	CSRAW public OffMeshLinkType linkType { get { return m_LinkType; } }
+
+	// Link start world position (RO).
+	CSRAW public Vector3 startPos { get { return m_StartPos; } }
+	
+	// Link end world position (RO).
+	CSRAW public Vector3 endPos { get { return m_EndPos; } }
+	
+	// The [[OffMeshLink]] if the link type is a manually placed Offmeshlink (RO).
+	CSRAW public OffMeshLink offMeshLink { get { return GetOffMeshLinkInternal (m_InstanceID); } }
+	
+	CUSTOM internal OffMeshLink GetOffMeshLinkInternal (int instanceID)
+	{
+		return Scripting::ScriptingWrapperFor (dynamic_instanceID_cast<OffMeshLink*> (instanceID));
+	}
+
+END
+
+// Keep this struct in sync with the one defined in "NavMeshTypes.h"
+// Result information for NavMesh queries.
+STRUCT NavMeshHit
+	CSRAW private Vector3 m_Position;
+	CSRAW private Vector3 m_Normal;
+	CSRAW private float   m_Distance;
+	CSRAW private int     m_Mask;
+	CSRAW private int     m_Hit;
+
+	// Position of hit.
+	CSRAW public Vector3 position { get { return m_Position; } set { m_Position = value; } }
+
+	// Normal at the point of hit.
+	CSRAW public Vector3 normal   { get { return m_Normal;   } set { m_Normal = value;   } }
+
+	// Distance to the point of hit.
+	CSRAW public float   distance { get { return m_Distance; } set { m_Distance = value; } }
+
+	// Mask specifying NavMeshLayers at point of hit.
+	CSRAW public int     mask     { get { return m_Mask;     } set { m_Mask = value;     } }
+
+	// Flag set when hit.
+	CSRAW public bool    hit      { get { return m_Hit != 0; } set { m_Hit = value ? 1 : 0; } }
+END
+
+// Navigation mesh.
+CLASS NavMesh : Object
+
+	// Trace a ray between two points on the NavMesh.
+	CUSTOM static bool Raycast (Vector3 sourcePosition, Vector3 targetPosition, out NavMeshHit hit, int passableMask)
+	{
+		NavMesh* navMesh = GetNavMeshSettings ().GetNavMesh ();
+		if (navMesh == NULL) {
+			hit->position = targetPosition;
+			hit->hit = 0;
+			hit->normal = Vector3f::zero;
+			hit->distance = Magnitude (targetPosition-sourcePosition);
+			return false;
+		}
+		const dtQueryFilter filter = dtQueryFilter::createFilterForIncludeFlags (passableMask);
+		return navMesh->Raycast (sourcePosition, targetPosition, hit, &filter);
+	}
+
+	// Calculate a path between two points and store the resulting path.
+	CSRAW public static bool CalculatePath (Vector3 sourcePosition, Vector3 targetPosition, int passableMask, NavMeshPath path)
+	{
+		path.ClearCorners ();
+		return CalculatePathInternal (sourcePosition, targetPosition, passableMask, path);
+	}
+	
+	CUSTOM private static bool CalculatePathInternal (Vector3 sourcePosition, Vector3 targetPosition, int passableMask, NavMeshPath path)
+	{
+		NavMesh* navMesh = GetNavMeshSettings ().GetNavMesh ();
+		if (navMesh == NULL)
+			return false;
+
+		MonoNavMeshPath monopath;
+		MarshallManagedStructIntoNative (path, &monopath);
+
+		const dtQueryFilter filter = dtQueryFilter::createFilterForIncludeFlags (passableMask);
+		int actualSize = navMesh->CalculatePolygonPath (sourcePosition, targetPosition, &filter, monopath.native);
+		return actualSize>0;
+	}
+
+	// Locate the closest NavMesh edge from a point on the NavMesh.
+	CUSTOM static bool FindClosestEdge (Vector3 sourcePosition, out NavMeshHit hit, int passableMask)
+	{
+		NavMesh* navMesh = GetNavMeshSettings ().GetNavMesh ();
+		if (navMesh == NULL) {
+			hit->position = Vector3f::infinityVec;
+			hit->hit = 0;
+			hit->normal = Vector3f::zero;
+			hit->distance = Vector3f::infinity;
+			return false;
+		}
+		const dtQueryFilter filter = dtQueryFilter::createFilterForIncludeFlags (passableMask);
+		return navMesh->DistanceToEdge (sourcePosition, hit, &filter);
+	}
+	
+	// Sample the NavMesh closest to the point specified.
+	CUSTOM static bool SamplePosition (Vector3 sourcePosition, out NavMeshHit hit, float maxDistance, int allowedMask)
+	{
+		NavMesh* navMesh = GetNavMeshSettings ().GetNavMesh ();
+		if (navMesh == NULL) {
+			hit->position = Vector3f::infinityVec;
+			hit->hit = 0;
+			hit->normal = Vector3f::zero;
+			hit->distance = Vector3f::infinity;
+			return false;
+		}
+		const dtQueryFilter filter = dtQueryFilter::createFilterForIncludeFlags (allowedMask);
+		return navMesh->SamplePosition (sourcePosition, hit, &filter, maxDistance);
+	}
+
+	// Sets the cost for traversing over geometry of the layer type on all agents.
+	CUSTOM static void SetLayerCost (int layer, float cost)
+	{
+		GetNavMeshLayers ().SetLayerCost (layer, cost);
+	}
+
+	// Gets the cost for traversing over geometry of the layer type on all agents.
+	CUSTOM static float GetLayerCost (int layer)
+	{
+		return GetNavMeshLayers ().GetLayerCost (layer);
+	}
+	
+	// Returns the layer index for a named layer.
+	CUSTOM static int GetNavMeshLayerFromName (string layerName)
+	{
+		return GetNavMeshLayers ().GetNavMeshLayerFromName (layerName.ToUTF8());
+	}
+
+	//*undocumented*
+	CUSTOM static void AddOffMeshLinks () { GetNavMeshSettings ().AddOffMeshLinks (); }
+
+	//*undocumented*
+	CUSTOM static void RestoreNavMesh () { GetNavMeshSettings ().RestoreNavMesh (); }
+
+
+	// Create a simple triangulation of the current navmesh.
+	//*undocumented*
+	CONDITIONAL !UNITY_FLASH
+	CUSTOM static void Triangulate (out Vector3[] vertices, out int[] indices)
+	{
+		NavMesh::Triangulation triangulation;
+		NavMesh* navMesh = GetNavMeshSettings ().GetNavMesh ();
+		if (navMesh != NULL) {
+			navMesh->Triangulate (triangulation);
+		}
+		if (vertices) {
+			*vertices = CreateScriptingArray (triangulation.vertices.size() > 0 ? &triangulation.vertices[0] : NULL, triangulation.vertices.size (), GetCommonScriptingClasses ().vector3 );
+		}
+		if (indices) {
+			*indices = CreateScriptingArray (triangulation.indices.size() > 0 ? &triangulation.indices[0] : NULL, triangulation.indices.size (), GetCommonScriptingClasses ().int_32 );
+		}
+	}
+END
+
+// Link allowing movement outside the planar navigation mesh.
+CLASS OffMeshLink : Component
+
+	// Is link active.
+	AUTO_PROP bool activated GetActivated SetActivated
+	
+	// Is link occupied. (RO)
+	AUTO_PROP bool occupied GetOccupied
+
+	// Modify pathfinding cost for the link.
+	AUTO_PROP float costOverride GetCostOverride SetCostOverride
+
+END
+
+
+CSRAW }
+

@@ -1,0 +1,2317 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Math/Quaternion.h"
+#include "Runtime/Utilities/Utility.h"
+#include "Runtime/Geometry/AABB.h"
+#include "Runtime/Geometry/Ray.h"
+#include "Runtime/Geometry/Intersection.h"
+#include <vector>
+#include "Runtime/Utilities/BitUtility.h"
+#include "Runtime/Terrain/PerlinNoise.h"
+#include "Runtime/Camera/CameraUtil.h"
+#include "Runtime/Math/Color.h"
+#include "Runtime/Math/ColorSpaceConversion.h"
+
+CSRAW
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace UnityEngine
+{
+
+// Representation of 2D vectors and points.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Vector2
+	// X component of the vector.
+	CSRAW public float x;
+	// Y component of the vector.
+	CSRAW public float y;
+	
+	// Access the /x/ or /y/ component using [0] or [1] respectively.
+	CSRAW public float this [int index]
+	{
+		get
+		{
+			switch(index)
+			{
+				case 0: return x;
+				case 1: return y;
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector2 index!");
+			}
+		}
+
+		set
+		{
+			switch(index)
+			{
+				case 0: x = value; break;
+				case 1: y = value; break;
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector2 index!");
+			}
+		}
+	}
+	
+	// Constructs a new vector with given x, y components.
+	public Vector2 (float x, float y) { this.x = x; this.y = y; }
+	
+	// Set x and y components of an existing Vector2.
+	CSRAW public void Set (float new_x, float new_y) { x = new_x; y = new_y; }
+	
+	// Linearly interpolates between two vectors.
+	CSRAW public static Vector2 Lerp (Vector2 from, Vector2 to, float t) 
+	{ 
+		t = Mathf.Clamp01 (t);
+		return new Vector2( 
+			from.x + (to.x - from.x)*t,
+			from.y + (to.y - from.y)*t
+		);
+	}
+	
+	// Moves a point /current/ towards /target/.
+	CSRAW static public Vector2 MoveTowards (Vector2 current, Vector2 target, float maxDistanceDelta)
+	{
+		Vector2 toVector = target - current;
+		float dist = toVector.magnitude;
+		if (dist <= maxDistanceDelta || dist == 0)
+			return target;
+		return current + toVector / dist * maxDistanceDelta;
+	}
+	
+	// Multiplies two vectors component-wise.
+	CSRAW public static Vector2 Scale (Vector2 a, Vector2 b) { return new Vector2 (a.x*b.x, a.y*b.y); }
+	
+	// Multiplies every component of this vector by the same component of /scale/.
+	CSRAW public void Scale (Vector2 scale) { x *= scale.x; y *= scale.y; }
+	
+	// Makes this vector have a ::ref::magnitude of 1.
+	CSRAW public void Normalize ()
+	{
+		float mag = this.magnitude;
+		if (mag > kEpsilon)
+			this = this / mag;
+		else
+			this = zero;
+	}
+	
+	// Returns this vector with a ::ref::magnitude of 1 (RO).
+	CSRAW public Vector2 normalized { get {
+		Vector2 v = new Vector2(x, y);
+		v.Normalize();
+		return v;
+	} }
+	
+	/// *listonly*
+	CSRAW override public string ToString() { return UnityString.Format("({0:F1}, {1:F1})", x, y); }
+	// Returns a nicely formatted string for this vector.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("({0}, {1})", x.ToString(format), y.ToString(format));
+	}
+	
+	// used to allow Vector2s to be used as keys in hash tables
+	public override int GetHashCode() {
+		return x.GetHashCode() ^ (y.GetHashCode()<<2);
+	}
+	
+	// also required for being able to use Vector2s as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is Vector2)) return false;
+		
+		Vector2 rhs=(Vector2)other;
+		return x.Equals(rhs.x) && y.Equals(rhs.y);
+	}
+
+	// Dot Product of two vectors.
+	public static float Dot (Vector2 lhs, Vector2 rhs) { return lhs.x*rhs.x + lhs.y*rhs.y; }
+
+	// Returns the length of this vector (RO).
+	CSRAW public float magnitude { get { return Mathf.Sqrt (x*x + y*y); } }
+	// Returns the squared length of this vector (RO).
+	CSRAW public float sqrMagnitude { get { return x*x + y*y; } }
+	
+	// Returns the angle in degrees between /from/ and /to/.
+	CSRAW public static float Angle(Vector2 from, Vector2 to) { return Mathf.Acos(Mathf.Clamp (Vector2.Dot (from.normalized, to.normalized), -1F, 1F)) * Mathf.Rad2Deg; }
+	
+	// Returns the distance between /a/ and /b/.
+	CSRAW public static float Distance (Vector2 a, Vector2 b) { return (a-b).magnitude; }
+	
+	// Returns a copy of /vector/ with its magnitude clamped to /maxLength/.
+	CSRAW public static Vector2 ClampMagnitude (Vector2 vector, float maxLength)
+	{
+		if (vector.sqrMagnitude > maxLength * maxLength)
+			return vector.normalized * maxLength;
+		return vector;
+	}
+	
+	OBSOLETE planned Use Vector2.sqrMagnitude
+	CSRAW public static float SqrMagnitude (Vector2 a) { return a.x*a.x + a.y*a.y; }
+	OBSOLETE planned Use .sqrMagnitude
+	CSRAW public float SqrMagnitude () { return x*x + y*y; }
+	
+	// Returns a vector that is made from the smallest components of two vectors.
+	CSRAW public static Vector2 Min (Vector2 lhs, Vector2 rhs) { return new Vector2 (Mathf.Min(lhs.x,rhs.x), Mathf.Min(lhs.y,rhs.y)); }
+	
+	// Returns a vector that is made from the largest components of two vectors.
+	CSRAW public static Vector2 Max (Vector2 lhs, Vector2 rhs) { return new Vector2 (Mathf.Max(lhs.x,rhs.x), Mathf.Max(lhs.y,rhs.y)); }
+	
+	// Adds two vectors.
+	CSRAW public static Vector2 operator + (Vector2 a, Vector2 b) { return new Vector2 (a.x+b.x, a.y+b.y); }
+	// Subtracts one vector from another.
+	CSRAW public static Vector2 operator - (Vector2 a, Vector2 b) { return new Vector2 (a.x-b.x, a.y-b.y); }
+	// Negates a vector.
+	CSRAW public static Vector2 operator - (Vector2 a) { return new Vector2 (-a.x, -a.y); }
+	// Multiplies a vector by a number.
+	CSRAW public static Vector2 operator * (Vector2 a, float d) { return new Vector2 (a.x*d, a.y*d); }
+	// Multiplies a vector by a number.
+	CSRAW public static Vector2 operator * (float d, Vector2 a) { return new Vector2 (a.x*d, a.y*d); }
+	// Divides a vector by a number.
+	CSRAW public static Vector2 operator / (Vector2 a, float d) { return new Vector2 (a.x/d, a.y/d); }
+	// Returns true if the vectors are equal.
+	CSRAW public static bool operator == (Vector2 lhs, Vector2 rhs) {
+		return SqrMagnitude (lhs - rhs) < kEpsilon * kEpsilon;
+	}
+	// Returns true if vectors different.
+	CSRAW public static bool operator != (Vector2 lhs, Vector2 rhs)
+	{
+		return SqrMagnitude (lhs - rhs) >= kEpsilon * kEpsilon;
+	}
+	
+	// Converts a [[Vector3]] to a Vector2.
+	CSRAW public static implicit operator Vector2(Vector3 v) {
+		return new Vector2(v.x, v.y);
+	}
+	// Converts a Vector2 to a [[Vector3]].
+	CSRAW public static implicit operator Vector3(Vector2 v) {
+		return new Vector3(v.x, v.y, 0);
+	}
+	
+	// Shorthand for writing @@Vector2(0, 0)@@
+	CSRAW public static Vector2 zero { get { return new Vector2 (0.0F, 0.0F); } }
+	// Shorthand for writing @@Vector2(1, 1)@@
+	CSRAW public static Vector2 one { get { return new Vector2 (1.0F, 1.0F); }   }
+	// Shorthand for writing @@Vector2(0, 1)@@
+	CSRAW public static Vector2 up { get { return new Vector2 (0.0F, 1.0F); } }
+	// Shorthand for writing @@Vector2(1, 0)@@
+	CSRAW public static Vector2 right { get { return new Vector2 (1.0F, 0.0F); } }
+
+	// *Undocumented*
+	CSRAW public const float kEpsilon = 0.00001F;
+END
+
+
+// Representation of 3D vectors and points.
+CSRAW
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Vector3
+
+	// *undocumented*
+	CSRAW public const float kEpsilon = 0.00001F;
+
+	// X component of the vector.
+	CSRAW public float x;
+	// Y component of the vector.
+	CSRAW public float y;
+	// Z component of the vector.
+	CSRAW public float z;
+
+
+	// Linearly interpolates between two vectors.
+	CSRAW public static Vector3 Lerp (Vector3 from, Vector3 to, float t) 
+	{ 
+		t = Mathf.Clamp01 (t);       
+		return new Vector3( 
+			from.x + (to.x - from.x)*t, 
+			from.y + (to.y - from.y)*t, 
+			from.z + (to.z - from.z)*t 
+		); 
+	 }
+
+
+	// Spherically interpolates between two vectors.
+	CUSTOM static Vector3 Slerp (Vector3 from, Vector3 to, float t) { return Slerp (from, to, clamp01 (t)); }
+
+
+	CUSTOM private static void Internal_OrthoNormalize2 (ref Vector3 a, ref Vector3 b) { OrthoNormalize (&a, &b); }
+	CUSTOM private static void Internal_OrthoNormalize3 (ref Vector3 a, ref Vector3 b, ref Vector3 c) { OrthoNormalize (&a, &b, &c); }
+
+	// Makes vectors normalized and orthogonal to each other.
+	CSRAW static public void OrthoNormalize (ref Vector3 normal, ref Vector3 tangent) { Internal_OrthoNormalize2 (ref normal, ref tangent); }
+	// Makes vectors normalized and orthogonal to each other.
+	CSRAW static public void OrthoNormalize (ref Vector3 normal, ref Vector3 tangent, ref Vector3 binormal) { Internal_OrthoNormalize3 (ref normal, ref tangent, ref binormal); }
+
+	
+	// Moves a point /current/ in a straight line towards a /target/ point.
+	CSRAW static public Vector3 MoveTowards (Vector3 current, Vector3 target, float maxDistanceDelta)
+	{
+		Vector3 toVector = target - current;
+		float dist = toVector.magnitude;
+		if (dist <= maxDistanceDelta || dist == 0)
+			return target;
+		return current + toVector / dist * maxDistanceDelta;
+	}
+	
+	// Rotates a vector /current/ towards /target/.
+	CUSTOM static Vector3 RotateTowards (Vector3 current, Vector3 target, float maxRadiansDelta, float maxMagnitudeDelta) { return RotateTowards (current, target, maxRadiansDelta, maxMagnitudeDelta); }
+	
+	// Gradually changes a vector towards a desired goal over time.
+	CSRAW public static Vector3 SmoothDamp (Vector3 current, Vector3 target, ref Vector3 currentVelocity, float smoothTime, float maxSpeed = Mathf.Infinity, float deltaTime = Time.deltaTime)
+	{
+		// Based on Game Programming Gems 4 Chapter 1.10
+		smoothTime = Mathf.Max(0.0001F, smoothTime);
+		float omega = 2F / smoothTime;
+
+		float x = omega * deltaTime;
+		float exp = 1F / (1F + x + 0.48F*x*x + 0.235F*x*x*x);
+		Vector3 change = current - target;
+		Vector3 originalTo = target;
+
+		// Clamp maximum speed
+		float maxChange = maxSpeed * smoothTime;
+		change = Vector3.ClampMagnitude(change, maxChange);
+		target = current - change;
+		
+		Vector3 temp = (currentVelocity + omega * change) * deltaTime;
+		currentVelocity = (currentVelocity - omega * temp) * exp;
+		Vector3 output = target + (change + temp) * exp;
+
+		// Prevent overshooting
+		if (Vector3.Dot(originalTo - current, output - originalTo) > 0)
+		{
+			output = originalTo;
+			currentVelocity = (output - originalTo) / deltaTime;
+		}
+
+		return output;
+	}
+	
+	// Access the x, y, z components using [0], [1], [2] respectively.
+	CSRAW public float this [int index]
+	{
+		get
+		{
+			switch(index)
+			{
+				case 0: return x;
+				case 1: return y;
+				case 2: return z;
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector3 index!");
+			}
+		}
+
+		set
+		{
+			switch(index)
+			{
+				case 0: x = value; break;
+				case 1: y = value; break;
+				case 2: z = value; break; 
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector3 index!");
+			}
+		}
+	}
+
+	// Creates a new vector with given x, y, z components.
+	public Vector3 (float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
+	// Creates a new vector with given x, y components and sets /z/ to zero.
+	public Vector3 (float x, float y) { this.x = x; this.y = y; z = 0F; }
+		
+	// Set x, y and z components of an existing Vector3.
+	CSRAW public void Set (float new_x, float new_y, float new_z) { x = new_x; y = new_y; z = new_z; }
+		
+	// Multiplies two vectors component-wise.
+	CSRAW public static Vector3 Scale (Vector3 a, Vector3 b) { return new Vector3 (a.x*b.x, a.y*b.y, a.z*b.z); }
+	
+	// Multiplies every component of this vector by the same component of /scale/.
+	CSRAW public void Scale (Vector3 scale) { x *= scale.x; y *= scale.y; z *= scale.z; }
+	
+	// Cross Product of two vectors.
+	CSRAW public static Vector3 Cross (Vector3 lhs, Vector3 rhs)
+	{
+		return new Vector3 (
+		lhs.y * rhs.z - lhs.z * rhs.y,
+		lhs.z * rhs.x - lhs.x * rhs.z,
+		lhs.x * rhs.y - lhs.y * rhs.x);
+	}
+		
+	// used to allow Vector3s to be used as keys in hash tables
+	public override int GetHashCode() {
+		return x.GetHashCode() ^ (y.GetHashCode()<<2) ^ (z.GetHashCode()>>2);
+	}
+	
+	// also required for being able to use Vector3s as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is Vector3)) return false;
+		
+		Vector3 rhs=(Vector3)other;
+		return x.Equals(rhs.x) && y.Equals(rhs.y) && z.Equals(rhs.z);
+	}
+
+	// Reflects a vector off the plane defined by a normal.
+	CSRAW public static Vector3 Reflect (Vector3 inDirection, Vector3 inNormal)
+	{
+		return -2F * Dot (inNormal, inDirection) * inNormal + inDirection;
+	}
+	
+	// *undoc* --- we have normalized property now
+	CSRAW public static Vector3 Normalize (Vector3 value)
+	{
+		float mag = Magnitude (value);
+		if (mag > kEpsilon)
+			return value / mag;
+		else
+			return zero;			
+	}
+
+	// Makes this vector have a ::ref::magnitude of 1.
+	CSRAW public void Normalize ()
+	{
+		float mag = Magnitude (this);
+		if (mag > kEpsilon)
+			this = this / mag;
+		else
+			this = zero;
+	}
+	
+	// Returns this vector with a ::ref::magnitude of 1 (RO).
+	CSRAW public Vector3 normalized { get { return Vector3.Normalize (this); } }
+
+	/// *listonly*
+	CSRAW override public string ToString() { return UnityString.Format("({0:F1}, {1:F1}, {2:F1})", x, y, z); }
+	// Returns a nicely formatted string for this vector.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("({0}, {1}, {2})", x.ToString(format), y.ToString(format), z.ToString(format));
+	}
+
+	// Dot Product of two vectors.
+	public static float Dot (Vector3 lhs, Vector3 rhs) { return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z; }
+
+	// Projects a vector onto another vector.
+	public static Vector3 Project (Vector3 vector, Vector3 onNormal) { 
+		float sqrMag = Dot(onNormal,onNormal);
+		if (sqrMag < Mathf.Epsilon)
+			return zero;
+		else
+			return onNormal * Dot (vector, onNormal) / sqrMag;
+	}
+
+	//*undocumented* --------------------------- TODO is this generally useful? What is the intention? I know i understood it once upon a time but it evaded my mind.
+	CSRAW public static Vector3 Exclude (Vector3 excludeThis, Vector3 fromThat) {
+		return fromThat - Project (fromThat, excludeThis);
+	}
+	
+	// Returns the angle in degrees between /from/ and /to/. This is always the smallest
+	CSRAW public static float Angle(Vector3 from, Vector3 to) { return Mathf.Acos(Mathf.Clamp (Vector3.Dot (from.normalized, to.normalized), -1F, 1F)) * Mathf.Rad2Deg; }
+
+	// Returns the distance between /a/ and /b/.
+	public static float Distance (Vector3 a, Vector3 b) { Vector3 vec = new Vector3 (a.x - b.x, a.y - b.y, a.z - b.z); return Mathf.Sqrt (vec.x * vec.x + vec.y * vec.y + vec.z * vec.z); }
+	
+	// Returns a copy of /vector/ with its magnitude clamped to /maxLength/.
+	CSRAW public static Vector3 ClampMagnitude (Vector3 vector, float maxLength)
+	{
+		if (vector.sqrMagnitude > maxLength * maxLength)
+			return vector.normalized * maxLength;
+		return vector;
+	}
+	
+	// *undoc* --- there's a property now
+	CSRAW public static float Magnitude (Vector3 a) { return Mathf.Sqrt (a.x*a.x + a.y*a.y + a.z*a.z); }
+
+	// Returns the length of this vector (RO).
+	CSRAW public float magnitude { get { return Mathf.Sqrt (x*x + y*y + z*z); } }
+
+	// *undoc* --- there's a property now
+	CSRAW public static float SqrMagnitude (Vector3 a) { return a.x*a.x + a.y*a.y + a.z*a.z; }
+	
+	// Returns the squared length of this vector (RO).
+	CSRAW public float sqrMagnitude { get { return x * x + y * y + z * z; } }
+	
+	
+	// Returns a vector that is made from the smallest components of two vectors.
+	CSRAW public static Vector3 Min (Vector3 lhs, Vector3 rhs) { return new Vector3 (Mathf.Min(lhs.x,rhs.x), Mathf.Min(lhs.y,rhs.y), Mathf.Min(lhs.z,rhs.z)); }
+	
+	// Returns a vector that is made from the largest components of two vectors.
+	CSRAW public static Vector3 Max (Vector3 lhs, Vector3 rhs) { return new Vector3 (Mathf.Max(lhs.x,rhs.x), Mathf.Max(lhs.y,rhs.y), Mathf.Max(lhs.z,rhs.z)); }
+	
+	// Shorthand for writing @@Vector3(0, 0, 0)@@
+	CSRAW public static Vector3 zero { get { return new Vector3 (0F, 0F, 0F); }   }
+	// Shorthand for writing @@Vector3(1, 1, 1)@@
+	CSRAW public static Vector3 one { get { return new Vector3 (1F, 1F, 1F); }   }
+	// Shorthand for writing @@Vector3(0, 0, 1)@@
+	CSRAW public static Vector3 forward { get { return new Vector3 (0F, 0F, 1F); }   }
+	OBSOLETE planned Use -Vector3.forward
+	CSRAW public static Vector3 back { get { return new Vector3 (0F, 0F, -1F); }   }
+	// Shorthand for writing @@Vector3(0, 1, 0)@@
+	CSRAW public static Vector3 up { get { return new Vector3 (0F, 1F, 0F); }   }
+	OBSOLETE planned Use -Vector3.up
+	CSRAW public static Vector3 down { get { return new Vector3 (0F, -1F, 0F); }   }
+	OBSOLETE planned Use -Vector3.right
+	CSRAW public static Vector3 left { get { return new Vector3 (-1F, 0F, 0F); }   }
+	// Shorthand for writing @@Vector3(1, 0, 0)@@
+	CSRAW public static Vector3 right { get { return new Vector3 (1F, 0F, 0F); }   }
+
+
+	// Adds two vectors.
+	CSRAW public static Vector3 operator + (Vector3 a, Vector3 b) { return new Vector3 (a.x+b.x, a.y+b.y, a.z+b.z); }
+	// Subtracts one vector from another.
+	CSRAW public static Vector3 operator - (Vector3 a, Vector3 b) { return new Vector3 (a.x-b.x, a.y-b.y, a.z-b.z); }
+	// Negates a vector.
+	CSRAW public static Vector3 operator - (Vector3 a) { return new Vector3 (-a.x, -a.y, -a.z); }
+	// Multiplies a vector by a number.
+	CSRAW public static Vector3 operator * (Vector3 a, float d) { return new Vector3 (a.x*d, a.y*d, a.z*d); }
+	// Multiplies a vector by a number.
+	CSRAW public static Vector3 operator * (float d, Vector3 a) { return new Vector3 (a.x*d, a.y*d, a.z*d); }
+	// Divides a vector by a number.
+	CSRAW public static Vector3 operator / (Vector3 a, float d) { return new Vector3 (a.x/d, a.y/d, a.z/d); }
+	
+	// Returns true if the vectors are equal.
+	CSRAW public static bool operator == (Vector3 lhs, Vector3 rhs)
+	{
+		return SqrMagnitude (lhs - rhs) < kEpsilon * kEpsilon;
+	}
+
+	// Returns true if vectors different.
+	CSRAW public static bool operator != (Vector3 lhs, Vector3 rhs)
+	{
+		return SqrMagnitude (lhs - rhs) >= kEpsilon * kEpsilon;
+	}
+	
+	OBSOLETE warning Use Vector3.forward instead.
+	CSRAW public static Vector3 fwd { get { return new Vector3 (0F, 0F, 1F); }   }
+	
+	OBSOLETE warning Use Vector3.Angle instead. AngleBetween uses radians instead of degrees and was deprecated for this reason
+	CSRAW public static float AngleBetween(Vector3 from, Vector3 to) { return Mathf.Acos(Mathf.Clamp (Vector3.Dot (from.normalized, to.normalized), -1F, 1F)); }
+END
+
+
+// Representation of RGBA colors.
+
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Color
+	// Red component of the color.
+	CSRAW public float r;
+
+	// Green component of the color.
+	CSRAW public float g;
+
+	// Blue component of the color.
+	CSRAW public float b;
+
+	// Alpha component of the color.
+	CSRAW public float a;
+
+
+	// Constructs a new Color with given r,g,b,a components.
+	CSRAW public Color (float r, float g, float b, float a)
+	{
+		this.r = r; this.g = g; this.b = b; this.a = a;
+	}
+
+	// Constructs a new Color with given r,g,b components and sets /a/ to 1.
+	CSRAW public Color (float r, float g, float b)
+	{
+		this.r = r; this.g = g; this.b = b; this.a = 1.0F;
+	}
+
+	/// *listonly*
+	CSRAW override public string ToString() {
+		return UnityString.Format("RGBA({0:F3}, {1:F3}, {2:F3}, {3:F3})", r, g, b, a);
+	}
+	// Returns a nicely formatted string of this color.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("RGBA({0}, {1}, {2}, {3})", r.ToString(format), g.ToString(format), b.ToString(format), a.ToString(format));
+	}
+	
+	// used to allow Colors to be used as keys in hash tables
+	public override int GetHashCode() {
+		return ((Vector4)this).GetHashCode();
+	}
+	
+	// also required for being able to use Colors as keys in hash tables
+	public override bool Equals(object other) {
+		if (!(other is Color)) return false;
+		Color rhs = (Color)other;
+		return r.Equals(rhs.r) && g.Equals(rhs.g) && b.Equals(rhs.b) && a.Equals(rhs.a);
+	}
+	
+	// Adds two colors together. Each component is added separately.
+	CSRAW public static Color operator + (Color a, Color b) { return new Color (a.r+b.r, a.g+b.g, a.b+b.b, a.a+b.a); }
+
+	// Subtracts color /b/ from color /a/. Each component is subtracted separately.
+	CSRAW public static Color operator - (Color a, Color b) { return new Color (a.r-b.r, a.g-b.g, a.b-b.b, a.a-b.a); }
+
+	// Multiplies two colors together. Each component is multiplied separately.
+	CSRAW public static Color operator * (Color a, Color b) { return new Color (a.r*b.r, a.g*b.g, a.b*b.b, a.a*b.a); }
+
+	// Multiplies color /a/ by the float /b/. Each color component is scaled separately.
+	CSRAW public static Color operator * (Color a, float b) { return new Color (a.r*b, a.g*b, a.b*b, a.a*b); }
+
+	// Multiplies color /a/ by the float /b/. Each color component is scaled separately.
+	CSRAW public static Color operator * (float b, Color a) { return new Color (a.r*b, a.g*b, a.b*b, a.a*b); }
+
+	// Divides color /a/ by the float /b/. Each color component is scaled separately.
+	CSRAW public static Color operator / (Color a, float b) { return new Color (a.r/b, a.g/b, a.b/b, a.a/b); }
+	
+	//*undoc*
+	CSRAW public static bool operator == (Color lhs, Color rhs)
+	{
+		return ((Vector4)lhs == (Vector4)rhs);
+	}
+	//*undoc*
+	CSRAW public static bool operator != (Color lhs, Color rhs)
+	{
+		return ((Vector4)lhs != (Vector4)rhs);
+	}
+	
+	// Interpolates between colors /a/ and /b/ by /t/.
+	CSRAW public static Color Lerp (Color a, Color b, float t)
+	{ 
+		t = Mathf.Clamp01 (t);       
+		return new Color( 
+			a.r + (b.r - a.r)*t, 
+			a.g + (b.g - a.g)*t, 
+			a.b + (b.b - a.b)*t,
+			a.a + (b.a - a.a)*t 
+		); 
+	 }
+	
+	// Solid red. RGBA is (1, 0, 0, 1).
+	CSRAW public static Color red { get { return new Color (1F, 0F, 0F, 1F); } }
+	// Solid green. RGBA is (0, 1, 0, 1).
+	CSRAW public static Color green { get { return new Color (0F, 1F, 0F, 1F); } }
+	// Solid blue. RGBA is (0, 0, 1, 1).
+	CSRAW public static Color blue { get { return new Color (0F, 0F, 1F, 1F); } }
+	// Solid white. RGBA is (1, 1, 1, 1).
+	CSRAW public static Color white { get { return new Color (1F, 1F, 1F, 1F); } }
+	// Solid black. RGBA is (0, 0, 0, 1).
+	CSRAW public static Color black { get { return new Color (0F, 0F, 0F, 1F); } }
+	// Yellow. RGBA is (1, 0.92, 0.016, 1), but the color is nice to look at!
+	CSRAW public static Color yellow { get { return new Color (1F, 235F / 255F, 4F / 255F, 1F); } }
+	// Cyan. RGBA is (0, 1, 1, 1).
+	CSRAW public static Color cyan { get { return new Color (0F, 1F, 1F, 1F); } }
+	// Magenta. RGBA is (1, 0, 1, 1).
+	CSRAW public static Color magenta { get { return new Color (1F, 0F, 1F, 1F); } }
+	// Gray. RGBA is (0.5, 0.5, 0.5, 1).
+	CSRAW public static Color gray { get { return new Color (.5F, .5F, .5F, 1F); } }
+	// English spelling for ::ref::gray. RGBA is the same (0.5, 0.5, 0.5, 1).
+	CSRAW public static Color grey { get { return new Color (.5F, .5F, .5F, 1F); } }
+	// Completely transparent. RGBA is (0, 0, 0, 0).
+	CSRAW public static Color clear { get { return new Color (0F, 0F, 0F, 0F); } }
+	
+	// The grayscale value of the color (RO)
+	CSRAW public float grayscale { get { return 0.299F * r + 0.587F * g + 0.114F * b; } }
+	
+	// A version of the color that has had the inverse gamma curve applied
+	CSRAW public Color linear 
+	{
+		get {
+			return new Color (Mathf.GammaToLinearSpace(r), Mathf.GammaToLinearSpace(g), Mathf.GammaToLinearSpace(b), a);
+		}
+	}
+	
+	// A version of the color that has had the gamma curve applied
+	CSRAW public Color gamma 
+	{
+		get {
+			return new Color (Mathf.LinearToGammaSpace(r), Mathf.LinearToGammaSpace(g), Mathf.LinearToGammaSpace(b), a);
+		}
+	}
+	
+	// Colors can be implicitly converted to and from [[Vector4]].
+	CSRAW public static implicit operator Vector4(Color c) {
+		return new Vector4(c.r, c.g, c.b, c.a);
+	}
+	// Colors can be implicitly converted to and from [[Vector4]].
+	CSRAW public static implicit operator Color(Vector4 v) {
+		return new Color(v.x, v.y, v.z, v.w);
+	}
+	
+	// Access the r, g, b,a components using [0], [1], [2], [3] respectively.
+	CSRAW public float this [int index]
+	{
+		get
+		{
+			switch(index)
+			{
+				case 0: return r;
+				case 1: return g;
+				case 2: return b;
+				case 3: return a;
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector3 index!");
+			}
+		}
+
+		set
+		{
+			switch(index)
+			{
+				case 0: r = value; break;
+				case 1: g = value; break;
+				case 2: b = value; break; 
+				case 3: a = value; break; 
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector3 index!");
+			}
+		}
+	}
+
+	
+END
+
+
+// Representation of RGBA colors in 32 bit format
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Color32 
+	// Red component of the color.
+	CSRAW public byte r;
+
+	// Green component of the color.
+	CSRAW public byte g;
+
+	// Blue component of the color.
+	CSRAW public byte b;
+
+	// Alpha component of the color.
+	CSRAW public byte a;
+	
+	// Constructs a new Color with given r, g, b, a components.
+	CSRAW public Color32(byte r, byte g, byte b, byte a) {
+		this.r = r; this.g = g; this.b = b; this.a = a;
+	}
+	
+	// Color32 can be implicitly converted to and from [[Color]].
+	CSRAW public static implicit operator Color32(Color c) {
+		return new Color32((byte)(Mathf.Clamp01(c.r) * 255), (byte)(Mathf.Clamp01(c.g) * 255), (byte)(Mathf.Clamp01(c.b) * 255), (byte)(Mathf.Clamp01(c.a) * 255));
+	}
+	
+	// Color32 can be implicitly converted to and from [[Color]].
+	CSRAW public static implicit operator Color (Color32 c) {
+		return new Color(c.r / 255f, c.g / 255f, c.b / 255f, c.a / 255f);
+	}
+	
+	/// *listonly*
+	CSRAW override public string ToString() {
+		return UnityString.Format("RGBA({0}, {1}, {2}, {3})", r, g, b, a);
+	}
+	// Returns a nicely formatted string of this color.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("RGBA({0}, {1}, {2}, {3})", r.ToString(format), g.ToString(format), b.ToString(format), a.ToString(format));
+	}
+	
+	// Interpolates between colors /a/ and /b/ by /t/.
+	CSRAW public static Color32 Lerp (Color32 a, Color32 b, float t)
+	{ 
+		t = Mathf.Clamp01 (t);       
+		return new Color32( 
+			(byte)(a.r + (b.r - a.r)*t), 
+			(byte)(a.g + (b.g - a.g)*t), 
+			(byte)(a.b + (b.b - a.b)*t),
+			(byte)(a.a + (b.a - a.a)*t) 
+		); 
+	 }	
+END
+
+
+// Quaternions are used to represent rotations.
+
+CSRAW
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Quaternion
+	
+	// X component of the Quaternion. Don't modify this directly unless you know quaternions inside out.
+	CSRAW public float x;
+	// Y component of the Quaternion. Don't modify this directly unless you know quaternions inside out.
+	CSRAW public float y;
+	// Z component of the Quaternion. Don't modify this directly unless you know quaternions inside out.
+	CSRAW public float z;
+	// W component of the Quaternion. Don't modify this directly unless you know quaternions inside out.
+	CSRAW public float w;
+	
+	// Access the x, y, z, w components using [0], [1], [2], [3] respectively.
+	CSRAW public float this [int index]
+	{
+		get
+		{
+			switch(index)
+			{
+				case 0: return x;
+				case 1: return y;
+				case 2: return z;
+				case 3: return w;
+				default:
+				throw new IndexOutOfRangeException("Invalid Quaternion index!");
+			}
+		}
+
+		set
+		{
+			switch(index)
+			{
+				case 0: x = value; break;
+				case 1: y = value; break;
+				case 2: z = value; break;
+				case 3: w = value; break;
+				default:
+				throw new IndexOutOfRangeException("Invalid Quaternion index!");
+			}
+		}
+	}
+
+	
+	// Constructs new Quaternion with given x,y,z,w components.
+	CSRAW public Quaternion (float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; }
+
+	// Set x, y, z and w components of an existing Quaternion.
+	CSRAW public void Set (float new_x, float new_y, float new_z, float new_w) { x = new_x; y = new_y; z = new_z; w = new_w; }
+
+	// The identity rotation (RO). This quaternion corresponds to "no rotation": the object
+	CSRAW public static Quaternion identity { get { return new Quaternion (0F, 0F, 0F, 1F); } }
+	
+	// Combines rotations /lhs/ and /rhs/.
+	CSRAW public static Quaternion operator * (Quaternion lhs, Quaternion rhs)
+	{
+		return new Quaternion (
+				lhs.w*rhs.x + lhs.x*rhs.w + lhs.y*rhs.z - lhs.z*rhs.y,
+				lhs.w*rhs.y + lhs.y*rhs.w + lhs.z*rhs.x - lhs.x*rhs.z,
+				lhs.w*rhs.z + lhs.z*rhs.w + lhs.x*rhs.y - lhs.y*rhs.x,
+				lhs.w*rhs.w - lhs.x*rhs.x - lhs.y*rhs.y - lhs.z*rhs.z);
+	}
+
+	// Rotates the point /point/ with /rotation/.
+	CSRAW public static Vector3 operator * (Quaternion rotation, Vector3 point)
+	{
+		float x = rotation.x * 2F;
+		float y = rotation.y * 2F;
+		float z = rotation.z * 2F;
+		float xx = rotation.x * x;
+		float yy = rotation.y * y;
+		float zz = rotation.z * z;
+		float xy = rotation.x * y;
+		float xz = rotation.x * z;
+		float yz = rotation.y * z;
+		float wx = rotation.w * x;
+		float wy = rotation.w * y;
+		float wz = rotation.w * z;
+
+		Vector3 res;
+		res.x = (1F - (yy + zz)) * point.x + (xy - wz)          * point.y + (xz + wy)          * point.z;
+		res.y = (xy + wz)          * point.x + (1F - (xx + zz)) * point.y + (yz - wx)          * point.z;
+		res.z = (xz - wy)          * point.x + (yz + wx)          * point.y + (1F - (xx + yy)) * point.z;
+		return res;
+	}
+
+	// *undocumented*
+	CSRAW public const float kEpsilon = 0.000001F;
+
+	// Are two quaternions equal to each other?
+	CSRAW public static bool operator == (Quaternion lhs, Quaternion rhs)
+	{
+		return Dot (lhs, rhs) > 1.0f-kEpsilon;
+	}
+
+	// Are two quaternions different from each other?
+	CSRAW public static bool operator != (Quaternion lhs, Quaternion rhs)
+	{
+		return Dot (lhs, rhs) <= 1.0f-kEpsilon;
+	}
+
+	// The dot product between two rotations.
+	CSRAW public static float Dot (Quaternion a, Quaternion b) { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
+	
+	// Creates a rotation which rotates /angle/ degrees around /axis/.
+	CUSTOM static Quaternion AngleAxis (float angle, Vector3 axis) { return AxisAngleToQuaternionSafe (axis, Deg2Rad(angle)); }
+
+	// Converts a rotation to angle-axis representation.
+	CSRAW public void ToAngleAxis (out float angle, out Vector3 axis) { Internal_ToAxisAngleRad (this, out axis, out angle); angle *= Mathf.Rad2Deg;  }
+
+	// Creates a rotation which rotates from /fromDirection/ to /toDirection/.
+	CUSTOM static Quaternion FromToRotation (Vector3 fromDirection, Vector3 toDirection) { return FromToQuaternionSafe (fromDirection, toDirection); }
+
+	// Creates a rotation which rotates from /fromDirection/ to /toDirection/.
+	CSRAW public void SetFromToRotation (Vector3 fromDirection, Vector3 toDirection) { this = FromToRotation (fromDirection, toDirection); }
+
+	// Creates a rotation with the specified /forward/ and /upwards/ directions.
+	CUSTOM static Quaternion LookRotation (Vector3 forward, Vector3 upwards = Vector3.up)
+	{
+		Quaternionf q = Quaternionf::identity ();
+		if (!LookRotationToQuaternion (forward, upwards, &q))
+		{
+			float mag = Magnitude (forward);
+			if (mag > Vector3f::epsilon)
+			{
+				Matrix3x3f m;
+				m.SetFromToRotation (Vector3f::zAxis, forward / mag);
+				MatrixToQuaternion (m, q);
+			}
+			else
+			{
+				LogString ("Look rotation viewing vector is zero");
+			}
+		}
+		return q;
+	}
+	
+	// Creates a rotation with the specified /forward/ and /upwards/ directions.
+	CSRAW public void SetLookRotation (Vector3 view, Vector3 up = Vector3.up) { this = LookRotation (view, up); }
+	
+	// Spherically interpolates between /from/ and /to/ by t.
+	CUSTOM static Quaternion Slerp (Quaternion from, Quaternion to, float t) { return Slerp (from, to, clamp01 (t)); }
+
+	// Interpolates between /from/ and /to/ by /t/ and normalizes the result afterwards.
+	CUSTOM static Quaternion Lerp (Quaternion from, Quaternion to, float t) { return Lerp (from, to, clamp01 (t)); }
+	
+	// Rotates a rotation /from/ towards /to/.
+	CSRAW public static Quaternion RotateTowards (Quaternion from, Quaternion to, float maxDegreesDelta)
+	{
+		float angle = Quaternion.Angle(from, to);
+		if (angle == 0.0f)
+			return to;
+		float slerpValue = Mathf.Min(1.0f, maxDegreesDelta / angle);
+		return UnclampedSlerp(from, to, slerpValue);
+	}
+	
+	CUSTOM private static Quaternion UnclampedSlerp (Quaternion from, Quaternion to, float t) { return Slerp (from, to, t); }
+	
+	// Returns the Inverse of /rotation/.
+	CUSTOM static Quaternion Inverse (Quaternion rotation) { return Inverse (rotation); }
+
+	
+	/// *listonly*
+	CSRAW override public string ToString() {
+		return UnityString.Format("({0:F1}, {1:F1}, {2:F1}, {3:F1})", x, y, z, w);
+	}
+	// Returns a nicely formatted string of the Quaternion
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("({0}, {1}, {2}, {3})", x.ToString(format), y.ToString(format), z.ToString(format), w.ToString(format));
+	}
+	 
+	// Returns the angle in degrees between two rotations /a/ and /b/.
+	CSRAW static public float Angle (Quaternion a, Quaternion b)
+	{
+		float dot = Dot(a, b);
+		return Mathf.Acos(Mathf.Min(Mathf.Abs(dot), 1.0F)) * 2.0F * Mathf.Rad2Deg;
+	}
+
+	// Returns the euler angle representation of the rotation.
+	CSRAW public Vector3 eulerAngles { get { return Internal_ToEulerRad(this) * Mathf.Rad2Deg; } set { this=Internal_FromEulerRad(value * Mathf.Deg2Rad); } }
+
+	// Returns a rotation that rotates z degrees around the z axis, x degrees around the x axis, and y degrees around the y axis (in that order).
+	CSRAW static public Quaternion Euler (float x, float y, float z) { return Internal_FromEulerRad (new Vector3 (x, y, z) * Mathf.Deg2Rad); }
+
+	// Returns a rotation that rotates z degrees around the z axis, x degrees around the x axis, and y degrees around the y axis (in that order). 
+	CSRAW static public Quaternion Euler (Vector3 euler) { return Internal_FromEulerRad (euler * Mathf.Deg2Rad); }
+
+
+	// Internal implementation. Note Rad suffix that indicates that this method works in radians.
+	CUSTOM static private Vector3 Internal_ToEulerRad (Quaternion rotation)
+	{
+		Quaternionf outRotation = NormalizeSafe (rotation);
+		return QuaternionToEuler (outRotation);
+	}
+
+	// Internal implementation. Note Rad suffix that indicates that this method works in radians.
+	CUSTOM static private Quaternion Internal_FromEulerRad (Vector3 euler) { 
+		return EulerToQuaternion (euler); 
+	}
+
+	// Internal implementation. Note Rad suffix that indicates that this method works in radians.
+	CUSTOM private static void Internal_ToAxisAngleRad (Quaternion q, out Vector3 axis, out float angle) { 
+		QuaternionToAxisAngle (NormalizeSafe (q), axis, angle); 
+	}
+
+
+	// Old obsolete radians-based Euler functions:
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW static public Quaternion EulerRotation (float x, float y, float z) { return Internal_FromEulerRad (new Vector3 (x, y, z)); }
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public static Quaternion EulerRotation (Vector3 euler) { return Internal_FromEulerRad (euler); }
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public void SetEulerRotation (float x, float y, float z) { this = Internal_FromEulerRad (new Vector3 (x, y, z)); }
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public void SetEulerRotation (Vector3 euler) { this = Internal_FromEulerRad (euler); }
+	OBSOLETE warning Use Quaternion.eulerAngles instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public Vector3 ToEuler () { return Internal_ToEulerRad (this); }
+	
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW static public Quaternion EulerAngles (float x, float y, float z) { return Internal_FromEulerRad (new Vector3 (x, y, z)); }
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public static Quaternion EulerAngles (Vector3 euler) {  return Internal_FromEulerRad (euler); }
+
+	OBSOLETE warning Use Quaternion.ToAngleAxis instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public void ToAxisAngle (out Vector3 axis, out float angle) { Internal_ToAxisAngleRad (this, out axis, out angle);  }
+
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public void SetEulerAngles (float x, float y, float z) { SetEulerRotation (new Vector3 (x, y, z)); }
+	OBSOLETE warning Use Quaternion.Euler instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public void SetEulerAngles (Vector3 euler) { this = EulerRotation (euler); }
+	OBSOLETE warning Use Quaternion.eulerAngles instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public static Vector3 ToEulerAngles (Quaternion rotation) { return Quaternion.Internal_ToEulerRad (rotation); }
+	OBSOLETE warning Use Quaternion.eulerAngles instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public Vector3 ToEulerAngles () { return Quaternion.Internal_ToEulerRad (this); }
+
+	OBSOLETE warning Use Quaternion.AngleAxis instead. This function was deprecated because it uses radians instead of degrees
+	CUSTOM static Quaternion AxisAngle (Vector3 axis, float angle) { return AxisAngleToQuaternionSafe (axis, angle); }
+	
+	OBSOLETE warning Use Quaternion.AngleAxis instead. This function was deprecated because it uses radians instead of degrees
+	CSRAW public void SetAxisAngle (Vector3 axis, float angle) { this = AxisAngle (axis, angle); }
+
+	// used to allow Quaternions to be used as keys in hash tables
+	CSRAW public override int GetHashCode() {
+		return x.GetHashCode() ^ (y.GetHashCode()<<2) ^ (z.GetHashCode()>>2) ^ (w.GetHashCode()>>1);
+	}
+	
+	// also required for being able to use Quaternions as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is Quaternion)) return false;
+		
+		Quaternion rhs=(Quaternion)other;
+		return x.Equals(rhs.x) && y.Equals(rhs.y) && z.Equals(rhs.z) && w.Equals(rhs.w);
+	}
+
+END			
+
+
+// A 2D Rectangle defined by x, y position and width, height
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Rect
+	CSRAW private float m_XMin, m_YMin, m_Width, m_Height;
+	
+	// Creates a new rectangle.
+	CSRAW public Rect (float left, float top, float width, float height) {
+		m_XMin = left;
+		m_YMin = top;
+		m_Width = width;
+		m_Height = height;
+	}
+
+	//*undocumented*
+	CSRAW public Rect (Rect source) {
+		m_XMin = source.m_XMin;
+		m_YMin = source.m_YMin;
+		m_Width = source.m_Width;
+		m_Height= source.m_Height;
+	}
+	
+	// Creates a rectangle from min/max coordinate values.
+	static public Rect MinMaxRect (float left, float top, float right, float bottom)
+	{
+		return new Rect (left, top, right - left, bottom - top);
+	}
+
+	// Set components of an existing Rect.
+	CSRAW public void Set (float left, float top, float width, float height) {
+		m_XMin = left;
+		m_YMin = top;
+		m_Width = width;
+		m_Height = height;
+	}
+
+	// Left coordinate of the rectangle.
+	CSRAW public float x { get { return m_XMin; } set { m_XMin = value; } }
+	
+	// Top coordinate of the rectangle.
+	CSRAW public float y { get { return m_YMin; } set { m_YMin = value; } }
+	
+	// Center coordinate of the rectangle.
+	CSRAW public Vector2 center { get { return new Vector2 (x + m_Width / 2f, y + m_Height / 2f); } set { m_XMin = value.x - m_Width / 2f; m_YMin = value.y - m_Height / 2f; } }
+	
+	// Width of the rectangle.
+	CSRAW public float width { get { return m_Width; } set { m_Width = value; } }
+
+	// Height of the rectangle.
+	CSRAW public float height { get { return m_Height; } set { m_Height = value;  } }
+
+	OBSOLETE warning use xMin
+	CSRAW public float left { get { return m_XMin; }  }
+	OBSOLETE warning use xMax
+	CSRAW public float right { get { return m_XMin + m_Width; }  }
+	OBSOLETE warning use yMin
+	CSRAW public float top { get { return m_YMin; }  }
+	OBSOLETE warning use yMax
+	CSRAW public float bottom { get { return m_YMin + m_Height; }  }
+
+	// Left coordinate of the rectangle.
+	CSRAW public float xMin { get { return m_XMin; } set { float oldxmax = xMax; m_XMin = value; m_Width = oldxmax - m_XMin; } }
+	// Top coordinate of the rectangle.
+	CSRAW public float yMin { get { return m_YMin; } set { float oldymax = yMax; m_YMin = value; m_Height = oldymax - m_YMin;  } }
+	// Right coordinate of the rectangle.
+	CSRAW public float xMax { get { return m_Width + m_XMin; }  set { m_Width = value - m_XMin; } }
+	// Bottom coordinate of the rectangle.
+	CSRAW public float yMax { get { return m_Height + m_YMin; }  set { m_Height = value - m_YMin; } }
+
+	/// *listonly*
+	CSRAW override public string ToString() { return UnityString.Format("(x:{0:F2}, y:{1:F2}, width:{2:F2}, height:{3:F2})", x, y, width, height); }
+	// Returns a nicely formatted string for this Rect.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("(x:{0}, y:{1}, width:{2}, height:{3})", x.ToString(format), y.ToString(format), width.ToString(format), height.ToString(format));
+	}
+	
+	/// *listonly*
+	CSRAW public bool Contains (Vector2 point)
+	{
+		return (point.x >= xMin) && (point.x < xMax) && (point.y >= yMin) && (point.y < yMax);
+	}
+	// Returns true if the /x/ and /y/ components of /point/ is a point inside this rectangle.
+	public bool Contains (Vector3 point)
+	{
+		return (point.x >= xMin) && (point.x < xMax) && (point.y >= yMin) && (point.y < yMax);
+	}
+	public bool Contains(Vector3 point, bool allowInverse)
+	{
+		if (!allowInverse)
+		{
+			return Contains(point);
+		}
+		bool xAxis = false;
+		if (width < 0f && (point.x <= xMin) && (point.x > xMax) || width >= 0f && (point.x >= xMin) && (point.x < xMax))
+			xAxis = true;
+		if (xAxis && (height < 0f && (point.y <= yMin) && (point.y > yMax) || height >= 0f && (point.y >= yMin) && (point.y < yMax)))
+			return true;
+		return false;
+	}
+	// removed for 2.0
+	// Clamp a point to be within a rectangle.
+//	CSRAW public Vector2 Clamp (Vector2 point) {
+//		return new Vector2 (Mathf.Clamp (point.x, left, xMax-1), Mathf.Clamp (point.y, yMin, yMax-1));
+//	}
+
+	// Returns true if the rectangles are different.
+	CSRAW public static bool operator != (Rect lhs, Rect rhs)
+	{
+		return lhs.x != rhs.x || lhs.y != rhs.y || lhs.width != rhs.width || lhs.height != rhs.height;
+	}
+
+	// Returns true if the rectangles are the same.
+	CSRAW public static bool operator == (Rect lhs, Rect rhs) {
+		return lhs.x == rhs.x && lhs.y == rhs.y && lhs.width == rhs.width && lhs.height == rhs.height;
+	}
+
+	public override int GetHashCode() {
+		return x.GetHashCode() ^ (width.GetHashCode()<<2) ^ (y.GetHashCode()>>2) ^ (height.GetHashCode()>>1);
+	}
+	
+	public override bool Equals(object other) {
+		if(!(other is Rect)) return false;
+		
+		Rect rhs=(Rect)other;
+		return x.Equals(rhs.x) && y.Equals(rhs.y) && width.Equals(rhs.width) && height.Equals(rhs.height);
+	}
+END
+
+
+// A standard 4x4 transformation matrix.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Matrix4x4
+	CSRAW
+	///*undocumented*
+	public float m00;
+	///*undocumented*
+	public float m10;
+	///*undocumented*
+	public float m20;
+	///*undocumented*
+	public float m30;
+	
+	///*undocumented*
+	public float m01;
+	///*undocumented*
+	public float m11;
+	///*undocumented*
+	public float m21;
+	///*undocumented*
+	public float m31;
+	
+	///*undocumented*
+ 	public float m02;
+	///*undocumented*
+	public float m12;
+	///*undocumented*
+	public float m22;
+	///*undocumented*	
+	public float m32;
+	
+	///*undocumented*
+ 	public float m03;
+	///*undocumented*
+	public float m13;
+	///*undocumented*
+	public float m23;
+	///*undocumented*
+	public float m33;
+
+
+	CSRAW
+	// Access element at [row, column].
+	public float this [int row, int column]
+	{
+		get
+		{
+			return this [ row + column*4 ];
+		}
+
+		set
+		{
+			this [ row + column*4 ] = value;
+		}			
+	}
+	
+	// Access element at sequential index (0..15 inclusive).
+	CSRAW public float this [int index]
+	{
+		get
+		{
+			switch(index)
+			{
+				case 0: return m00;
+				case 1: return m10;
+				case 2: return m20;
+				case 3: return m30;
+				case 4: return m01;
+				case 5: return m11;
+				case 6: return m21;
+				case 7: return m31;
+				case 8: return m02;
+				case 9: return m12;
+				case 10:return m22;
+				case 11:return m32;
+				case 12:return m03;
+				case 13:return m13;
+				case 14:return m23;
+				case 15:return m33;
+				default:
+				throw new IndexOutOfRangeException("Invalid matrix index!");
+			}
+		}
+
+		set
+		{			
+			switch(index)
+			{
+				case 0: m00 = value; break;
+				case 1: m10 = value; break;
+				case 2: m20 = value; break;
+				case 3: m30 = value; break;
+				case 4: m01 = value; break;
+				case 5: m11 = value; break;
+				case 6: m21 = value; break;
+				case 7: m31 = value; break;
+				case 8: m02 = value; break;
+				case 9: m12 = value; break;
+				case 10:m22 = value; break;
+				case 11:m32 = value; break;
+				case 12:m03 = value; break;
+				case 13:m13 = value; break;
+				case 14:m23 = value; break;
+				case 15:m33 = value; break;
+
+				default:
+				throw new IndexOutOfRangeException("Invalid matrix index!");
+			}
+		}
+	}
+	
+	// used to allow Matrix4x4s to be used as keys in hash tables
+	public override int GetHashCode() {
+		return GetColumn( 0 ).GetHashCode() ^ (GetColumn( 1 ).GetHashCode()<<2) ^ (GetColumn( 2 ).GetHashCode()>>2) ^ (GetColumn( 3 ).GetHashCode()>>1);
+	}
+	
+	// also required for being able to use Matrix4x4s as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is Matrix4x4)) return false;
+		
+		Matrix4x4 rhs=(Matrix4x4)other;
+		return GetColumn( 0 ).Equals(rhs.GetColumn( 0 )) 
+			&& GetColumn( 1 ).Equals(rhs.GetColumn( 1 )) 
+			&& GetColumn( 2 ).Equals(rhs.GetColumn( 2 )) 
+			&& GetColumn( 3 ).Equals(rhs.GetColumn( 3 ));
+	}
+	
+	// Multiplies two matrices.
+	CSRAW static public Matrix4x4 operator * (Matrix4x4 lhs, Matrix4x4 rhs)
+	{
+		Matrix4x4 res = new Matrix4x4();
+		res.m00 = lhs.m00 * rhs.m00 + lhs.m01 * rhs.m10 + lhs.m02 * rhs.m20 + lhs.m03 * rhs.m30;
+		res.m01 = lhs.m00 * rhs.m01 + lhs.m01 * rhs.m11 + lhs.m02 * rhs.m21 + lhs.m03 * rhs.m31;
+		res.m02 = lhs.m00 * rhs.m02 + lhs.m01 * rhs.m12 + lhs.m02 * rhs.m22 + lhs.m03 * rhs.m32;
+		res.m03 = lhs.m00 * rhs.m03 + lhs.m01 * rhs.m13 + lhs.m02 * rhs.m23 + lhs.m03 * rhs.m33;
+
+		res.m10 = lhs.m10 * rhs.m00 + lhs.m11 * rhs.m10 + lhs.m12 * rhs.m20 + lhs.m13 * rhs.m30;
+		res.m11 = lhs.m10 * rhs.m01 + lhs.m11 * rhs.m11 + lhs.m12 * rhs.m21 + lhs.m13 * rhs.m31;
+		res.m12 = lhs.m10 * rhs.m02 + lhs.m11 * rhs.m12 + lhs.m12 * rhs.m22 + lhs.m13 * rhs.m32;
+		res.m13 = lhs.m10 * rhs.m03 + lhs.m11 * rhs.m13 + lhs.m12 * rhs.m23 + lhs.m13 * rhs.m33;
+
+		res.m20 = lhs.m20 * rhs.m00 + lhs.m21 * rhs.m10 + lhs.m22 * rhs.m20 + lhs.m23 * rhs.m30;
+		res.m21 = lhs.m20 * rhs.m01 + lhs.m21 * rhs.m11 + lhs.m22 * rhs.m21 + lhs.m23 * rhs.m31;
+		res.m22 = lhs.m20 * rhs.m02 + lhs.m21 * rhs.m12 + lhs.m22 * rhs.m22 + lhs.m23 * rhs.m32;
+		res.m23 = lhs.m20 * rhs.m03 + lhs.m21 * rhs.m13 + lhs.m22 * rhs.m23 + lhs.m23 * rhs.m33;
+
+		res.m30 = lhs.m30 * rhs.m00 + lhs.m31 * rhs.m10 + lhs.m32 * rhs.m20 + lhs.m33 * rhs.m30;
+		res.m31 = lhs.m30 * rhs.m01 + lhs.m31 * rhs.m11 + lhs.m32 * rhs.m21 + lhs.m33 * rhs.m31;
+		res.m32 = lhs.m30 * rhs.m02 + lhs.m31 * rhs.m12 + lhs.m32 * rhs.m22 + lhs.m33 * rhs.m32;
+		res.m33 = lhs.m30 * rhs.m03 + lhs.m31 * rhs.m13 + lhs.m32 * rhs.m23 + lhs.m33 * rhs.m33;
+
+		return res;
+	}
+
+	// Transforms a [[Vector4]] by a matrix.
+	CSRAW static public Vector4 operator * (Matrix4x4 lhs, Vector4 v)
+	{
+		Vector4 res;
+		res.x = lhs.m00 * v.x + lhs.m01 * v.y + lhs.m02 * v.z + lhs.m03 * v.w; 
+		res.y = lhs.m10 * v.x + lhs.m11 * v.y + lhs.m12 * v.z + lhs.m13 * v.w;
+		res.z = lhs.m20 * v.x + lhs.m21 * v.y + lhs.m22 * v.z + lhs.m23 * v.w;
+		res.w = lhs.m30 * v.x + lhs.m31 * v.y + lhs.m32 * v.z + lhs.m33 * v.w;
+		return res;
+	}
+	
+	//*undoc*
+	CSRAW public static bool operator == (Matrix4x4 lhs, Matrix4x4 rhs)
+	{
+		return lhs.GetColumn( 0 ) == rhs.GetColumn( 0 )
+			&& lhs.GetColumn( 1 ) == rhs.GetColumn( 1 )
+			&& lhs.GetColumn( 2 ) == rhs.GetColumn( 2 )
+			&& lhs.GetColumn( 3 ) == rhs.GetColumn( 3 );
+	}	
+	//*undoc*
+	CSRAW public static bool operator != (Matrix4x4 lhs, Matrix4x4 rhs)
+	{
+		return !(lhs == rhs);
+	}
+	
+	//*undocumented* --- have a property now
+	CUSTOM static Matrix4x4 Inverse (Matrix4x4 m) { Matrix4x4f output (m); output.Invert_Full(); return output; }
+	//*undocumented* --- have a property now
+	CUSTOM static Matrix4x4 Transpose (Matrix4x4 m) { Matrix4x4f output (m); output.Transpose(); return output; }
+	
+	// Invert a matrix and return the success code.
+	CUSTOM internal static bool Invert (Matrix4x4 inMatrix, out Matrix4x4 dest) { return Matrix4x4f::Invert_Full(inMatrix, *dest); }
+	
+	// The inverse of this matrix (RO).
+	CSRAW public Matrix4x4 inverse { get { return Matrix4x4.Inverse (this); } }	
+	
+	// Returns the transpose of this matrix (RO).
+	CSRAW public Matrix4x4 transpose { get { return Matrix4x4.Transpose (this); } }	
+	
+	// Is this the identity matrix?
+	CUSTOM_PROP bool isIdentity { return self.IsIdentity(); }
+		
+	// Get a column of the matrix.
+	CSRAW public Vector4 GetColumn (int i)   { return new Vector4 (this[0, i], this[1, i], this[2, i], this[3, i]); }
+	// Returns a row of the matrix.
+	CSRAW public Vector4 GetRow (int i)      { return new Vector4 (this[i, 0], this[i, 1], this[i, 2], this[i, 3]); }
+	// Sets a column of the matrix.
+	CSRAW public void SetColumn (int i, Vector4 v) { this[0, i] = v.x; this[1, i] = v.y; this[2, i] = v.z; this[3, i] = v.w; }
+	// Sets a row of the matrix.
+	CSRAW public void SetRow (int i, Vector4 v){ this[i, 0] = v.x; this[i, 1] = v.y; this[i, 2] = v.z; this[i, 3] = v.w; }
+	
+	
+	// Transforms a position by this matrix (generic).
+	CSRAW public Vector3 MultiplyPoint (Vector3 v)
+	{
+		Vector3 res;
+		float w;
+		res.x = this.m00 * v.x + this.m01 * v.y + this.m02 * v.z + this.m03; 
+		res.y = this.m10 * v.x + this.m11 * v.y + this.m12 * v.z + this.m13;
+		res.z = this.m20 * v.x + this.m21 * v.y + this.m22 * v.z + this.m23;
+		w     = this.m30 * v.x + this.m31 * v.y + this.m32 * v.z + this.m33;
+		
+		w = 1F / w;
+		res.x *= w;
+		res.y *= w;
+		res.z *= w;
+		return res;
+	}
+	
+	// Transforms a position by this matrix (fast).
+	CSRAW public Vector3 MultiplyPoint3x4 (Vector3 v)
+	{
+		Vector3 res;
+		res.x = this.m00 * v.x + this.m01 * v.y + this.m02 * v.z + this.m03;
+		res.y = this.m10 * v.x + this.m11 * v.y + this.m12 * v.z + this.m13;
+		res.z = this.m20 * v.x + this.m21 * v.y + this.m22 * v.z + this.m23;
+		return res;
+	}
+	
+	// Transforms a direction by this matrix.
+	CSRAW public Vector3 MultiplyVector (Vector3 v)
+	{
+		Vector3 res;
+		res.x = this.m00 * v.x + this.m01 * v.y + this.m02 * v.z;
+		res.y = this.m10 * v.x + this.m11 * v.y + this.m12 * v.z;
+		res.z = this.m20 * v.x + this.m21 * v.y + this.m22 * v.z;
+		return res;
+	}
+		
+	// Creates a scaling matrix.
+	CSRAW static public Matrix4x4 Scale (Vector3 v)
+	{
+		Matrix4x4 m = new Matrix4x4();
+		m.m00 = v.x; m.m01 =  0F; m.m02 =  0F; m.m03 =  0F; 
+		m.m10 =  0F; m.m11 = v.y; m.m12 =  0F; m.m13 =  0F; 
+		m.m20 =  0F; m.m21 =  0F; m.m22 = v.z; m.m23 =  0F; 
+		m.m30 =  0F; m.m31 =  0F; m.m32 =  0F; m.m33 =  1F; 
+		return m;
+	}
+	
+	// Returns a matrix with all elements set to zero (RO).
+	CSRAW public static Matrix4x4 zero {
+		get
+		{
+			Matrix4x4 m = new Matrix4x4();
+			m.m00 = 0F; m.m01 = 0F; m.m02 = 0F; m.m03 = 0F;
+			m.m10 = 0F; m.m11 = 0F; m.m12 = 0F; m.m13 = 0F;
+			m.m20 = 0F; m.m21 = 0F; m.m22 = 0F; m.m23 = 0F;
+			m.m30 = 0F; m.m31 = 0F; m.m32 = 0F; m.m33 = 0F;
+			return m;
+		}
+	}
+	
+	// Returns the identity matrix (RO).
+	CSRAW public static Matrix4x4 identity {
+		get
+		{
+			Matrix4x4 m = new Matrix4x4();
+			m.m00 = 1F; m.m01 = 0F; m.m02 = 0F; m.m03 = 0F;
+			m.m10 = 0F; m.m11 = 1F; m.m12 = 0F; m.m13 = 0F;
+			m.m20 = 0F; m.m21 = 0F; m.m22 = 1F; m.m23 = 0F;
+			m.m30 = 0F; m.m31 = 0F; m.m32 = 0F; m.m33 = 1F;
+			return m;
+		}
+	}
+	
+	// Sets this matrix to a translation, rotation and scaling matrix.
+	CSRAW public void SetTRS(Vector3 pos, Quaternion q, Vector3 s)
+	{
+		this = Matrix4x4.TRS(pos, q, s);
+	}
+	
+	// Creates a translation, rotation and scaling matrix.
+	CUSTOM static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s)
+	{
+		Matrix4x4f temp;
+		temp.SetTRS(pos,q,s);
+		return temp;
+	}
+	
+	/// *listonly*
+	CSRAW override public string ToString() {
+		return UnityString.Format("{0:F5}\t{1:F5}\t{2:F5}\t{3:F5}\n{4:F5}\t{5:F5}\t{6:F5}\t{7:F5}\n{8:F5}\t{9:F5}\t{10:F5}\t{11:F5}\n{12:F5}\t{13:F5}\t{14:F5}\t{15:F5}\n", m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
+	}
+	// Returns a nicely formatted string for this matrix.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("{0}\t{1}\t{2}\t{3}\n{4}\t{5}\t{6}\t{7}\n{8}\t{9}\t{10}\t{11}\n{12}\t{13}\t{14}\t{15}\n",
+			m00.ToString(format), m01.ToString(format), m02.ToString(format), m03.ToString(format),
+			m10.ToString(format), m11.ToString(format), m12.ToString(format), m13.ToString(format),
+			m20.ToString(format), m21.ToString(format), m22.ToString(format), m23.ToString(format),
+			m30.ToString(format), m31.ToString(format), m32.ToString(format), m33.ToString(format));
+	}
+	
+	// Creates an orthogonal projection matrix.
+	CUSTOM static public Matrix4x4 Ortho (float left, float right, float bottom, float top, float zNear, float zFar) {
+		Matrix4x4f m;
+		m.SetOrtho(left, right, bottom, top, zNear, zFar);
+		return m;
+	}
+
+	// Creates a perspective projection matrix.
+	CUSTOM static public Matrix4x4 Perspective (float fov, float aspect, float zNear, float zFar) {
+		Matrix4x4f m;
+		m.SetPerspective( fov, aspect, zNear, zFar );
+		return m;
+	}
+END
+
+
+// Represents an axis aligned bounding box.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Bounds
+	
+	CSRAW private Vector3 m_Center;
+	CSRAW private Vector3 m_Extents;
+
+	// Creates new Bounds with a given /center/ and total /size/. Bound ::ref::extents will be half the given size.
+	CSRAW public Bounds (Vector3 center, Vector3 size)
+	{
+		m_Center = center;
+		m_Extents = size * 0.5F;
+	}
+
+	// used to allow Bounds to be used as keys in hash tables
+	public override int GetHashCode() {
+		return center.GetHashCode() ^ (extents.GetHashCode()<<2);
+	}
+	
+	// also required for being able to use Vector4s as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is Bounds)) return false;
+		
+		Bounds rhs=(Bounds)other;
+		return center.Equals(rhs.center) && extents.Equals(rhs.extents);
+	}
+
+	// The center of the bounding box.
+	CSRAW public Vector3 center { get { return m_Center; } set { m_Center = value; } }
+
+	// The total size of the box. This is always twice as large as the ::ref::extents.
+	CSRAW public Vector3 size { get { return m_Extents * 2.0F; } set { m_Extents = value * 0.5F; } }
+	
+	// The extents of the box. This is always half of the ::ref::size.
+	CSRAW public Vector3 extents { get { return m_Extents; } set { m_Extents = value; } }
+	
+	// The minimal point of the box. This is always equal to ''center-extents''.
+	CSRAW public Vector3 min { get { return center - extents; } set { SetMinMax (value, max); } }
+	// The maximal point of the box. This is always equal to ''center+extents''.
+	CSRAW public Vector3 max { get { return center + extents; } set { SetMinMax (min, value); } }
+
+	//*undoc*
+	CSRAW public static bool operator == (Bounds lhs, Bounds rhs)
+	{
+		return (lhs.center == rhs.center && lhs.extents == rhs.extents);
+	}	
+	//*undoc*
+	CSRAW public static bool operator != (Bounds lhs, Bounds rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	// Sets the bounds to the /min/ and /max/ value of the box.
+	CSRAW public void SetMinMax (Vector3 min, Vector3 max)
+	{
+		extents = (max - min) * 0.5F;
+		center = min + extents;
+	}
+		
+	// Grows the Bounds to include the /point/.
+	CSRAW public void Encapsulate (Vector3 point)
+	{
+		SetMinMax(Vector3.Min (min, point), Vector3.Max (max, point));
+	}
+
+	// Grow the bounds to encapsulate the bounds.
+	CSRAW public void Encapsulate (Bounds bounds) {
+		Encapsulate (bounds.center - bounds.extents);
+		Encapsulate (bounds.center + bounds.extents);
+	}	
+	
+	// Expand the bounds by increasing its /size/ by /amount/ along each side.
+	CSRAW public void Expand (float amount) {
+		amount *= .5f;
+		extents += new Vector3 (amount, amount, amount);
+	}
+	
+	// Expand the bounds by increasing its /size/ by /amount/ along each side.
+	CSRAW public void Expand (Vector3 amount) {
+		extents += amount * .5f;
+	}
+	
+	// Does another bounding box intersect with this bounding box?
+	CSRAW public bool Intersects (Bounds bounds) {
+		return (min.x <= bounds.max.x) && (max.x >= bounds.min.x) &&
+			   (min.y <= bounds.max.y) && (max.y >= bounds.min.y) &&
+			   (min.z <= bounds.max.z) && (max.z >= bounds.min.z);
+	}
+
+	CUSTOM private static bool Internal_Contains (Bounds m, Vector3 point) { return m.IsInside (point); }
+	// Is /point/ contained in the bounding box?
+	CSRAW public bool Contains (Vector3 point) { return Internal_Contains (this, point); }
+
+	CUSTOM private static float Internal_SqrDistance (Bounds m, Vector3 point) { return CalculateSqrDistance(point, m); }
+	
+	// The smallest squared distance between the point and this bounding box.
+	CSRAW public float SqrDistance (Vector3 point) { return Internal_SqrDistance(this, point); }
+
+	CUSTOM private static bool Internal_IntersectRay (ref Ray ray, ref Bounds bounds, out float distance) { return IntersectRayAABB(ray, bounds, distance); }
+
+	// Does /ray/ intersect this bounding box?
+	CSRAW public bool IntersectRay (Ray ray) { float dist; return Internal_IntersectRay (ref ray, ref this, out dist); }
+
+	// Does /ray/ intersect this bounding box?
+	CSRAW public bool IntersectRay (Ray ray, out float distance) { return Internal_IntersectRay (ref ray, ref this, out distance);	}
+	
+	/// *listonly*
+	CSRAW override public string ToString() {
+		return UnityString.Format("Center: {0}, Extents: {1}", m_Center, m_Extents);
+	}
+	// Returns a nicely formatted string for the bounds.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("Center: {0}, Extents: {1}", m_Center.ToString(format), m_Extents.ToString(format));
+	}
+
+
+END
+
+
+
+// Representation of four-dimensional vectors.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Vector4
+
+	// *undocumented*
+	CSRAW public const float kEpsilon = 0.00001F;
+	
+	// X component of the vector.
+	CSRAW public float x;
+	// Y component of the vector.
+	CSRAW public float y;
+	// Z component of the vector.
+	CSRAW public float z;
+	// W component of the vector.
+	CSRAW public float w;
+	
+	// Access the x, y, z, w components using [0], [1], [2], [3] respectively.
+	CSRAW public float this [int index]
+	{
+		get
+		{
+			switch(index)
+			{
+				case 0: return x;
+				case 1: return y;
+				case 2: return z;
+				case 3: return w;
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector4 index!");
+			}
+		}
+
+		set
+		{
+			switch(index)
+			{
+				case 0: x = value; break;
+				case 1: y = value; break;
+				case 2: z = value; break;
+				case 3: w = value; break;
+				default:
+				throw new IndexOutOfRangeException("Invalid Vector4 index!");
+			}
+		}
+	}
+		
+	// Creates a new vector with given x, y, z, w components.
+	CSRAW public Vector4 (float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; }
+	// Creates a new vector with given x, y, z components and sets /w/ to zero.
+	CSRAW public Vector4 (float x, float y, float z) { this.x = x; this.y = y; this.z = z; this.w = 0F; }
+	// Creates a new vector with given x, y components and sets /z/ and /w/ to zero.
+	CSRAW public Vector4 (float x, float y) { this.x = x; this.y = y; this.z = 0F; this.w = 0F; }
+
+	// Set x, y, z and w components of an existing Vector4.
+	CSRAW public void Set (float new_x, float new_y, float new_z, float new_w) { x = new_x; y = new_y; z = new_z; w = new_w; }
+
+	// Linearly interpolates between two vectors.
+	CSRAW public static Vector4 Lerp (Vector4 from, Vector4 to, float t)
+	{ 
+		t = Mathf.Clamp01 (t);       
+		return new Vector4( 
+			from.x + (to.x - from.x)*t, 
+			from.y + (to.y - from.y)*t, 
+			from.z + (to.z - from.z)*t,
+			from.w + (to.w - from.w)*t 
+		); 
+	}
+	
+	// Moves a point /current/ towards /target/.
+	CSRAW static public Vector4 MoveTowards (Vector4 current, Vector4 target, float maxDistanceDelta)
+	{
+		Vector4 toVector = target - current;
+		float dist = toVector.magnitude;
+		if (dist <= maxDistanceDelta || dist == 0)
+			return target;
+		return current + toVector / dist * maxDistanceDelta;
+	}
+	
+	// Multiplies two vectors component-wise.
+	CSRAW public static Vector4 Scale (Vector4 a, Vector4 b) { return new Vector4 (a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w); }
+	// Multiplies every component of this vector by the same component of /scale/.
+	CSRAW public void Scale (Vector4 scale) { x *= scale.x; y *= scale.y; z *= scale.z; w *= scale.w; }
+	
+	
+	// used to allow Vector4s to be used as keys in hash tables
+	public override int GetHashCode() {
+		return x.GetHashCode() ^ (y.GetHashCode()<<2) ^ (z.GetHashCode()>>2) ^ (w.GetHashCode()>>1);
+	}
+	
+	// also required for being able to use Vector4s as keys in hash tables
+	public override bool Equals(object other) {
+		if(!(other is Vector4)) return false;
+		
+		Vector4 rhs=(Vector4)other;
+		return x.Equals(rhs.x) && y.Equals(rhs.y) && z.Equals(rhs.z) && w.Equals(rhs.w);
+	}
+	
+	// *undoc* --- we have normalized property now
+	CSRAW public static Vector4 Normalize (Vector4 a)
+	{
+		float mag = Magnitude (a);
+		if (mag > kEpsilon)
+			return a / mag;
+		else
+			return zero;			
+	}
+
+	// Makes this vector have a ::ref::magnitude of 1.
+	CSRAW public void Normalize ()
+	{
+		float mag = Magnitude (this);
+		if (mag > kEpsilon)
+			this = this / mag;
+		else
+			this = zero;
+	}
+	
+	// Returns this vector with a ::ref::magnitude of 1 (RO).
+	CSRAW public Vector4 normalized { get { return Vector4.Normalize(this); } }
+
+	
+	/// *listonly*
+	CSRAW override public string ToString() {
+		return UnityString.Format("({0:F1}, {1:F1}, {2:F1}, {3:F1})", x, y, z, w);
+	}
+	// Returns a nicely formatted string for this vector.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("({0}, {1}, {2}, {3})", x.ToString(format), y.ToString(format), z.ToString(format), w.ToString(format));
+	}
+
+
+	// Dot Product of two vectors.
+	CSRAW public static float Dot (Vector4 a, Vector4 b) { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
+	
+	// Projects a vector onto another vector.
+	CSRAW public static Vector4 Project (Vector4 a, Vector4 b) { return b * Dot (a, b) / Dot (b, b); }
+
+	// Returns the distance between /a/ and /b/.
+	CSRAW public static float Distance (Vector4 a, Vector4 b) { return Magnitude (a-b); }
+	
+	// *undoc* --- there's a property now
+	CSRAW public static float Magnitude (Vector4 a) { return Mathf.Sqrt (Dot (a, a)); }
+	
+	// Returns the length of this vector (RO).
+	CSRAW public float magnitude { get { return Mathf.Sqrt (Dot (this, this)); } }
+		
+	// *undoc* --- there's a property now
+	CSRAW public static float SqrMagnitude (Vector4 a) { return Vector4.Dot (a, a); }
+	// *undoc* --- there's a property now
+	CSRAW public float SqrMagnitude () { return Dot (this, this); }
+	
+	// Returns the squared length of this vector (RO).
+	CSRAW public float sqrMagnitude { get { return Dot (this, this); } }
+	
+	
+	// Returns a vector that is made from the smallest components of two vectors.
+	CSRAW public static Vector4 Min (Vector4 lhs, Vector4 rhs) { return new Vector4 (Mathf.Min(lhs.x,rhs.x), Mathf.Min(lhs.y,rhs.y), Mathf.Min(lhs.z,rhs.z), Mathf.Min(lhs.w,rhs.w)); }
+
+	// Returns a vector that is made from the largest components of two vectors.
+	CSRAW public static Vector4 Max (Vector4 lhs, Vector4 rhs) { return new Vector4 (Mathf.Max(lhs.x,rhs.x), Mathf.Max(lhs.y,rhs.y), Mathf.Max(lhs.z,rhs.z), Mathf.Max(lhs.w,rhs.w)); }
+	
+	// Shorthand for writing @@Vector4(0,0,0,0)@@
+	CSRAW public static Vector4 zero { get { return new Vector4 (0F, 0F, 0F, 0F); }   }
+	// Shorthand for writing @@Vector4(1,1,1,1)@@
+	CSRAW public static Vector4 one { get { return new Vector4 (1F, 1F, 1F, 1F); }   }
+
+
+	// Adds two vectors.
+	CSRAW public static Vector4 operator + (Vector4 a, Vector4 b) { return new Vector4 (a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w); }
+	// Subtracts one vector from another.
+	CSRAW public static Vector4 operator - (Vector4 a, Vector4 b) { return new Vector4 (a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w); }
+	// Negates a vector.
+	CSRAW public static Vector4 operator - (Vector4 a) { return new Vector4 (-a.x, -a.y, -a.z, -a.w); }
+	// Multiplies a vector by a number.
+	CSRAW public static Vector4 operator * (Vector4 a, float d) { return new Vector4 (a.x*d, a.y*d, a.z*d, a.w*d); }
+	// Multiplies a vector by a number.
+	CSRAW public static Vector4 operator * (float d, Vector4 a) { return new Vector4 (a.x*d, a.y*d, a.z*d, a.w*d); }
+	// Divides a vector by a number.
+	CSRAW public static Vector4 operator / (Vector4 a, float d) { return new Vector4 (a.x/d, a.y/d, a.z/d, a.w/d); }
+		
+	// Returns true if the vectors are equal.
+	CSRAW public static bool operator == (Vector4 lhs, Vector4 rhs)
+	{
+		return SqrMagnitude (lhs - rhs) < kEpsilon * kEpsilon;
+	}
+	// Returns true if vectors different.
+	CSRAW public static bool operator != (Vector4 lhs, Vector4 rhs)
+	{
+		return SqrMagnitude (lhs - rhs) >= kEpsilon * kEpsilon;
+	}
+	
+	// Converts a [[Vector3]] to a Vector4.
+	CSRAW public static implicit operator Vector4(Vector3 v) {
+		return new Vector4(v.x, v.y, v.z, 0.0F);
+	}
+	
+	// Converts a Vector4 to a [[Vector3]].
+	CSRAW public static implicit operator Vector3(Vector4 v) {
+		return new Vector3(v.x, v.y, v.z);
+	}
+	
+	// Converts a [[Vector2]] to a Vector4.
+	CSRAW public static implicit operator Vector4(Vector2 v) {
+		return new Vector4(v.x, v.y, 0.0F, 0.0F);
+	}
+	
+	// Converts a Vector4 to a [[Vector2]].
+	CSRAW public static implicit operator Vector2(Vector4 v) {
+		return new Vector2(v.x, v.y);
+	}
+
+END
+
+
+// Representation of rays.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Ray
+	CSRAW private Vector3 m_Origin;
+	CSRAW private Vector3 m_Direction;
+
+	// Creates a ray starting at /origin/ along /direction/.
+	CSRAW public Ray (Vector3 origin, Vector3 direction) { m_Origin = origin; m_Direction = direction.normalized; }
+	
+	// The origin point of the ray.
+	CSRAW public Vector3 origin    { get { return m_Origin; } set { m_Origin = value; } }
+	// The direction of the ray.
+	CSRAW public Vector3 direction { get { return m_Direction; } set { m_Direction = value.normalized; } }
+	
+	// Returns a point at /distance/ units along the ray.
+	CSRAW public Vector3 GetPoint (float distance) { return m_Origin + m_Direction * distance; }
+
+	/// *listonly*
+	CSRAW override public string ToString() { return UnityString.Format("Origin: {0}, Dir: {1}", m_Origin, m_Direction); }
+	// Returns a nicely formatted string for this ray.
+	CSRAW public string ToString(string format) {
+		return UnityString.Format("Origin: {0}, Dir: {1}", m_Origin.ToString(format), m_Direction.ToString(format));
+	}
+
+END
+
+// Representation of planes.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Plane 
+	CSRAW  Vector3 m_Normal;
+	CSRAW  float m_Distance;
+
+	// Normal vector of the plane.
+	CSRAW public Vector3 normal { get { return m_Normal; } set { m_Normal = value; } }
+	// Distance from the origin to the plane.
+	CSRAW public float distance { get { return m_Distance; } set { m_Distance = value; } }
+	
+	// Creates a plane.
+	public Plane (Vector3 inNormal, Vector3 inPoint) {	
+		m_Normal = Vector3.Normalize (inNormal);
+		m_Distance = -Vector3.Dot (inNormal, inPoint);
+	}
+
+	// Creates a plane.
+	public Plane (Vector3 inNormal, float d) {	
+		m_Normal = Vector3.Normalize (inNormal);
+		m_Distance = d;
+	}
+	
+	// Creates a plane.
+	public Plane (Vector3 a, Vector3 b, Vector3 c) {
+		m_Normal = Vector3.Normalize (Vector3.Cross (b - a, c - a));
+		m_Distance = -Vector3.Dot (m_Normal, a);	
+	}
+
+	// Sets a plane using a point that lies within it plus a normal to orient it (note that the normal must be a normalised vector).
+	public void SetNormalAndPosition (Vector3 inNormal, Vector3 inPoint) {
+		normal = Vector3.Normalize (inNormal);
+		distance = -Vector3.Dot (inNormal, inPoint);
+	}
+	
+	// Sets a plane using three points that lie within it.  The points go around clockwise as you look down on the top surface of the plane.
+	public void Set3Points (Vector3 a, Vector3 b, Vector3 c) {
+		normal = Vector3.Normalize (Vector3.Cross (b - a, c - a));
+		distance = -Vector3.Dot (normal, a);	
+	}
+
+	// Returns a signed distance from plane to point. 
+	public float GetDistanceToPoint (Vector3 inPt) { return Vector3.Dot (normal, inPt) + distance; }
+	
+	// Is a point on the positive side of the plane?
+	public bool GetSide (Vector3 inPt) { return Vector3.Dot (normal, inPt) + distance > 0.0F; }
+	
+	// Are two points on the same side of the plane?
+	public bool SameSide (Vector3 inPt0, Vector3 inPt1) {
+		float d0 = GetDistanceToPoint(inPt0);
+		float d1 = GetDistanceToPoint(inPt1);
+		if (d0 > 0.0f && d1 > 0.0f)
+			return true;
+		else if (d0 <= 0.0f && d1 <= 0.0f)
+			return true;
+		else
+			return false;
+	}
+
+	// Intersects a ray with the plane.
+	public bool Raycast (Ray ray, out float enter) {
+		float vdot = Vector3.Dot (ray.direction, normal);
+		float ndot = -Vector3.Dot (ray.origin, normal) - distance;
+
+		// is line parallel to the plane? if so, even if the line is
+		// at the plane it is not considered as intersection because
+		// it would be impossible to determine the point of intersection
+		if ( Mathf.Approximately (vdot, 0.0f) ) {
+			enter = 0.0F;
+			return false;
+		}
+		
+		// the resulting intersection is behind the origin of the ray
+		// if the result is negative ( enter < 0 )
+		enter = ndot / vdot;
+	
+		return enter > 0.0F;
+	}
+
+END
+
+
+// A collection of common math functions.
+THREAD_AND_SERIALIZATION_SAFE
+STRUCT Mathf
+	CSRAW
+
+	// Returns the sine of angle /f/ in radians.
+	CSRAW public static float Sin (float f) { return (float)Math.Sin (f); }
+
+	// Returns the cosine of angle /f/ in radians.
+	CSRAW public static float Cos (float f) { return (float)Math.Cos (f); }
+
+	// Returns the tangent of angle /f/ in radians.
+	CSRAW public static float Tan (float f) { return (float)Math.Tan (f); }
+
+	// Returns the arc-sine of /f/ - the angle in radians whose sine is /f/.
+	CSRAW public static float Asin (float f) { return (float)Math.Asin (f); }
+
+	// Returns the arc-cosine of /f/ - the angle in radians whose cosine is /f/.
+	CSRAW public static float Acos (float f) { return (float)Math.Acos (f); }
+
+	// Returns the arc-tangent of /f/ - the angle in radians whose tangent is /f/.
+	CSRAW public static float Atan (float f) { return (float)Math.Atan (f); }
+
+	// Returns the angle in radians whose ::ref::Tan is @@y/x@@.
+	CSRAW public static float Atan2 (float y, float x) { return (float)Math.Atan2 (y,x); }
+	
+	// Returns square root of /f/.
+	CSRAW public static float Sqrt (float f) { return (float)Math.Sqrt (f); }
+
+	// Returns the absolute value of /f/.
+	CSRAW public static float Abs (float f) { return (float)Math.Abs (f); }	
+
+	// Returns the absolute value of /value/.
+	CSRAW public static int Abs (int value) { return Math.Abs (value); }
+
+	/// *listonly*
+	CSRAW public static float Min (float a, float b) { return a < b ? a : b; }
+	// Returns the smallest of two or more values.
+	CSRAW public static float Min (params float[] values)
+	{
+		int len = values.Length; // cache the length
+		if (len == 0)
+			return 0;
+		float m = values[0];
+		for (int i=1; i<len; i++)
+		{
+			if (values[i] < m)
+				m = values[i];
+		}
+		return m;
+	}
+	
+	/// *listonly*
+	CSRAW public static int Min (int a, int b) { return a < b ? a : b; }
+	// Returns the smallest of two or more values.
+	CSRAW public static int Min (params int[] values)
+	{
+		int len = values.Length; // cache the length
+		if (len == 0)
+			return 0;
+		int m = values[0];
+		for (int i=1; i<len; i++)
+		{
+			if (values[i] < m)
+				m = values[i];
+		}
+		return m;
+	}
+
+	/// *listonly*
+	CSRAW public static float Max (float a, float b) { return a > b ? a : b; }
+	// Returns largest of two or more values.
+	CSRAW public static float Max (params float[] values)
+	{
+		int len = values.Length; // cache the length
+		if (len == 0)
+			return 0;
+		float m = values[0];
+		for (int i=1; i<len; i++)
+		{
+			if (values[i] > m)
+				m = values[i];
+		}
+		return m;
+	}
+
+	/// *listonly*
+	CSRAW public static int Max (int a, int b) { return a > b ? a : b; }
+	// Returns the largest of two or more values.
+	CSRAW public static int Max (params int[] values)
+	{
+		int len = values.Length; // cache the length
+		if (len == 0)
+			return 0;
+		int m = values[0];
+		for (int i=1; i<len; i++)
+		{
+			if (values[i] > m)
+				m = values[i];
+		}
+		return m;
+	}
+
+	// Returns /f/ raised to power /p/.
+	CSRAW public static float Pow (float f, float p) { return (float)Math.Pow (f, p); }
+
+	// Returns e raised to the specified power.
+	CSRAW public static float Exp (float power) { return (float)Math.Exp (power); }
+
+	// Returns the logarithm of a specified number in a specified base.
+	CSRAW public static float Log (float f, float p) { return (float)Math.Log (f, p); }
+
+	// Returns the natural (base e) logarithm of a specified number.
+	CSRAW public static float Log (float f) { return (float)Math.Log (f); }
+
+	// Returns the base 10 logarithm of a specified number.
+	CSRAW public static float Log10 (float f) { return (float)Math.Log10 (f); }
+
+	// Returns the smallest integer greater to or equal to /f/.
+	CSRAW public static float Ceil (float f) { return (float)Math.Ceiling (f); }
+
+	// Returns the largest integer smaller to or equal to /f/.
+	CSRAW public static float Floor (float f) { return (float)Math.Floor (f); }
+
+	// Returns /f/ rounded to the nearest integer.
+	CSRAW public static float Round (float f) { return (float)Math.Round (f); }
+
+	// Returns the smallest integer greater to or equal to /f/.
+	CSRAW public static int CeilToInt (float f) { return (int)Math.Ceiling (f); }
+
+	// Returns the largest integer smaller to or equal to /f/.
+	CSRAW public static int FloorToInt (float f) { return (int)Math.Floor (f); }
+
+	// Returns /f/ rounded to the nearest integer.
+	CSRAW public static int RoundToInt (float f) { return (int)Math.Round (f); }
+
+	// Returns the sign of /f/.
+	CSRAW public static float Sign (float f) { return f >= 0F ? 1F : -1F; }
+
+	// The infamous ''3.14159265358979...'' value (RO).
+	CSRAW public const float PI = (float)Math.PI;
+
+
+	// A representation of positive infinity (RO).
+	CSRAW public const float Infinity = Single.PositiveInfinity;
+
+
+	// A representation of negative infinity (RO).
+	CSRAW public const float NegativeInfinity = Single.NegativeInfinity;
+
+	
+	// Degrees-to-radians conversion constant (RO).
+	CSRAW public const float Deg2Rad = PI * 2F / 360F;
+	
+	// Radians-to-degrees conversion constant (RO).
+	CSRAW public const float Rad2Deg = 1F / Deg2Rad;
+	
+	// A tiny floating point value (RO).
+	#if PLATFORM_IPHONE
+	CSRAW public const float Epsilon = 1.17549435E-38f; // VFP rounds de-normlized values to 0, unfortunatelly Single.Epsilon is de-normalized value!
+	#else
+	CSRAW public const float Epsilon = Single.Epsilon;
+	#endif
+	
+	
+	// Clamps a value between a minimum float and maximum float value.
+	CSRAW public static float Clamp (float value, float min, float max)
+	{
+		if (value < min)
+			value = min;
+		else if (value > max)
+			value = max;
+		return value;
+	}
+
+	// Clamps value between min and max and returns value.
+	// Set the position of the transform to be that of the time
+	// but never less than 1 or more than 3
+	//
+	CSRAW public static int Clamp (int value, int min, int max)
+	{
+		if (value < min)
+			value = min;
+		else if (value > max)
+			value = max;
+		return value;
+	}
+
+	// Clamps value between 0 and 1 and returns value
+	CSRAW public static float Clamp01 (float value)
+	{
+		if (value < 0F)
+			return 0F;
+		else if (value > 1F)
+			return 1F;
+		else
+			return value;
+	}
+	
+	// Interpolates between /a/ and /b/ by /t/. /t/ is clamped between 0 and 1.
+	CSRAW public static float Lerp (float from, float to, float t)
+	{
+		return from + (to - from) * Clamp01 (t);
+	}
+
+	// Same as ::ref::Lerp but makes sure the values interpolate correctly when they wrap around 360 degrees.
+	CSRAW public static float LerpAngle (float a, float b, float t)
+	{
+		float delta = Repeat ((b - a), 360);
+		if (delta > 180)
+			delta -= 360;
+		return a + delta * Clamp01 (t);
+	}
+	
+	// Moves a value /current/ towards /target/.
+	CSRAW static public float MoveTowards (float current, float target, float maxDelta)
+	{
+		if (Mathf.Abs(target - current) <= maxDelta)
+			return target;
+		return current + Mathf.Sign(target - current) * maxDelta;
+	}
+	
+	// Same as ::ref::MoveTowards but makes sure the values interpolate correctly when they wrap around 360 degrees.
+	CSRAW static public float MoveTowardsAngle (float current, float target, float maxDelta)
+	{
+		target = current + DeltaAngle(current, target);
+		return MoveTowards(current, target, maxDelta);
+	}
+	
+	// Interpolates between /min/ and /max/ with smoothing at the limits.
+	CSRAW public static float SmoothStep (float from, float to, float t) 
+	{
+		t = Mathf.Clamp01(t);
+		t = -2.0F * t*t*t + 3.0F * t*t;
+		return to * t + from * (1F - t);
+	}
+
+	//*undocumented
+	CSRAW public static float Gamma (float value, float absmax, float gamma)
+	{
+		bool negative = false;
+		if (value < 0F) 
+			negative = true;
+		float absval = Abs(value);
+		if (absval > absmax) 
+			return negative ? -absval : absval;
+		
+		float result = Pow(absval / absmax, gamma) * absmax;
+		return negative ? -result : result;
+	}
+	
+	// Compares two floating point values if they are similar.
+	CSRAW public static bool Approximately (float a, float b)
+	{
+		// If a or b is zero, compare that the other is less or equal to epsilon.
+		// If neither a or b are 0, then find an epsilon that is good for
+		// comparing numbers at the maximum magnitude of a and b.
+		// Floating points have about 7 significant digits, so
+		// 1.000001f can be represented while 1.0000001f is rounded to zero,
+		// thus we could use an epsilon of 0.000001f for comparing values close to 1.
+		// We multiply this epsilon by the biggest magnitude of a and b.
+		return Abs(b - a) < Max( 0.000001f * Max(Abs(a), Abs(b)), Epsilon*8);
+	}
+	
+	// Gradually changes a value towards a desired goal over time.
+	CSRAW public static float SmoothDamp (float current, float target, ref float currentVelocity, float smoothTime, float maxSpeed = Mathf.Infinity, float deltaTime = Time.deltaTime)
+	{
+		// Based on Game Programming Gems 4 Chapter 1.10
+		smoothTime = Mathf.Max(0.0001F, smoothTime);
+		float omega = 2F / smoothTime;
+
+		float x = omega * deltaTime;
+		float exp = 1F / (1F + x + 0.48F*x*x + 0.235F*x*x*x);
+		float change = current - target;
+		float originalTo = target;
+
+		// Clamp maximum speed
+		float maxChange = maxSpeed * smoothTime;
+		change = Mathf.Clamp(change, -maxChange, maxChange);
+		target = current - change;
+		
+		float temp = (currentVelocity + omega * change) * deltaTime;
+		currentVelocity = (currentVelocity - omega * temp) * exp;
+		float output = target + (change + temp) * exp;
+
+		// Prevent overshooting
+		if (originalTo - current > 0.0F == output > originalTo)
+		{
+			output = originalTo;
+			currentVelocity = (output - originalTo) / deltaTime;
+		}
+
+		return output;
+	}
+	
+	
+	// Gradually changes an angle given in degrees towards a desired goal angle over time.
+	CSRAW public static float SmoothDampAngle (float current, float target, ref float currentVelocity, float smoothTime, float maxSpeed = Mathf.Infinity, float deltaTime = Time.deltaTime)
+	{
+		// Normalize angles
+		target = current + DeltaAngle(current, target);
+		return SmoothDamp(current, target, ref currentVelocity, smoothTime, maxSpeed, deltaTime);
+	}
+
+	// Loops the value t, so that it is never larger than length and never smaller than 0.
+	CSRAW public static float Repeat (float t, float length)
+	{
+		return t - Mathf.Floor (t / length) * length;
+	}
+	
+	// PingPongs the value t, so that it is never larger than length and never smaller than 0.
+	CSRAW public static float PingPong (float t, float length)
+	{
+		t = Repeat (t, length * 2F);
+		return length - Mathf.Abs (t - length);
+	}
+	
+	// Calculates the ::ref::Lerp parameter between of two values.
+	CSRAW public static float InverseLerp (float from, float to, float value)
+	{
+		if (from < to)
+		{
+			if (value < from)
+				return 0.0F;
+			else if (value > to)
+				return 1.0F;
+			else
+			{
+				value -= from;
+				value /= (to - from);
+				return value;
+			}
+		}
+		else if (from > to)
+		{
+			if (value < to)
+				return 1.0F;
+			else if (value > from)
+				return 0.0F;
+			else
+			{
+				return 1.0F - ((value - to) / (from - to));
+			}
+		}
+		else
+		{
+			return 0.0F;
+		}
+	}
+
+	// Returns the closest power of two value.
+	CUSTOM static int ClosestPowerOfTwo (int value)
+	{
+		return ClosestPowerOfTwo(value);
+	}
+	
+	// Converts the given value from gamma to linear color space.
+	CUSTOM static float GammaToLinearSpace (float value)
+	{
+		return GammaToLinearSpace (value);
+	}
+	
+	// Converts the given value from linear to gamma color space.
+	CUSTOM static float LinearToGammaSpace (float value)
+	{
+		return LinearToGammaSpace (value);
+	}
+	
+	// Returns true if the value is power of two.
+	CUSTOM static bool IsPowerOfTwo (int value)
+	{
+		return IsPowerOfTwo(value);
+	}
+	
+	// Returns the next power of two value 
+	CUSTOM static int NextPowerOfTwo (int value)
+	{
+		return NextPowerOfTwo(value);
+	}	
+
+	// Calculates the shortest difference between two given angles.
+	CSRAW public static float DeltaAngle (float current, float target)
+	{
+		float delta = Mathf.Repeat ((target - current), 360.0F);
+		if (delta > 180.0F)
+			delta -= 360.0F;
+		return delta;
+	}
+
+	// Generate 2D Perlin noise.
+	CUSTOM static float PerlinNoise (float x, float y)
+	{
+		return PerlinNoise::NoiseNormalized (x,y);
+	}
+	
+
+	// Infinite Line Intersection (line1 is p1-p2 and line2 is p3-p4)
+	CSRAW internal static bool LineIntersection (Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, ref Vector2 result)
+	{
+		float bx = p2.x - p1.x;
+		float by = p2.y - p1.y;
+		float dx = p4.x - p3.x;
+		float dy = p4.y - p3.y;
+		float bDotDPerp = bx * dy - by * dx;
+		if (bDotDPerp == 0)
+		{
+			return false;
+		}
+		float cx = p3.x - p1.x;
+		float cy = p3.y - p1.y;
+		float t = (cx * dy - cy * dx) / bDotDPerp;
+
+		result = new Vector2 (p1.x + t * bx, p1.y + t * by);
+		return true;
+	}
+
+	// Line Segment Intersection (line1 is p1-p2 and line2 is p3-p4)
+	CSRAW internal static bool LineSegmentIntersection(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, ref Vector2 result)
+	{
+		float bx = p2.x - p1.x;
+		float by = p2.y - p1.y;
+		float dx = p4.x - p3.x;
+		float dy = p4.y - p3.y;
+		float bDotDPerp = bx * dy - by * dx;
+		if (bDotDPerp == 0)
+		{
+			return false;
+		}
+		float cx = p3.x - p1.x;
+		float cy = p3.y - p1.y;
+		float t = (cx * dy - cy * dx) / bDotDPerp;
+		if (t < 0 || t > 1)
+		{
+			return false;
+		}
+		float u = (cx * by - cy * bx) / bDotDPerp;
+		if (u < 0 || u > 1)
+		{
+			return false;
+		}
+		result = new Vector2(p1.x + t * bx, p1.y + t * by);
+		return true;
+	}	
+END
+CSRAW
+}

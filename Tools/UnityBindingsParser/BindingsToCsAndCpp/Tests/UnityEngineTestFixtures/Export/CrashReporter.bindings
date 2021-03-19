@@ -1,0 +1,142 @@
+C++RAW
+
+#include "UnityPrefix.h"
+#include "Runtime/Scripting/ScriptingUtility.h"
+
+CSRAW
+using System;
+using System.Collections.Generic;
+
+namespace UnityEngine
+{
+
+CLASS CrashReport
+	CSRAW static List<CrashReport> internalReports;
+	CSRAW static object reportsLock = new object();
+
+	CSRAW static int Compare(CrashReport c1, CrashReport c2)
+	{
+		long t1 = c1.time.Ticks;
+		long t2 = c2.time.Ticks;
+		if (t1 > t2)
+			return 1;
+		if (t1 < t2)
+			return -1;
+		return 0;
+	}
+
+	CSRAW static void PopulateReports()
+	{
+		lock (reportsLock)
+		{
+			if (internalReports != null)
+				return;
+
+			string[] ids = GetReports();
+			internalReports = new List<CrashReport>(ids.Length);
+			foreach (var id in ids)
+			{
+				double secondsSinceUnixEpoch;
+				string text;
+				GetReportData(id, out secondsSinceUnixEpoch, out text);
+				DateTime time = new DateTime(1970, 1, 1).AddSeconds(secondsSinceUnixEpoch);
+				internalReports.Add(new CrashReport(id, time, text));
+			}
+			internalReports.Sort(Compare);
+		}
+	}
+
+	CSRAW public static CrashReport[] reports
+	{
+		get
+		{
+			PopulateReports();
+			lock (reportsLock)
+			{
+				return internalReports.ToArray();
+			}
+		}
+	}
+
+	CSRAW public static CrashReport lastReport
+	{
+		get
+		{
+			PopulateReports();
+			lock (reportsLock)
+			{
+				if (internalReports.Count > 0)
+				{
+					return internalReports[internalReports.Count - 1];
+				}
+			}
+
+			return null;
+		}
+	}
+
+	CSRAW public static void RemoveAll()
+	{
+		foreach (var report in reports)
+			report.Remove();
+	}
+ 
+	CSRAW readonly string id;
+	CSRAW public readonly DateTime time;
+	CSRAW public readonly string text;
+
+	CSRAW CrashReport(string id, DateTime time, string text)
+	{
+		this.id = id;
+		this.time = time;
+		this.text = text;
+	}
+
+	CSRAW public void Remove()
+	{
+		if (RemoveReport(id))
+		{
+			lock (reportsLock)
+			{
+				internalReports.Remove(this);
+			}
+		}
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE CUSTOM private static string[] GetReports()
+	{
+#if PLATFORM_IPHONE
+		extern ScriptingArrayPtr GetCrashReports();
+		return GetCrashReports();
+#else
+		std::vector<std::string> reports;
+		return StringVectorToScripting(reports);
+#endif
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE CUSTOM private static void GetReportData(string id, out double secondsSinceUnixEpoch, out string text)
+	{
+#if PLATFORM_IPHONE
+		extern void GetCrashReportData(ICallString id, double* secondsSinceUnixEpoch, ICallString* text);
+		GetCrashReportData(id, secondsSinceUnixEpoch, text);
+#else
+		*secondsSinceUnixEpoch = 0.0;
+#if !PLATFORM_METRO && !UNITY_FLASH
+		text->str = CreateScriptingString("");
+#endif
+#endif
+	}
+
+	THREAD_AND_SERIALIZATION_SAFE CUSTOM private static bool RemoveReport(string id)
+	{
+#if PLATFORM_IPHONE
+		extern bool RemoveCrashReport(ICallString id);
+		return RemoveCrashReport(id);
+#else
+		return false;
+#endif
+	}
+END
+
+CSRAW
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<doc version="3">
+  <member name="SocialPlatforms.Range" type="Struct" namespace="UnityEngine.SocialPlatforms">
+    <section>
+      <summary>The score range a leaderboard query should include.</summary>
+    </section>
+    <member name="SocialPlatforms.Range.ctor" type="Constructor">
+      <section>
+        <signature><![CDATA[ctor(int,int)]]></signature>
+        <summary>Constructor for a score range, the range starts from a specific value and contains a maxium score count.</summary>
+        <param name="fromValue">The minimum allowed value.</param>
+        <param name="valueCount">The number of possible values.</param>
+      </section>
+    </member>
+    <member name="SocialPlatforms.Range._from" type="Field">
+      <section>
+        <summary>The rank of the first score which is returned.</summary>
+      </section>
+    </member>
+    <member name="SocialPlatforms.Range._count" type="Field">
+      <section>
+        <summary>The total amount of scores retreived.</summary>
+      </section>
+    </member>
+  </member>
+</doc>
