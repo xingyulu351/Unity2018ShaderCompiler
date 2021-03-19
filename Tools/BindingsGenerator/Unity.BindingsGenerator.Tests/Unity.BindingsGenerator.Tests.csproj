@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)/$(MSBuildToolsVersion)/Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)/$(MSBuildToolsVersion)/Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9169D84A-14EE-4482-B85F-FC78D47FD965}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Unity.BindingsGenerator.Tests</RootNamespace>
+    <AssemblyName>Unity.BindingsGenerator.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>../build/bin/Debug/</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>../build/bin/Release/</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Cecil">
+      <HintPath>../../../External/Unity.Cecil/builds/lib/net40/Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Rocks">
+      <HintPath>../../../External/Unity.Cecil/builds/lib/net40/Unity.Cecil.Rocks.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.6.4.0, Culture=neutral, PublicKeyToken=7aba5c763ef4d5f9, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>../../../External/NUnit/framework/nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Unity.BindingsGenerator.AssemblyPatcherTestAssembly/Unity.BindingsGenerator.AssemblyPatcherTestAssembly.csproj">
+      <Project>{ac812a75-1ea1-4254-b931-a7efa4346023}</Project>
+      <Name>Unity.BindingsGenerator.AssemblyPatcherTestAssembly</Name>
+    </ProjectReference>
+    <ProjectReference Include="../Unity.BindingsGenerator.Core/Unity.BindingsGenerator.Core.csproj">
+      <Project>{468c6136-b64d-455b-b709-b095f138d5be}</Project>
+      <Name>Unity.BindingsGenerator.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="../Unity.BindingsGenerator.TestFramework/Unity.BindingsGenerator.TestFramework.csproj">
+      <Project>{3689d090-fc88-437a-b550-eca2c0bf83b3}</Project>
+      <Name>Unity.BindingsGenerator.TestFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="../../Unity.CommonTools/Unity.CommonTools.csproj">
+      <Project>{882b3c08-618b-4d66-b45c-88853106f1af}</Project>
+      <Name>Unity.CommonTools</Name>
+    </ProjectReference>
+    <ProjectReference Include="../Unity.BindingsGenerator.TestDependentAssembly/Unity.BindingsGenerator.TestDependentAssembly.csproj">
+      <Project>{9A14E8C4-DB02-42B1-B72D-575C2F15C557}</Project>
+      <Name>Unity.BindingsGenerator.TestDependentAssembly</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyPatcherAssertEqual.cs" />
+    <Compile Include="AssemblyPatcherTests.cs" />
+    <Compile Include="AssemblyVerifierTests.cs" />
+    <Compile Include="AssemblyVisitorTests.cs" />
+    <Compile Include="AssertingStringMatcherExtensions.cs" />
+    <Compile Include="EnumTests.cs" />
+    <Compile Include="ExceptionTests.cs" />
+    <Compile Include="ExtensionsTests.cs" />
+    <Compile Include="FilteringVisitorTests.cs" />
+    <Compile Include="MemberMethodTests.cs" />
+    <Compile Include="MonoBehaviourFake.cs" />
+    <Compile Include="NamingTests.cs" />
+    <Compile Include="ScriptableObjectFake.cs" />
+    <Compile Include="StaticAccessorTests.cs" />
+    <Compile Include="NativeHeaderTests.cs" />
+    <Compile Include="OutRefTests.cs" />
+    <Compile Include="ParameterTests.cs" />
+    <Compile Include="PropertyTests.cs" />
+    <Compile Include="StaticMethodTests.cs" />
+    <Compile Include="ExternTests.cs" />
+    <Compile Include="CppGeneratorTests.cs" />
+    <Compile Include="MarshallingStructTests.cs" />
+    <Compile Include="StubTests.cs" />
+    <Compile Include="SystemTypeTests.cs" />
+    <Compile Include="ThreadAttributeTests.cs" />
+    <Compile Include="TypeFilterTests.cs" />
+    <Compile Include="TypeUtilsTests.cs" />
+    <Compile Include="UnityEngineObjectFake.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)/Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

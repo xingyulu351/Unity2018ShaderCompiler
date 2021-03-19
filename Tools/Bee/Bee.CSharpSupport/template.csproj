@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>@@PROJECT_GUID@@</ProjectGuid>
+    <OutputType>@@OUTPUT_TYPE@@</OutputType>
+    <RootNamespace>@@ROOT_NAMESPACE@@</RootNamespace>
+    <AssemblyName>@@ASSEMBLY_NAME@@</AssemblyName>
+    <TargetFrameworkVersion>v@@FRAMEWORK_VERSION@@</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>@@LANGVERSION@@</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>@@OUTPUT_PATH@@\Debug\</OutputPath>
+    <DefineConstants>@@DEFINES_DEBUG@@</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>@@WARNINGS_AS_ERRORS@@</TreatWarningsAsErrors>
+    <NoWarn>@@IGNORED_WARNINGS@@</NoWarn>
+    <AllowUnsafeBlocks>@@ALLOW_UNSAFE@@</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>@@OUTPUT_PATH@@\Release\</OutputPath>
+    <DefineConstants>@@DEFINES_RELEASE@@</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>@@WARNINGS_AS_ERRORS@@</TreatWarningsAsErrors>
+    <NoWarn>@@IGNORED_WARNINGS@@</NoWarn>
+    <AllowUnsafeBlocks>@@ALLOW_UNSAFE@@</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+@@REFERENCES@@
+  </ItemGroup>
+  <ItemGroup>
+@@FILES@@
+  </ItemGroup>
+  <ItemGroup>
+@@PROJECT_REFERENCES@@
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+@@BUILD_EVENTS@@
+</Project>

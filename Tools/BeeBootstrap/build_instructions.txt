@@ -1,0 +1,5 @@
+To build a new bee_bootstrap.exe, do:
+
+mono Tools/BeeBootstrap/bee_bootstrap.exe bee
+
+you will find a new version of bee.exe, and of bee_bootstrap.exe built waiting for you in build/BeeDistribution/

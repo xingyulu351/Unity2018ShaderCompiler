@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B894E28A-AF1E-3306-78E9-09D59E3935EC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Bee.CSharpSupport.Unity.Tests</RootNamespace>
+    <AssemblyName>Bee.CSharpSupport.Unity.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>7</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Bee.CSharpSupport.Unity.Tests\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Bee.CSharpSupport.Unity.Tests\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="nunit.framework" >
+      <HintPath>..\..\..\External\NUnit\framework\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Moq" >
+      <HintPath>..\..\..\External\Moq\Moq.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="dummy.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.gen.csproj" >
+      <Project>{821B9927-8824-7A63-753A-B0722FEA2C3D}</Project>
+      <Name>NiceIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools\Bee.Tools.gen.csproj" >
+      <Project>{0A5A7B4F-EB80-9EEF-1943-D14B1AE24DB8}</Project>
+      <Name>Bee.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core\Bee.Core.gen.csproj" >
+      <Project>{7FB12158-1066-6DF7-CDB5-E7F236032555}</Project>
+      <Name>Bee.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet\Bee.DotNet.gen.csproj" >
+      <Project>{2E85F509-C5FC-E315-F060-A392C39587BD}</Project>
+      <Name>Bee.DotNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore\Bee.Stevedore.gen.csproj" >
+      <Project>{62ED546F-A811-D28C-3694-1342EF18FD27}</Project>
+      <Name>Bee.Stevedore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program\Bee.Stevedore.Program.gen.csproj" >
+      <Project>{74E29FE0-0493-43E5-B53D-B1280F9ECDC0}</Project>
+      <Name>Bee.Stevedore.Program</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport\Bee.CSharpSupport.gen.csproj" >
+      <Project>{52FFA209-FBF3-6B09-42BC-6919C343AC93}</Project>
+      <Name>Bee.CSharpSupport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Bee.CSharpSupport.Unity\Bee.CSharpSupport.Unity.gen.csproj" >
+      <Project>{56572334-7CE1-4BFC-B54C-49AB521CE39D}</Project>
+      <Name>Bee.CSharpSupport.Unity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.TestHelpers\Bee.TestHelpers.gen.csproj" >
+      <Project>{B0875520-0C80-E536-A85E-3CBF3BE18E2C}</Project>
+      <Name>Bee.TestHelpers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.Tests\NiceIO.Tests.gen.csproj" >
+      <Project>{0226786E-32B0-BD1F-C263-2AE906917131}</Project>
+      <Name>NiceIO.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core.Tests\Bee.Core.Tests.gen.csproj" >
+      <Project>{1B2C559D-AB10-5F05-8048-95E4A95BB33A}</Project>
+      <Name>Bee.Core.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Tests\Bee.Stevedore.Tests.gen.csproj" >
+      <Project>{9EE9C4B3-1A70-8DD9-F4C1-E51C69CC08A2}</Project>
+      <Name>Bee.Stevedore.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program.Tests\Bee.Stevedore.Program.Tests.gen.csproj" >
+      <Project>{CF1D1FCE-75BC-882A-2955-B35D2D4B6D45}</Project>
+      <Name>Bee.Stevedore.Program.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport.Tests\Bee.CSharpSupport.Tests.gen.csproj" >
+      <Project>{B2971572-9317-1472-BDAF-1D0EF01B55F5}</Project>
+      <Name>Bee.CSharpSupport.Tests</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

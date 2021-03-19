@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{51E2BC0C-0E69-4504-BABA-5E92FA1E8AA6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AssemblyPatcher.Tests</RootNamespace>
+    <AssemblyName>AssemblyPatcher.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Cecil">
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Mdb">
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Pdb">
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Rocks">
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Rocks.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\External\NUnit\framework\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyPatcher.Tests\Misc\SimpleMemberReferenceTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\AssemblyPatcherTestBase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\AssemblyPatcherTestSpec.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\BaseClassRetargetingTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Configuration\ConfigurationParserTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\CatchStatementTypeReferencesTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\BasicEventsTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\ConditionalPatchRuleClashTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\OutParameterTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\TargetReplacementMethodInSameAssemblyAsSourceTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\SignedAssembliesTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\ResignAssemblyTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\TryFinallyNoCatchStatementTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\VoidMethodBodyRemovalTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\NonVoidMethodBodyRemovalThrows.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\FieldsTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\RemovingMethodCallsAtTryCatchFinallyBoundariesTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\MapTypeMemberAccessToThrowingMethodTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\NestedTypesTestCase.cs" />
+    <Compile Include="AssemblyPatcher.Tests\Patching\PatchRulePrecedenceTestCase.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="TestScenarios\RemovingMethodCallsAtTryCatchFinallyBoundaries.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="TestScenarios\OutParameter.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="TestScenarios\TargetReplacementMethodInSameAssemblyAsSource.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\ConditionalPatchRuleClash.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\MapAllTypeMemberAccessToThrowingMethod.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="TestAssemblyKey.snk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="TestScenarios\BasicEvents.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\NonVoidMethodBodyRemovalThrows.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\VoidMethodBodyRemoval.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\Fields.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\TryFinallyNoCatchStatement.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\CatchStatementTypeReferences.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\MapTypeMemberAccessToThrowingMethod.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\NestedTypes.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\ConditionalAndPatchRulePrecedence.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\PatchRulePrecedence.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="TestScenarios\BaseTypeRetargeting.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AssemblyPatcher.Tests.ExternalAssembly\AssemblyPatcher.Tests.ExternalAssembly.csproj">
+      <Project>{CAEDEAE7-8D4F-4F6B-B13D-A4CD99E17E5C}</Project>
+      <Name>AssemblyPatcher.Tests.ExternalAssembly</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AssemblyPatcher.Tests.Interfaces\AssemblyPatcher.Tests.Interfaces.csproj">
+      <Project>{c9ed3660-709b-4748-88bf-170186c2a6c8}</Project>
+      <Name>AssemblyPatcher.Tests.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AssemblyPatcher\AssemblyPatcher.csproj">
+      <Project>{4704A31C-F686-4FEC-B38C-A2758842F037}</Project>
+      <Name>AssemblyPatcher</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

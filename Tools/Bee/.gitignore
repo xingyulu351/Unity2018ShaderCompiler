@@ -1,0 +1,6 @@
+obj
+bin
+*.gen.*
+build
+artifacts
+.idea

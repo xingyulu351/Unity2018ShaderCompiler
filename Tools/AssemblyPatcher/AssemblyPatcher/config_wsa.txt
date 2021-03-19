@@ -1,0 +1,89 @@
+|System.Reflection.MethodInfo Boo.Lang.Runtime.RuntimeServices::FindImplicitConversionOperator(System.Type,System.Type)| System.Reflection.MethodInfo[] System.Type::GetMethods(System.Reflection.BindingFlags) -> [WinRTLegacy] System.Reflection.MethodInfo[] WinRTLegacy.TypeExtensions::GetOpImplicitMethodsFromTypeHierarchy(System.Type,System.Reflection.BindingFlags)
+
+|System.Boolean UnityScript.Lang.Extensions::op_Implicit(System.Enum)| System.Int32 System.IConvertible::ToInt32(System.IFormatProvider) -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::EnumToBoolean(System.Enum,System.Object)
+
+System.Reflection.MemberTypes -> [WinRTLegacy] 
+System.Reflection.BindingFlags -> [WinRTLegacy]
+System.TypeCode -> [WinRTLegacy] 
+
+System.Collections.CollectionBase -> [WinRTLegacy] System.Collections.CollectionBase
+System.Collections.Hashtable -> [WinRTLegacy] System.Collections.Hashtable
+System.Collections.ArrayList -> [WinRTLegacy] System.Collections.ArrayList
+
+System.ApplicationException -> [WinRTLegacy] 
+System.MissingFieldException -> System.MissingMemberException
+System.MissingMethodException -> System.MissingMemberException
+
+System.Boolean Boo.Lang.Runtime.RuntimeServices::UnboxBoolean(System.Object) -> [WinRTLegacy] System.Boolean WinRTLegacy.Boo.Lang.Runtime.RuntimeServices::ToBool(System.Object)
+
+System.Boolean System.Type::IsSubclassOf(System.Type) -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::IsSubClassOf(System.Type,System.Type)
+System.Boolean System.Type::IsAssignableFrom(System.Type) -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::IsSubClassOf(System.Type,System.Type)
+System.TypeCode System.Type::GetTypeCode(System.Type) -> [WinRTLegacy] System.TypeCode WinRTLegacy.TypeExtensions::GetTypeCode(System.Type)
+
+System.Boolean System.Reflection.MethodInfo::op_Inequality(System.Reflection.MethodInfo,System.Reflection.MethodInfo) -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::ReferenceNotEquals(System.Object,System.Object)
+
+System.Boolean System.Type::op_Inequality(System.Type,System.Type) -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::ReferenceNotEquals(System.Object,System.Object)
+
+System.Boolean System.Type::op_Equality(System.Type,System.Type) -> System.Boolean System.Object::ReferenceEquals(System.Object,System.Object)
+System.Boolean System.Reflection.PropertyInfo::op_Equality(System.Reflection.PropertyInfo,System.Reflection.PropertyInfo) -> System.Boolean System.Object::ReferenceEquals(System.Object,System.Object)
+System.Boolean System.Reflection.MethodInfo::op_Equality(System.Reflection.MethodInfo,System.Reflection.MethodInfo) -> System.Boolean System.Object::ReferenceEquals(System.Object,System.Object)
+	
+System.Boolean System.Type::get_IsValueType() -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::IsValueType(System.Type)
+System.Boolean System.Type::IsInstanceOfType(System.Object) -> [WinRTLegacy] System.Boolean WinRTLegacy.TypeExtensions::IsInstanceOfType(System.Type,System.Object)
+
+System.Boolean System.Type::IsAssignableFrom(System.Type) -> [WinRTLegacy] System.Boolean Unity.Partial.System.Type::IsAssignableFrom(System.Type,System.Type)
+System.Reflection.MethodInfo System.Type::GetMethod(System.String) -> [WinRTLegacy] System.Reflection.MethodInfo Unity.Partial.System.Type::GetMethod(System.Type,System.String)
+System.Type[] System.Type::GetInterfaces() -> [WinRTLegacy] System.Type[] WinRTLegacy.TypeExtensions::GetInterfaces(System.Type)
+System.Type[] System.Type::GetGenericArguments() -> [WinRTLegacy] System.Type[] Unity.Partial.System.Type::GetGenericArguments(System.Type) 
+System.Boolean System.Attribute::IsDefined(System.Reflection.MemberInfo,System.Type) -> [WinRTLegacy] System.Boolean Unity.Partial.System.Attribute::IsDefined(System.Reflection.MemberInfo,System.Type)
+System.Boolean System.Type::get_IsInterface() -> [WinRTLegacy] System.Boolean Unity.Partial.System.Type::get_IsInterface(System.Type)
+System.Type System.Type::get_BaseType() -> [WinRTLegacy] System.Type Unity.Partial.System.Type::get_BaseType(System.Type)
+
+System.Attribute System.Attribute::GetCustomAttribute(System.Reflection.MemberInfo,System.Type) -> [WinRTLegacy] System.Attribute Unity.Partial.System.Attribute::GetCustomAttribute(System.Reflection.MemberInfo,System.Type)
+System.Reflection.FieldInfo System.Type::GetField(System.String) -> [WinRTLegacy] System.Reflection.FieldInfo Unity.Partial.System.Type::GetField(System.Type,System.String)
+System.Reflection.MethodInfo System.Type::GetMethod(System.String,System.Reflection.BindingFlags) -> [WinRTLegacy] System.Reflection.MethodInfo WinRTLegacy.TypeExtensions::GetMethod(System.Type,System.String,System.Reflection.BindingFlags)
+System.Type[] System.Type::EmptyTypes -> [WinRTLegacy] System.Type[] WinRTLegacy.TypeExtensions::EmptyTypes
+System.String System.String::Empty -> [WinRTLegacy] System.String WinRTLegacy.TypeExtensions::StringEmpty
+
+System.Reflection.MethodInfo System.Delegate::get_Method() -> [WinRTLegacy] System.Reflection.MethodInfo WinRTLegacy.DelegateExtensions::GetMethod(System.Delegate)
+
+System.Void System.Array::CopyTo(System.Array,System.Int64) -> [WinRTLegacy] System.Void WinRTLegacy.ArrayExtensions::CopyTo(System.Array,System.Array,System.Int64)
+
+System.String System.Environment::get_MachineName() -> [WinRTLegacy] System.String WinRTLegacy.Environment::get_MachineName()
+[mscorlib] System.Int32 System.Runtime.InteropServices.ExternalException::get_ErrorCode() -> [WinRTLegacy] System.Int32 System.Net.Sockets.SocketException::get_ErrorCode()
+
+System.Net.Dns -> [WinRTLegacy]
+System.Net.EndPoint -> [WinRTLegacy]
+System.Net.IPAddress -> [WinRTLegacy]
+System.Net.IPEndPoint -> [WinRTLegacy]
+System.Net.IPHostEntry -> [WinRTLegacy]
+System.Net.Sockets.AddressFamily -> [WinRTLegacy]
+System.Net.Sockets.SocketException -> [WinRTLegacy]
+
+# The following rules will make unavailable members to be replaced to throw exceptions
+# TO DO: Implement ones that aren't impossible
+
+System.Reflection.Binder -> # this means, replace all references for Binder with Object and all member references throws
+System.Object System.Type::InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[]) ->
+
+System.Void System.Console::WriteLine(System.Object) -> 
+System.Void System.Console::Write(System.String) -> 
+System.String System.Console::ReadLine() -> 
+
+System.Reflection.MemberInfo[] System.Type::GetMember(System.String,System.Reflection.MemberTypes,System.Reflection.BindingFlags) -> 
+System.Reflection.MethodInfo[] System.Type::GetMethods(System.Reflection.BindingFlags) -> 
+System.Reflection.MethodInfo System.Reflection.PropertyInfo::GetGetMethod(System.Boolean) -> 
+System.Reflection.MemberTypes System.Reflection.MemberInfo::get_MemberType() -> 
+System.Boolean System.Type::get_ContainsGenericParameters() -> 
+
+System.Boolean System.Type::get_IsCOMObject() -> 
+System.Boolean System.Reflection.ParameterInfo::IsDefined(System.Type,System.Boolean) -> 
+System.Delegate System.Delegate::CreateDelegate(System.Type,System.Reflection.MethodInfo) -> 
+System.StringComparer System.StringComparer::get_InvariantCultureIgnoreCase() -> 
+System.Version System.Environment::get_Version() -> 
+System.Array System.Array::CreateInstance(System.Type,System.Int32) -> 
+System.Void System.Array::SetValue(System.Object,System.Int32) -> 
+System.Object System.Array::GetValue(System.Int32) -> 
+System.String System.String::Format(System.String,System.Object) -> 
+System.String System.String::Format(System.String,System.Object,System.Object) -> 
+System.String System.String::Format(System.String,System.Object,System.Object,System.Object) -> 

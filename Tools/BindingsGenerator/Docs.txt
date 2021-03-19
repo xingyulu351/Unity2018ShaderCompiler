@@ -1,0 +1,1 @@
+.bindings.cs documentation has been moved to https://confluence.hq.unity3d.com/pages/viewpage.action?pageId=41071926

@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+###############################################################################
+#
+# auto_quitter, run with a list of process ids and terminates them if the parent process quits
+#
+###############################################################################
+
+use strict;
+use warnings;
+use POSIX qw(SIGTERM SIGKILL SIGCONT SIGINT);
+
+# We print status messages directly to the console in order to be as transparent as possible
+open CONSOLE, '>/dev/console';
+
+my $my_name=$0;
+$my_name =~ s{^.*/(.+)$}{$1};
+if (! @ARGV) {
+	die "Usage:\n  $my_name pid1 [pid2 [pid3 ...]]\n\n";
+}
+
+my @siblings=@ARGV;
+
+while (1) {
+	sleep 5;
+
+	my $current_ppid = getppid;
+	if($current_ppid == 1) {
+		print CONSOLE "$my_name: my parent process has terminated, exiting and killing @siblings.\n";
+		kill SIGCONT, @siblings; #make sure they are awake
+		kill SIGINT, @siblings;
+		sleep 20;
+		# Make sure they are gone
+		kill SIGKILL, @siblings;
+		
+		exit 0;
+	}
+
+}

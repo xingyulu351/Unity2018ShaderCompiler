@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{ED60EB11-B581-A68F-EB4A-E69C9DD616E7}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BindingsGenerator</RootNamespace>
+    <AssemblyName>BindingsGenerator</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>6</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\BindingsGenerator\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\BindingsGenerator\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Unity.Cecil" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Pdb" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Mdb" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Cecil.Rocks" >
+      <HintPath>..\..\..\External\Unity.Cecil\builds\lib\net40\Unity.Cecil.Rocks.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="..\..\..\External\JsonParsers\MiniJson\MiniJSON.cs">
+    <Link>External\JsonParsers\MiniJson\MiniJSON.cs</Link>
+  </Compile>
+  <Compile Include="..\..\..\Editor\Mono\Scripting\Compilers\NuGetPackageResolver.cs">
+    <Link>Editor\Mono\Scripting\Compilers\NuGetPackageResolver.cs</Link>
+  </Compile>
+  <Compile Include="..\..\Unity.NuGetPackageResolver\NuGetAssemblyResolver.cs">
+    <Link>Tools\Unity.NuGetPackageResolver\NuGetAssemblyResolver.cs</Link>
+  </Compile>
+  <Compile Include="..\..\Unity.NuGetPackageResolver\SearchPathAssemblyResolver.cs">
+    <Link>Tools\Unity.NuGetPackageResolver\SearchPathAssemblyResolver.cs</Link>
+  </Compile>
+  <Compile Include="BindingsGenerator.cs">
+  </Compile>
+  <Compile Include="FilteredTreeGenerator.cs">
+  </Compile>
+  <Compile Include="Program.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Unity.Options\Unity.Options\BindingsGenerator.Core.gen.csproj" >
+      <Project>{71DBDDC1-901D-986D-A7DB-DDF61E195695}</Project>
+      <Name>BindingsGenerator.Core</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

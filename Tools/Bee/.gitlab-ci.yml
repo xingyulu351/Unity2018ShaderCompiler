@@ -1,0 +1,46 @@
+image: mono
+
+variables:
+    DOWNSTREAM_STDOUT_CONSUMER_SUPPORTS_COLOR: "1"
+
+build:linux:
+  stage: build
+  script:
+    - apt-get update
+    - apt-get install -y -qq libunwind8 icu-devtools gcc g++
+    - mono bee_bootstrap.exe
+    - sh artifacts/runtests
+  artifacts:
+    paths:
+    - artifacts/testresults.html
+    - artifacts/testresults.xml
+
+build:osx:
+  stage: build
+  tags:
+    - buildfarm
+    - darwin
+  script:
+    - mono bee_bootstrap.exe
+    - sh artifacts/runtests
+  artifacts:
+    paths:
+    - artifacts/testresults.html
+    - artifacts/testresults.xml
+# Important! Do not remove this after_script as the VM will live for 12 hours before being destroyed!    
+  after_script:
+    - /opt/post_build_script.sh    
+
+build:win:
+  stage: build
+  tags:
+    - buildfarm
+    - windows
+  script:
+    - ./bee_bootstrap.exe
+    - sh ./artifacts/runtests
+
+# Important! Do not remove this after_script as the VM will live for 12 hours before being destroyed!
+  after_script:
+    - C:\Users\builduser\post_build_script.bat
+

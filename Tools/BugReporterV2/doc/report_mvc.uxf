@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>11</zoom_level>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>737</x>
+      <y>880</y>
+      <w>54</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;77</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>99</x>
+      <y>1727</y>
+      <w>242</w>
+      <h>143</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+&lt;&lt;model&gt;&gt;
+Desk
+--
+- report: ReportDraft
+--
++ GetReport (): ReportDraft
++ PlaceReport (:ReportDraft)
++ AddMonitor (:DeskMonitor)
++ RemoveMonitor (:DeskMonitor)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>693</x>
+      <y>2211</y>
+      <w>54</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;121</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>572</x>
+      <y>2123</y>
+      <w>308</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+&lt;&lt;model&gt;&gt;
+SendReportStatus
+--
++ GetProgress
++ SetProgress
++ AddMonitor (:SendReportMonitor)
++ RemoveMonitor (:SendReportMonitor)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>308</x>
+      <y>1694</y>
+      <w>241</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;notifies&gt;&gt;
+lt=&lt;-</panel_attributes>
+    <additional_attributes>220;55;33;55</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>286</x>
+      <y>2376</y>
+      <w>187</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+/ReportSender/
+--
+SetProgressCallback</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>198</x>
+      <y>1584</y>
+      <w>165</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>bg=light_gray
+SingleFileAttachment</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>242</x>
+      <y>1936</y>
+      <w>307</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;286;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>77</x>
+      <y>1342</y>
+      <w>450</w>
+      <h>329</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>429;275;429;308;33;308;33;66;286;66;286;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>506</x>
+      <y>1331</y>
+      <w>791</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+</panel_attributes>
+    <additional_attributes>33;121;660;121;770;121;770;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>638</x>
+      <y>1716</y>
+      <w>461</w>
+      <h>252</h>
+    </coordinates>
+    <panel_attributes>lt=-</panel_attributes>
+    <additional_attributes>33;231;440;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>275</x>
+      <y>1485</y>
+      <w>131</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>110;33;110;77;33;77;33;99</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>286</x>
+      <y>1309</y>
+      <w>154</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>bg=light_gray
+&lt;&lt;implementation&gt;&gt;
+AttachementFactory
+--
+- fileGateway</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1078</x>
+      <y>2211</y>
+      <w>54</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;121</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1100</x>
+      <y>1243</y>
+      <w>54</w>
+      <h>483</h>
+    </coordinates>
+    <panel_attributes>lt=-</panel_attributes>
+    <additional_attributes>33;33;33;462</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>880</x>
+      <y>1155</y>
+      <w>131</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+&lt;&lt;uses&gt;&gt;</panel_attributes>
+    <additional_attributes>33;55;110;55</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1012</x>
+      <y>2332</y>
+      <w>209</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>bg=green
+&lt;&lt;view&gt;&gt;
+SendReportProgressDialog
+--
+- model: SendReportStatus</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>572</x>
+      <y>1749</y>
+      <w>54</w>
+      <h>219</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;198</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>913</x>
+      <y>737</y>
+      <w>439</w>
+      <h>582</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;341;33;341;286;418;286;418;561</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1034</x>
+      <y>2123</y>
+      <w>165</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>bg=cyan
+&lt;&lt;observer&gt;&gt;
+/SendReportMonitor/
+--
+/ + Started/
+/ + Updated/
+/ + Completed/
+/ + Aborted/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>990</x>
+      <y>1188</y>
+      <w>242</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>bg=green
+&lt;&lt;view&gt;&gt;
+ComposeReportForm
+--
+- model: Report
+- controller: ReportDraftController</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>429</x>
+      <y>1100</y>
+      <w>230</w>
+      <h>109</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>209;88;33;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>517</x>
+      <y>946</y>
+      <w>142</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>121;33;33;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>198</x>
+      <y>1342</y>
+      <w>186</w>
+      <h>263</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>33;242;33;66;165;66;165;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>638</x>
+      <y>957</y>
+      <w>264</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+&lt;&lt;model&gt;&gt;
+/ReportDraft/
+--
+/+ SetTitle (:string)/
+/+ SetDescription (:string)/
+/+ SetEmail (:string)/
+/+ WriteFact (:FactName, :Fact)/
+/+ Attach (:Attachement)/
+/+ RemoveAttachment (:Attachment)/
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>847</x>
+      <y>2211</y>
+      <w>186</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;165;121</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1078</x>
+      <y>990</y>
+      <w>54</w>
+      <h>219</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;198</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>352</x>
+      <y>1485</y>
+      <w>142</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;77;121;77;121;99</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>913</x>
+      <y>814</y>
+      <w>212</w>
+      <h>153</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+&lt;&lt;notifies&gt;&gt;</panel_attributes>
+    <additional_attributes>143;132;143;55;33;55</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>748</x>
+      <y>1331</y>
+      <w>54</w>
+      <h>208</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>33;33;33;187</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>638</x>
+      <y>1188</y>
+      <w>275</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+&lt;&lt;controller&gt;&gt;
+/ComposeReportController/
+--
+/+ SetReport (:ReportDraft)/
+/+ SetTitle(:string)/
+/+ SetDescription(:string)/
+/+ SetEmail (:string)/
+/+ AttachFile (path:string)/
+/+ AttachDirectory (path:string)/
+/+ RemoveAttachment (:Attachment)/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>440</x>
+      <y>2321</y>
+      <w>219</w>
+      <h>87</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;66;198;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>330</x>
+      <y>1232</y>
+      <w>54</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;77</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1199</x>
+      <y>1298</y>
+      <w>176</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>bg=green
+&lt;&lt;view&gt;&gt;
+PreviewReportForm
+--
+- model: Report</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.SequenceDiagram</type>
+    <coordinates>
+      <x>198</x>
+      <y>0</y>
+      <w>1034</w>
+      <h>715</h>
+    </coordinates>
+    <panel_attributes>title: Fill report
+_client_~client|_controller:ReportWorksheet_~ctrl|_view:MainWindow_~view|_model:ReportDraft_~model
+client-&gt;ctrl:ctrl:fill report
+iframe{:fill form
+ctrl-&gt;model:ctrl:getTitle
+ctrl-&gt;view:ctrl:setReportTitle
+ctrl-&gt;model:ctrl:getTextualDescription
+ctrl-&gt;view:ctrl:setAdditionalInfo
+iframe}
+ctrl-&gt;view:ctrl:show
+iframe{:update report
+ctrl-&gt;view:ctrl:getReportTitle
+ctrl-&gt;model:ctrl:setTitle
+ctrl-&gt;view:ctrl:getAdditionalInfo
+ctrl-&gt;model:ctrl:setTextualDescription
+ctrl-&gt;view:ctrl:getAttachedFiles
+iframe{:loop
+ctrl-&gt;model:ctrl:attach
+iframe}
+iframe}
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>242</x>
+      <y>1078</y>
+      <w>220</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>bg=light_gray
+&lt;&lt;implementation&gt;&gt;
+ComposeReportController</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>165</x>
+      <y>1837</y>
+      <w>54</w>
+      <h>131</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>638</x>
+      <y>2332</y>
+      <w>187</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+&lt;&lt;controller&gt;&gt;
+SendReportController
+--
++ Send
++ Cancel</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>792</x>
+      <y>2321</y>
+      <w>241</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;220;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>110</x>
+      <y>1188</y>
+      <w>440</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+/AttachmentFactory/
+--
+/+ CreateFileAttachment (path:string): Attachment/
+/+ CreateDirectoryAttachment (path:string): Attachment/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>1078</x>
+      <y>990</y>
+      <w>219</w>
+      <h>329</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>33;33;33;132;198;132;198;308</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>286</x>
+      <y>1100</y>
+      <w>130</w>
+      <h>109</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+&lt;&lt;uses&gt;&gt;</panel_attributes>
+    <additional_attributes>66;88;66;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>847</x>
+      <y>2112</y>
+      <w>208</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>187;33;33;33</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>759</x>
+      <y>1243</y>
+      <w>373</w>
+      <h>296</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>352;33;33;275</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>429</x>
+      <y>1232</y>
+      <w>362</w>
+      <h>307</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>33;33;341;286</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>693</x>
+      <y>1518</y>
+      <w>187</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>bg=black
+fg=white
+ReportWorksheet
+--
+FillReport (:ReportDraft)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>528</x>
+      <y>1947</y>
+      <w>143</w>
+      <h>44</h>
+    </coordinates>
+    <panel_attributes>bg=green
+&lt;&lt;view&gt;&gt;
+DeskForm</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>121</x>
+      <y>1947</y>
+      <w>154</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>bg=blue
+&lt;&lt;controller&gt;&gt;
+DeskController
+--
++ ComposeReport
++ PreviewReport
++ SendReport</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>693</x>
+      <y>1089</y>
+      <w>143</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+&lt;&lt;modifies&gt;&gt;</panel_attributes>
+    <additional_attributes>77;33;77;99</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1078</x>
+      <y>1705</y>
+      <w>110</w>
+      <h>44</h>
+    </coordinates>
+    <panel_attributes>bg=green
+&lt;&lt;view&gt;&gt;
+MainWindow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>308</x>
+      <y>1837</y>
+      <w>241</w>
+      <h>131</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>33;33;220;110</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>374</x>
+      <y>957</y>
+      <w>176</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>bg=light_gray
+&lt;&lt;implementation&gt;&gt;
+ReportDraft</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>1012</x>
+      <y>946</y>
+      <w>187</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>bg=cyan
+&lt;&lt;observer&gt;&gt;
+/ReportMonitor/
+--
+/+ ReportUpdated ()/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>528</x>
+      <y>1727</y>
+      <w>165</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>bg=cyan
+/DeskMonitor/
+--
+/+ ReportPlaced ()/
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>913</x>
+      <y>737</y>
+      <w>400</w>
+      <h>494</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+&lt;&lt;reads&gt;&gt;</panel_attributes>
+    <additional_attributes>33;33;341;33;341;473;319;473</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>253</x>
+      <y>1430</y>
+      <w>286</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+&lt;&lt;model&gt;&gt;
+/Attachment/
+--
+/+ Pack (:FilesPacker)/
+/+ GetTextualForm (): Collection&lt;string&gt;/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>407</x>
+      <y>1584</y>
+      <w>209</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>bg=light_gray
+PackedDirectoryAttachment</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>605</x>
+      <y>748</y>
+      <w>341</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>bg=orange
+&lt;&lt;model&gt;&gt;
+/Report/
+--
+/+ GetTitle (): string/
+/+ GetDescription (): string/
+/+ ReadFact (:FactName): Fact/
+/+ GetAttachements (): Collection&lt;Attachment&gt;/
+/+ AddMonitor (:ReportMonitor)/
+/+ RemoveMonitor (:ReportMonitor)/
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>506</x>
+      <y>1243</y>
+      <w>602</w>
+      <h>231</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+&lt;&lt;shows&gt;&gt;</panel_attributes>
+    <additional_attributes>33;209;539;209;539;33</additional_attributes>
+  </element>
+</diagram>

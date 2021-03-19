@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FE860853-9C0F-854D-FE07-B27C06B82873}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Bee.Toolchain.Emscripten.Unity</RootNamespace>
+    <AssemblyName>Bee.Toolchain.Emscripten.Unity</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>7</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Bee.Toolchain.Emscripten.Unity\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Bee.Toolchain.Emscripten.Unity\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="UnityEmscriptenToolchain.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.gen.csproj" >
+      <Project>{821B9927-8824-7A63-753A-B0722FEA2C3D}</Project>
+      <Name>NiceIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools\Bee.Tools.gen.csproj" >
+      <Project>{0A5A7B4F-EB80-9EEF-1943-D14B1AE24DB8}</Project>
+      <Name>Bee.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core\Bee.Core.gen.csproj" >
+      <Project>{7FB12158-1066-6DF7-CDB5-E7F236032555}</Project>
+      <Name>Bee.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Core\Bee.NativeProgramSupport.Core.gen.csproj" >
+      <Project>{02A115F7-1A56-6F66-87E4-10A346B2744E}</Project>
+      <Name>Bee.NativeProgramSupport.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Running\Bee.NativeProgramSupport.Running.gen.csproj" >
+      <Project>{D845801D-3932-542C-0FB6-EF44CB3D78CF}</Project>
+      <Name>Bee.NativeProgramSupport.Running</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.NativeProgramSupport.Building\Bee.NativeProgramSupport.Building.gen.csproj" >
+      <Project>{BCDC99E7-042A-BE8B-012F-156C52B915D9}</Project>
+      <Name>Bee.NativeProgramSupport.Building</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore\Bee.Stevedore.gen.csproj" >
+      <Project>{62ED546F-A811-D28C-3694-1342EF18FD27}</Project>
+      <Name>Bee.Stevedore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.GNU\Bee.Toolchain.GNU.gen.csproj" >
+      <Project>{43AA3E7F-F59A-31EB-DE9E-D8EECCF86A05}</Project>
+      <Name>Bee.Toolchain.GNU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Xcode\Bee.Toolchain.Xcode.gen.csproj" >
+      <Project>{0DA4FDDD-0F42-B671-1E68-60758C2B478A}</Project>
+      <Name>Bee.Toolchain.Xcode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.LLVM\Bee.Toolchain.LLVM.gen.csproj" >
+      <Project>{99B0EFB7-07B2-561C-98F4-38D0E9657EDC}</Project>
+      <Name>Bee.Toolchain.LLVM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.VisualStudio\Bee.Toolchain.VisualStudio.gen.csproj" >
+      <Project>{51BEE503-CEB3-353C-05A2-AD10282AF45F}</Project>
+      <Name>Bee.Toolchain.VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.ARM\Bee.Toolchain.ARM.gen.csproj" >
+      <Project>{5F257235-A850-C839-B32D-58C3DCA44EF2}</Project>
+      <Name>Bee.Toolchain.ARM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.ProgramRunner.CLI\Bee.ProgramRunner.CLI.gen.csproj" >
+      <Project>{27CC708C-3CD1-C0F9-E6BB-3AC650CC433C}</Project>
+      <Name>Bee.ProgramRunner.CLI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet\Bee.DotNet.gen.csproj" >
+      <Project>{2E85F509-C5FC-E315-F060-A392C39587BD}</Project>
+      <Name>Bee.DotNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program\Bee.Stevedore.Program.gen.csproj" >
+      <Project>{74E29FE0-0493-43E5-B53D-B1280F9ECDC0}</Project>
+      <Name>Bee.Stevedore.Program</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Toolchain.Emscripten\Bee.Toolchain.Emscripten.gen.csproj" >
+      <Project>{31CCB3B8-DAAE-649D-CA8E-F07D2209822C}</Project>
+      <Name>Bee.Toolchain.Emscripten</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{56572334-7CE1-4BFC-B54C-49AB521CE39D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Bee.CSharpSupport.Unity</RootNamespace>
+    <AssemblyName>Bee.CSharpSupport.Unity</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <LangVersion>7</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Bee.CSharpSupport.Unity\Debug\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\artifacts\Bee.CSharpSupport\Bee.CSharpSupport.Unity\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn></NoWarn>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+
+  </ItemGroup>
+  <ItemGroup>
+  <Compile Include="MonoBleedingEdgeRuntimeProvider.cs">
+  </Compile>
+  <Compile Include="UnityVersionedCSharpCompilerProvider.cs">
+  </Compile>
+  <Compile Include="UnityVersionedReferenceAssemblyProvider.cs">
+  </Compile>
+
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\External\NiceIO\NiceIO.gen.csproj" >
+      <Project>{821B9927-8824-7A63-753A-B0722FEA2C3D}</Project>
+      <Name>NiceIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Tools\Bee.Tools.gen.csproj" >
+      <Project>{0A5A7B4F-EB80-9EEF-1943-D14B1AE24DB8}</Project>
+      <Name>Bee.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Core\Bee.Core.gen.csproj" >
+      <Project>{7FB12158-1066-6DF7-CDB5-E7F236032555}</Project>
+      <Name>Bee.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.DotNet\Bee.DotNet.gen.csproj" >
+      <Project>{2E85F509-C5FC-E315-F060-A392C39587BD}</Project>
+      <Name>Bee.DotNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore\Bee.Stevedore.gen.csproj" >
+      <Project>{62ED546F-A811-D28C-3694-1342EF18FD27}</Project>
+      <Name>Bee.Stevedore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.Stevedore.Program\Bee.Stevedore.Program.gen.csproj" >
+      <Project>{74E29FE0-0493-43E5-B53D-B1280F9ECDC0}</Project>
+      <Name>Bee.Stevedore.Program</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Bee\Bee.CSharpSupport\Bee.CSharpSupport.gen.csproj" >
+      <Project>{52FFA209-FBF3-6B09-42BC-6919C343AC93}</Project>
+      <Name>Bee.CSharpSupport</Name>
+    </ProjectReference>
+
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

@@ -1,0 +1,36 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+			"folder_exclude_patterns": ["output", "workspace"],
+			"file_exclude_patterns": ["*.*-project"]
+		}
+	],
+	"settings":
+	{
+		"line_numbers": true,
+		"tab_size": 2,
+		"translate_tabs_to_spaces": false,
+		"smart_indent": true,
+		"rulers": [80],
+		"font_face": "Consolas"
+	},
+	"build_systems":
+	[
+		{
+			"name": "JamPlus",
+			"working_dir": "${project_path:${folder}}",
+			"windows":
+			{
+				"cmd": ["build.bat", "all", "test"],
+				"file_regex": "^(?<file name>[^\\(]+)\\((?<line number>[0-9]+)\\)(?<column number>) : (?:fatal |)error [^:]+: (?<error message>.*)$"
+			},
+			"osx":
+			{
+				"cmd": ["./build.sh all test"],
+				"shell": true
+			}
+		}
+	]
+}

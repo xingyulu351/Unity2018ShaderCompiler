@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>540</x>
+      <y>730</y>
+      <w>140</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>/PreviewElement/
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>420</x>
+      <y>310</y>
+      <w>340</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>/Previewer/
+--
+/MakePreview (scene: PreviewScene)/
+/GetPreviewer (element: PreviewElement): Previewer/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>730</x>
+      <y>490</y>
+      <w>280</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>/PreviewScene/
+--
+/ShowElement (element: PreviewElement)/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>170</x>
+      <y>170</y>
+      <w>190</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>/Attachement/
+--
+/GetPreviewer (): Previewer/</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
