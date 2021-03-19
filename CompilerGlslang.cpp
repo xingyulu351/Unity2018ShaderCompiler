@@ -251,7 +251,7 @@ private:
                     StructConstant &st = structIt->second;
                     st.m_Name = structName;
                     st.m_StructSize = 0;
-                    st.m_Location = location;
+                    st.m_Location = 0;
                     st.m_ArraySize = 1;
                 }
 
